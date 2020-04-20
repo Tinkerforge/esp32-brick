@@ -955,8 +955,6 @@ NoConn ~ 7800 5300
 NoConn ~ 8200 5300
 NoConn ~ 8200 4600
 NoConn ~ 7800 4600
-Text Notes 8800 4800 0    157  ~ 0
-todo: check!
 NoConn ~ 9050 3550
 NoConn ~ 9150 3550
 NoConn ~ 9900 2600
