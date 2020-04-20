@@ -110,7 +110,7 @@ F 1 "82" H 3200 2150 50  0000 C CNN
 F 2 "kicad-libraries:4X0402" H 3200 2200 50  0001 C CNN
 F 3 "" H 3200 2200 50  0000 C CNN
 	1    3200 2200
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:R_PACK4 RP202
@@ -121,7 +121,7 @@ F 1 "82" H 3200 3450 50  0000 C CNN
 F 2 "kicad-libraries:4X0402" H 3200 3500 50  0001 C CNN
 F 3 "" H 3200 3500 50  0000 C CNN
 	1    3200 3500
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:C_PACK4 CP202
@@ -427,7 +427,7 @@ F 1 "82" H 3200 5150 50  0000 C CNN
 F 2 "kicad-libraries:4X0402" H 3200 5200 50  0001 C CNN
 F 3 "" H 3200 5200 50  0000 C CNN
 	1    3200 5200
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:R_PACK4 RP204
@@ -438,7 +438,7 @@ F 1 "82" H 3200 6450 50  0000 C CNN
 F 2 "kicad-libraries:4X0402" H 3200 6500 50  0001 C CNN
 F 3 "" H 3200 6500 50  0000 C CNN
 	1    3200 6500
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:C_PACK4 CP204
@@ -996,7 +996,7 @@ F 1 "82" H 8400 2150 50  0000 C CNN
 F 2 "kicad-libraries:4X0402" H 8400 2200 50  0001 C CNN
 F 3 "" H 8400 2200 50  0000 C CNN
 	1    8400 2200
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:R_PACK4 RP206
@@ -1007,7 +1007,7 @@ F 1 "82" H 8400 3450 50  0000 C CNN
 F 2 "kicad-libraries:4X0402" H 8400 3500 50  0001 C CNN
 F 3 "" H 8400 3500 50  0000 C CNN
 	1    8400 3500
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:C_PACK4 CP206

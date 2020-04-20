@@ -35,40 +35,27 @@ Copyright Tinkerforge GmbH 2020.\nThis documentation describes Open Hardware and
 $Comp
 L tinkerforge:LED D101
 U 1 1 5B476059
-P 7550 2400
-F 0 "D101" H 7550 2500 50  0000 C CNN
-F 1 "blue" H 7550 2300 50  0000 C CNN
-F 2 "kicad-libraries:D0603F" H 7550 2400 50  0001 C CNN
-F 3 "" H 7550 2400 50  0000 C CNN
-	1    7550 2400
+P 6950 3200
+F 0 "D101" H 6950 3300 50  0000 C CNN
+F 1 "blue" H 6950 3100 50  0000 C CNN
+F 2 "kicad-libraries:D0603F" H 6950 3200 50  0001 C CNN
+F 3 "" H 6950 3200 50  0000 C CNN
+	1    6950 3200
 	1    0    0    1   
 $EndComp
 $Comp
 L tinkerforge:3V3 #PWR0104
 U 1 1 5B47747F
-P 7350 2250
-F 0 "#PWR0104" H 7350 2350 40  0001 C CNN
-F 1 "3V3" H 7350 2375 40  0000 C CNN
-F 2 "" H 7350 2250 60  0000 C CNN
-F 3 "" H 7350 2250 60  0000 C CNN
-	1    7350 2250
+P 6750 2750
+F 0 "#PWR0104" H 6750 2850 40  0001 C CNN
+F 1 "3V3" H 6750 2875 40  0000 C CNN
+F 2 "" H 6750 2750 60  0000 C CNN
+F 3 "" H 6750 2750 60  0000 C CNN
+	1    6750 2750
 	-1   0    0    -1  
 $EndComp
-Text Notes 7750 2600 2    39   ~ 0
-"status led"
 Wire Wire Line
-	7350 2400 7350 2250
-$Comp
-L tinkerforge:R R102
-U 1 1 5B6E9741
-P 8050 2400
-F 0 "R102" V 8150 2550 50  0000 C CNN
-F 1 "1k" V 8050 2400 50  0000 C CNN
-F 2 "kicad-libraries:R0402F" H 8050 2400 60  0001 C CNN
-F 3 "" H 8050 2400 60  0000 C CNN
-	1    8050 2400
-	0    -1   1    0   
-$EndComp
+	6750 2900 6750 2750
 $Comp
 L tinkerforge:3V3 #PWR0117
 U 1 1 5B72D917
@@ -80,25 +67,23 @@ F 3 "" H 8000 850 60  0000 C CNN
 	1    8000 850 
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	7800 2400 7750 2400
-Text GLabel 12350 3650 2    39   Input ~ 0
+Text GLabel 8400 2800 0    39   Output ~ 0
 B0-CS0
-Text GLabel 12350 3750 2    39   Input ~ 0
+Text GLabel 8400 2700 0    39   Output ~ 0
 B0-CS1
-Text GLabel 7650 4400 0    39   Input ~ 0
+Text GLabel 7650 4300 0    39   Input ~ 0
 B0-MISO
 Text GLabel 7650 4500 0    39   Output ~ 0
 B0-MOSI
-Text GLabel 7650 4300 0    39   Output ~ 0
+Text GLabel 7650 4400 0    39   Output ~ 0
 B0-CLK
-Text GLabel 12350 3850 2    39   Input ~ 0
+Text GLabel 8400 2600 0    39   Output ~ 0
 B0-CS2
-Text GLabel 12350 4250 2    39   Input ~ 0
+Text GLabel 10150 2700 2    39   Output ~ 0
 B1-CS0
-Text GLabel 12350 4050 2    39   Input ~ 0
+Text GLabel 8400 2500 0    39   Output ~ 0
 B1-CS1
-Text GLabel 12350 4150 2    39   Input ~ 0
+Text GLabel 10150 2800 2    39   Output ~ 0
 B1-CS2
 Text GLabel 7650 5100 0    39   Input ~ 0
 B1-MISO
@@ -221,7 +206,7 @@ L tinkerforge:DIODESCH D102
 U 1 1 5EB466B0
 P 2350 3300
 F 0 "D102" V 2388 3221 40  0000 R CNN
-F 1 "PMEG4050" H 2400 3400 40  0000 R CNN
+F 1 "PMEG4050" H 2450 3400 40  0000 R CNN
 F 2 "kicad-libraries:SOD-128" H 2350 3300 60  0001 C CNN
 F 3 "" H 2350 3300 60  0000 C CNN
 	1    2350 3300
@@ -389,7 +374,7 @@ Wire Wire Line
 Wire Wire Line
 	1250 4000 1250 3950
 Wire Wire Line
-	1250 3950 2050 3950
+	1250 3950 1350 3950
 Wire Wire Line
 	2350 3950 2350 4450
 $Comp
@@ -900,10 +885,8 @@ Wire Wire Line
 Wire Wire Line
 	2350 5600 1350 5600
 Wire Wire Line
-	1350 4500 1350 5600
+	1350 4500 1350 4850
 Connection ~ 2350 5600
-Text GLabel 12350 4450 2    39   Input ~ 0
-ESP_ADC_VUSB
 Wire Wire Line
 	9900 2000 10150 2000
 Wire Wire Line
@@ -922,15 +905,7 @@ F 3 "" H 8000 4650 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8300 2900 8300 4300
-Wire Wire Line
-	8300 4300 8200 4300
-Wire Wire Line
 	8300 2900 8500 2900
-Wire Wire Line
-	8200 4400 8400 4400
-Wire Wire Line
-	8400 4400 8400 3000
 Wire Wire Line
 	7800 4300 7650 4300
 Wire Wire Line
@@ -982,14 +957,12 @@ NoConn ~ 8200 4600
 NoConn ~ 7800 4600
 Text Notes 8800 4800 0    157  ~ 0
 todo: check!
-NoConn ~ 8950 3550
 NoConn ~ 9050 3550
 NoConn ~ 9150 3550
 NoConn ~ 9900 2600
 NoConn ~ 9900 1900
 NoConn ~ 9900 2200
 NoConn ~ 9900 2900
-NoConn ~ 9550 3550
 $Comp
 L tinkerforge:LD1117 U102
 U 1 1 5EF36B5D
@@ -1257,12 +1230,154 @@ Wire Wire Line
 	4300 6700 4250 6700
 Wire Wire Line
 	4250 6600 4300 6600
-Text Notes 5000 1750 0    157  ~ 0
-todo: 2x Spannungsmessung!
-NoConn ~ 8500 2300
 NoConn ~ 8500 2200
-NoConn ~ 8500 2100
-NoConn ~ 8500 2000
 Wire Wire Line
-	8300 2400 8500 2400
+	8200 4400 8300 4400
+Wire Wire Line
+	8300 2900 8300 4400
+Wire Wire Line
+	8200 4300 8400 4300
+Wire Wire Line
+	8400 4300 8400 3000
+Wire Wire Line
+	10150 2700 9900 2700
+Wire Wire Line
+	9900 2800 10150 2800
+Wire Wire Line
+	8500 2800 8400 2800
+Wire Wire Line
+	8400 2700 8500 2700
+Wire Wire Line
+	8500 2600 8400 2600
+Wire Wire Line
+	8400 2500 8500 2500
+Text GLabel 8400 2100 0    39   Input ~ 0
+ESP_ADC_VUSB
+Text GLabel 8400 2000 0    39   Input ~ 0
+ESP_ADC_5V
+Text GLabel 1550 1950 0    39   Output ~ 0
+ESP_ADC_VUSB
+Text GLabel 1550 2150 0    39   Output ~ 0
+ESP_ADC_5V
+Wire Wire Line
+	8400 2000 8500 2000
+Wire Wire Line
+	8500 2100 8400 2100
+$Comp
+L tinkerforge:R_PACK4 RP104
+U 1 1 5F36B485
+P 1850 2300
+F 0 "RP104" H 1850 2865 50  0000 C CNN
+F 1 "1k" H 1850 2774 50  0000 C CNN
+F 2 "kicad-libraries:4X0402" H 1850 2300 50  0001 C CNN
+F 3 "" H 1850 2300 50  0000 C CNN
+	1    1850 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1550 1950 1650 1950
+Wire Wire Line
+	1650 2050 1650 1950
+Connection ~ 1650 1950
+Wire Wire Line
+	1650 2250 1650 2150
+Wire Wire Line
+	1550 2150 1650 2150
+Connection ~ 1650 2150
+$Comp
+L tinkerforge:GND #PWR0149
+U 1 1 5F39448B
+P 2100 2450
+F 0 "#PWR0149" H 2100 2450 30  0001 C CNN
+F 1 "GND" H 2100 2380 30  0001 C CNN
+F 2 "" H 2100 2450 60  0000 C CNN
+F 3 "" H 2100 2450 60  0000 C CNN
+	1    2100 2450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2050 2250 2100 2250
+Wire Wire Line
+	2100 2250 2100 2450
+Wire Wire Line
+	2050 2150 2200 2150
+Wire Wire Line
+	2200 2150 2200 3550
+Wire Wire Line
+	2200 3550 2350 3550
+Wire Wire Line
+	2050 2050 2100 2050
+Wire Wire Line
+	2100 2050 2100 2250
+Connection ~ 2100 2250
+Wire Wire Line
+	2050 1950 2350 1950
+$Comp
+L tinkerforge:R_PACK4 RP105
+U 1 1 5F3E52E2
+P 7450 3250
+F 0 "RP105" H 7450 3815 50  0000 C CNN
+F 1 "1k" H 7450 3724 50  0000 C CNN
+F 2 "kicad-libraries:4X0402" H 7450 3250 50  0001 C CNN
+F 3 "" H 7450 3250 50  0000 C CNN
+	1    7450 3250
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:LED D105
+U 1 1 5F3F268D
+P 6950 2900
+F 0 "D105" H 6950 3000 50  0000 C CNN
+F 1 "green" H 6950 2800 50  0000 C CNN
+F 2 "kicad-libraries:D0603F" H 6950 2900 50  0001 C CNN
+F 3 "" H 6950 2900 50  0000 C CNN
+	1    6950 2900
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	6750 2900 6750 3200
+Connection ~ 6750 2900
+Wire Wire Line
+	7150 3200 7250 3200
+Wire Wire Line
+	7150 2900 7250 2900
+NoConn ~ 7250 3000
+NoConn ~ 7250 3100
+NoConn ~ 7650 3100
+NoConn ~ 7650 3000
+Wire Wire Line
+	7850 2900 7650 2900
+NoConn ~ 8500 2300
+Wire Wire Line
+	8500 2400 7850 2400
+Wire Wire Line
+	7850 2400 7850 2900
+Wire Wire Line
+	7650 3200 8000 3200
+Wire Wire Line
+	8000 3200 8000 3800
+NoConn ~ 8950 3550
+NoConn ~ 9250 3550
+NoConn ~ 9450 3550
+NoConn ~ 9350 3550
+Wire Wire Line
+	9550 3550 9550 3800
+Wire Wire Line
+	8000 3800 9550 3800
+Text GLabel 1400 4850 2    39   Output ~ 0
+USB_GND
+Text GLabel 1400 3850 2    39   Output ~ 0
+USB_5V
+Wire Wire Line
+	1350 4850 1400 4850
+Connection ~ 1350 4850
+Wire Wire Line
+	1350 4850 1350 5600
+Wire Wire Line
+	1400 3850 1350 3850
+Wire Wire Line
+	1350 3850 1350 3950
+Connection ~ 1350 3950
+Wire Wire Line
+	1350 3950 2050 3950
 $EndSCHEMATC
