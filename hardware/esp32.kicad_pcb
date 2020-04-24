@@ -1,4 +1,4 @@
-(kicad_pcb (version 20171130) (host pcbnew 5.1.5-52549c5~84~ubuntu18.04.1)
+(kicad_pcb (version 20171130) (host pcbnew 5.1.5-52549c5~86~ubuntu18.04.1)
 
   (general
     (thickness 1.6)
@@ -2966,7 +2966,7 @@
     (fp_text reference D103 (at -0.57 -0.45) (layer F.Fab)
       (effects (font (size 0.29972 0.29972) (thickness 0.07493)))
     )
-    (fp_text value TBD (at 0.04 0.05) (layer F.Fab)
+    (fp_text value BAT54HT1G (at 0.04 0.05) (layer F.Fab)
       (effects (font (size 0.29972 0.29972) (thickness 0.07493)))
     )
     (fp_line (start 0.8509 -0.70104) (end 0.8509 0.70104) (layer F.Fab) (width 0.001))
@@ -2995,7 +2995,7 @@
     (fp_text reference D104 (at -0.57 -0.45) (layer F.Fab)
       (effects (font (size 0.29972 0.29972) (thickness 0.07493)))
     )
-    (fp_text value TBD (at 0.04 0.05) (layer F.Fab)
+    (fp_text value BAT54HT1G (at 0.04 0.05) (layer F.Fab)
       (effects (font (size 0.29972 0.29972) (thickness 0.07493)))
     )
     (fp_line (start -0.89916 0.70104) (end -0.89916 -0.70104) (layer F.Fab) (width 0.001))
