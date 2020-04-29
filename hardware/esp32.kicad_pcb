@@ -3359,7 +3359,7 @@
   (gr_text Status (at 155.2 125.95 90) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
-  (gr_text "3.3V GND  5V" (at 149.6 133.25) (layer F.SilkS)
+  (gr_text " 5V  GND 3.3V" (at 149.8 133.2) (layer F.SilkS)
     (effects (font (size 0.7 0.7) (thickness 0.15)))
   )
   (gr_line (start 133.8 123.45) (end 133.8 123.85) (layer Dwgs.User) (width 0.381))
