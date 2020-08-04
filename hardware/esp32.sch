@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 2
 Title "ESP32 Brick"
-Date "2020-04-16"
-Rev "1.0"
+Date "2020-08-04"
+Rev "1.1"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"
@@ -800,7 +800,7 @@ F 1 "1k" H 10300 4374 50  0000 C CNN
 F 2 "kicad-libraries:4X0402" H 10300 3900 50  0001 C CNN
 F 3 "" H 10300 3900 50  0000 C CNN
 	1    10300 3900
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:3V3 #PWR0115
@@ -1179,14 +1179,14 @@ Connection ~ 2350 5550
 Wire Wire Line
 	2350 5550 2350 5350
 $Comp
-L tinkerforge:CONN_01X03 P101
+L tinkerforge:CONN_01X02 P101
 U 1 1 5F1D7502
-P 4500 6700
-F 0 "P101" H 4578 6741 50  0000 L CNN
-F 1 "PWR" H 4578 6650 50  0000 L CNN
-F 2 "kicad-libraries:PIN_ARRAY_3X1" H 4578 6604 50  0001 L CNN
-F 3 "" H 4500 6700 50  0000 C CNN
-	1    4500 6700
+P 4500 6650
+F 0 "P101" H 4578 6691 50  0000 L CNN
+F 1 "PWR" H 4578 6600 50  0000 L CNN
+F 2 "kicad-libraries:PIN_ARRAY_2X1" H 4578 6554 50  0001 L CNN
+F 3 "" H 4500 6650 50  0000 C CNN
+	1    4500 6650
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -1211,19 +1211,6 @@ F 3 "" H 4250 6600 60  0000 C CNN
 	1    4250 6600
 	0    -1   -1   0   
 $EndComp
-$Comp
-L tinkerforge:3V3 #PWR0148
-U 1 1 5F1E05B9
-P 4250 6800
-F 0 "#PWR0148" H 4250 6900 40  0001 C CNN
-F 1 "3V3" H 4250 6925 40  0000 C CNN
-F 2 "" H 4250 6800 60  0000 C CNN
-F 3 "" H 4250 6800 60  0000 C CNN
-	1    4250 6800
-	0    -1   -1   0   
-$EndComp
-Wire Wire Line
-	4250 6800 4300 6800
 Wire Wire Line
 	4300 6700 4250 6700
 Wire Wire Line
