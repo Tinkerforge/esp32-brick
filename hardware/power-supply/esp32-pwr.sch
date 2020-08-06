@@ -1,0 +1,223 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title "ESP32 Brick"
+Date "2020-08-04"
+Rev "1.1"
+Comp "Tinkerforge GmbH"
+Comment1 "Licensed under CERN OHL v.1.1"
+Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"
+Comment3 ""
+Comment4 ""
+$EndDescr
+Text Notes 600  7700 0    39   ~ 0
+Copyright Tinkerforge GmbH 2020.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions
+$Comp
+L tinkerforge:DRILL F103
+U 1 1 5F0CE04A
+P 10750 6100
+F 0 "F103" H 10800 6150 60  0001 C CNN
+F 1 "DRILL" H 10650 6100 60  0000 L CNN
+F 2 "kicad-libraries:DRILL_NP" H 10750 6100 60  0001 C CNN
+F 3 "" H 10750 6100 60  0000 C CNN
+	1    10750 6100
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:DRILL F101
+U 1 1 5F0CE30F
+P 10350 6100
+F 0 "F101" H 10400 6150 60  0001 C CNN
+F 1 "DRILL" H 10250 6100 60  0000 L CNN
+F 2 "kicad-libraries:DRILL_NP" H 10350 6100 60  0001 C CNN
+F 3 "" H 10350 6100 60  0000 C CNN
+	1    10350 6100
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:DRILL F102
+U 1 1 5F0CE564
+P 10350 6350
+F 0 "F102" H 10400 6400 60  0001 C CNN
+F 1 "DRILL" H 10250 6350 60  0000 L CNN
+F 2 "kicad-libraries:DRILL_NP" H 10350 6350 60  0001 C CNN
+F 3 "" H 10350 6350 60  0000 C CNN
+	1    10350 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:DRILL F104
+U 1 1 5F0CE6FC
+P 10750 6350
+F 0 "F104" H 10800 6400 60  0001 C CNN
+F 1 "DRILL" H 10650 6350 60  0000 L CNN
+F 2 "kicad-libraries:DRILL_NP" H 10750 6350 60  0001 C CNN
+F 3 "" H 10750 6350 60  0000 C CNN
+	1    10750 6350
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:CONN_01X08 P101
+U 1 1 5F1D7502
+P 2450 5200
+F 0 "P101" V 2450 5650 50  0000 L CNN
+F 1 "EXT_HEADER" V 2550 4950 50  0000 L CNN
+F 2 "kicad-libraries:pin_array_1x8-P2mm_D1mm" H 2528 5104 50  0001 L CNN
+F 3 "" H 2450 5200 50  0000 C CNN
+	1    2450 5200
+	0    1    1    0   
+$EndComp
+$Comp
+L tinkerforge:CONN_01X08 P103
+U 1 1 5F2D573C
+P 3600 5200
+F 0 "P103" V 3600 5650 50  0000 L CNN
+F 1 "EXT_HEADER" V 3700 4950 50  0000 L CNN
+F 2 "kicad-libraries:pin_array_1x8-P2mm_D1mm" H 3678 5104 50  0001 L CNN
+F 3 "" H 3600 5200 50  0000 C CNN
+	1    3600 5200
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3950 5000 3950 4950
+Wire Wire Line
+	3950 4950 2800 4950
+Wire Wire Line
+	2800 4950 2800 5000
+Wire Wire Line
+	3850 5000 3850 4900
+Wire Wire Line
+	3850 4900 2700 4900
+Wire Wire Line
+	2700 4900 2700 5000
+Wire Wire Line
+	3750 5000 3750 4850
+Wire Wire Line
+	3750 4850 2600 4850
+Wire Wire Line
+	2600 4850 2600 5000
+Wire Wire Line
+	3650 5000 3650 4800
+Wire Wire Line
+	2500 4800 2500 5000
+Wire Wire Line
+	2500 4800 3650 4800
+Wire Wire Line
+	3550 5000 3550 4750
+Wire Wire Line
+	3550 4750 2400 4750
+Wire Wire Line
+	2400 4750 2400 5000
+Wire Wire Line
+	3450 5000 3450 4700
+Wire Wire Line
+	2300 4700 2300 5000
+Wire Wire Line
+	2300 4700 3450 4700
+Wire Wire Line
+	3350 5000 3350 4650
+Wire Wire Line
+	3350 4650 2200 4650
+Wire Wire Line
+	2200 4650 2200 5000
+Wire Wire Line
+	3250 5000 3250 4600
+Wire Wire Line
+	3250 4600 2100 4600
+Wire Wire Line
+	2100 4600 2100 5000
+$Comp
+L tinkerforge:5V #PWR0101
+U 1 1 5F2D9C4A
+P 3950 4600
+F 0 "#PWR0101" H 3950 4700 40  0001 C CNN
+F 1 "5V" H 3959 4756 40  0000 C CNN
+F 2 "" H 3950 4600 60  0000 C CNN
+F 3 "" H 3950 4600 60  0000 C CNN
+	1    3950 4600
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:GND #PWR0102
+U 1 1 5F2DA17F
+P 3850 4600
+F 0 "#PWR0102" H 3850 4350 50  0001 C CNN
+F 1 "GND" V 3855 4472 50  0000 R CNN
+F 2 "" H 3850 4600 50  0000 C CNN
+F 3 "" H 3850 4600 50  0000 C CNN
+	1    3850 4600
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3950 4950 3950 4600
+Connection ~ 3950 4950
+Wire Wire Line
+	3850 4900 3850 4600
+Connection ~ 3850 4900
+$Comp
+L tinkerforge:CONN_01X02 P102
+U 1 1 5F2DBF6D
+P 3550 3100
+F 0 "P102" H 3467 3365 50  0000 C CNN
+F 1 "PWR IN" H 3467 3274 50  0000 C CNN
+F 2 "kicad-libraries:OQ_2P" H 3550 3100 50  0001 C CNN
+F 3 "" H 3550 3100 50  0000 C CNN
+	1    3550 3100
+	-1   0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:WPMDL110 U101
+U 1 1 5F2DEEF8
+P 4550 3050
+F 0 "U101" H 4550 3415 50  0000 C CNN
+F 1 "WPMDL110" H 4550 3324 50  0000 C CNN
+F 2 "kicad-libraries:WPMDL110" H 4550 3050 50  0001 C CNN
+F 3 "" H 4550 3050 50  0001 C CNN
+	1    4550 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 3050 4100 3050
+$Comp
+L tinkerforge:5V #PWR0103
+U 1 1 5F2E0182
+P 5250 3050
+F 0 "#PWR0103" H 5250 3150 40  0001 C CNN
+F 1 "5V" H 5259 3206 40  0000 C CNN
+F 2 "" H 5250 3050 60  0000 C CNN
+F 3 "" H 5250 3050 60  0000 C CNN
+	1    5250 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:GND #PWR0104
+U 1 1 5F2E0BE1
+P 4550 3550
+F 0 "#PWR0104" H 4550 3300 50  0001 C CNN
+F 1 "GND" H 4555 3377 50  0000 C CNN
+F 2 "" H 4550 3550 50  0000 C CNN
+F 3 "" H 4550 3550 50  0000 C CNN
+	1    4550 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L tinkerforge:GND #PWR0105
+U 1 1 5F2E1404
+P 3750 3250
+F 0 "#PWR0105" H 3750 3000 50  0001 C CNN
+F 1 "GND" H 3755 3077 50  0000 C CNN
+F 2 "" H 3750 3250 50  0000 C CNN
+F 3 "" H 3750 3250 50  0000 C CNN
+	1    3750 3250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 3250 3750 3150
+Wire Wire Line
+	4550 3550 4550 3500
+Wire Wire Line
+	5000 3050 5250 3050
+$EndSCHEMATC
