@@ -13,7 +13,7 @@
   (title_block
     (title "ESP32 Brick Power Supply")
     (date 2020-08-05)
-    (rev 1.0)
+    (rev 1.1)
     (company "Tinkerforge GmbH")
     (comment 1 "Licensed under CERN OHL v.1.1")
     (comment 2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>")
@@ -104,7 +104,7 @@
       (mirror false)
       (drillshape 0)
       (scaleselection 1)
-      (outputdirectory "../../../../Schreibtisch/proto/ESP_Power_Supply/"))
+      (outputdirectory "../../../../Schreibtisch/proto/powerESP/"))
   )
 
   (net 0 "")
@@ -601,7 +601,7 @@
   (gr_text + (at 159.5 142.55) (layer F.SilkS)
     (effects (font (size 1.524 1.524) (thickness 0.3048)))
   )
-  (gr_text "ESP32\nPower\nSupply\n1.0" (at 152.3 154.65) (layer F.SilkS)
+  (gr_text "ESP32\nPower\nSupply\n1.1" (at 152.3 154.65) (layer F.SilkS)
     (effects (font (size 0.7 0.7) (thickness 0.15)))
   )
   (gr_text tinkerforge.com (at 161.3 128.65) (layer F.SilkS)
@@ -658,7 +658,7 @@
   (segment (start 160.4 141.35) (end 160.4 136.49) (width 1) (layer F.Cu) (net 9))
   (segment (start 159.54994 145.65) (end 159.54994 142.20006) (width 1) (layer F.Cu) (net 9))
 
-  (zone (net 1) (net_name GND) (layer B.Cu) (tstamp 5F368DBB) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer B.Cu) (tstamp 5F3688C9) (hatch edge 0.508)
     (connect_pads (clearance 0))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.2) (thermal_bridge_width 0.508))
