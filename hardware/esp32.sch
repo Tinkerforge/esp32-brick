@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 2
 Title "ESP32 Brick"
-Date "2020-08-04"
-Rev "1.1"
+Date "2020-08-25"
+Rev "1.2"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"
@@ -845,7 +845,7 @@ L tinkerforge:Rs R101
 U 1 1 5EC774D0
 P 1550 4300
 F 0 "R101" V 1600 4450 39  0000 C CNN
-F 1 "56k" V 1600 4300 39  0000 C CNN
+F 1 "5.1k" V 1600 4300 39  0000 C CNN
 F 2 "kicad-libraries:R0402F" H 1550 4300 60  0001 C CNN
 F 3 "" H 1550 4300 60  0000 C CNN
 	1    1550 4300
@@ -856,7 +856,7 @@ L tinkerforge:Rs R103
 U 1 1 5EC78AE8
 P 1550 4400
 F 0 "R103" V 1600 4550 39  0000 C CNN
-F 1 "56k" V 1600 4400 39  0000 C CNN
+F 1 "5.1k" V 1600 4400 39  0000 C CNN
 F 2 "kicad-libraries:R0402F" H 1550 4400 60  0001 C CNN
 F 3 "" H 1550 4400 60  0000 C CNN
 	1    1550 4400
@@ -867,25 +867,13 @@ Wire Wire Line
 Wire Wire Line
 	1450 4400 1200 4400
 Wire Wire Line
-	1650 4400 2050 4400
-Wire Wire Line
-	2050 4400 2050 4300
-Connection ~ 2050 3950
-Wire Wire Line
-	2050 3950 2350 3950
-Wire Wire Line
-	1650 4300 2050 4300
-Connection ~ 2050 4300
-Wire Wire Line
-	2050 4300 2050 3950
-Wire Wire Line
 	2650 5600 2750 5600
 Wire Wire Line
 	2450 5600 2350 5600
 Wire Wire Line
 	2350 5600 1350 5600
 Wire Wire Line
-	1350 4500 1350 4850
+	1350 4500 1350 4600
 Connection ~ 2350 5600
 Wire Wire Line
 	9900 2000 10150 2000
@@ -1341,8 +1329,6 @@ Wire Wire Line
 Wire Wire Line
 	1350 3850 1350 3950
 Connection ~ 1350 3950
-Wire Wire Line
-	1350 3950 2050 3950
 Text Notes 8900 1350 0    39   ~ 0
 ESP32-WROOM-32E
 Wire Wire Line
@@ -1415,4 +1401,20 @@ Text GLabel 4550 6800 1    39   Input ~ 0
 ESP_IO5
 Wire Wire Line
 	10150 2600 9900 2600
+Wire Wire Line
+	1350 3950 2350 3950
+Wire Wire Line
+	1350 4600 1800 4600
+Wire Wire Line
+	1800 4600 1800 4400
+Wire Wire Line
+	1800 4400 1650 4400
+Connection ~ 1350 4600
+Wire Wire Line
+	1350 4600 1350 4850
+Wire Wire Line
+	1650 4300 1800 4300
+Wire Wire Line
+	1800 4300 1800 4400
+Connection ~ 1800 4400
 $EndSCHEMATC
