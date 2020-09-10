@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 2 2
 Title "ESP32 Brick"
-Date "2020-08-25"
-Rev "1.2"
+Date "2020-09-10"
+Rev "1.3"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"

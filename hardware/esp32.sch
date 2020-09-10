@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 2
 Title "ESP32 Brick"
-Date "2020-08-25"
-Rev "1.2"
+Date "2020-09-10"
+Rev "1.3"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"
@@ -615,7 +615,7 @@ L tinkerforge:Rs R108
 U 1 1 5EBD2BBE
 P 6000 5150
 F 0 "R108" V 5950 5150 39  0000 C CNN
-F 1 "2k2" V 6050 5150 39  0000 C CNN
+F 1 "12k" V 6050 5150 39  0000 C CNN
 F 2 "kicad-libraries:R0402F" H 6000 5150 60  0001 C CNN
 F 3 "" H 6000 5150 60  0000 C CNN
 	1    6000 5150
@@ -626,7 +626,7 @@ L tinkerforge:Rs R109
 U 1 1 5EBD314E
 P 6000 5800
 F 0 "R109" V 5950 5800 39  0000 C CNN
-F 1 "2k2" V 6050 5800 39  0000 C CNN
+F 1 "12k" V 6050 5800 39  0000 C CNN
 F 2 "kicad-libraries:R0402F" H 6000 5800 60  0001 C CNN
 F 3 "" H 6000 5800 60  0000 C CNN
 	1    6000 5800
@@ -695,7 +695,7 @@ L tinkerforge:Rs R111
 U 1 1 5EBF0F3B
 P 7900 1500
 F 0 "R111" V 7850 1500 39  0000 C CNN
-F 1 "1k" V 7950 1500 39  0000 C CNN
+F 1 "10k" V 7950 1500 39  0000 C CNN
 F 2 "kicad-libraries:R0402F" H 7900 1500 60  0001 C CNN
 F 3 "" H 7900 1500 60  0000 C CNN
 	1    7900 1500
@@ -713,7 +713,7 @@ L tinkerforge:Cs C112
 U 1 1 5EBFC86E
 P 7800 1700
 F 0 "C112" V 7750 1750 39  0000 L CNN
-F 1 "DNP" V 7900 1650 39  0000 L CNN
+F 1 "10nF" V 7900 1650 39  0000 L CNN
 F 2 "kicad-libraries:C0402F" H 7800 1700 60  0001 C CNN
 F 3 "" H 7800 1700 60  0000 C CNN
 	1    7800 1700
@@ -746,49 +746,12 @@ F 3 "" H 6800 6200 60  0000 C CNN
 	1    6800 6200
 	0    -1   -1   0   
 $EndComp
-$Comp
-L tinkerforge:DIODESCH D104
-U 1 1 5EC063B8
-P 7250 6400
-F 0 "D104" H 7250 6207 40  0000 C CNN
-F 1 "BAT54HT1G" H 7250 6283 40  0000 C CNN
-F 2 "kicad-libraries:SOD-323" H 7250 6268 60  0001 C CNN
-F 3 "" H 7250 6400 60  0000 C CNN
-	1    7250 6400
-	-1   0    0    1   
-$EndComp
-$Comp
-L tinkerforge:DIODESCH D103
-U 1 1 5EC06B09
-P 7250 6050
-F 0 "D103" H 7250 5857 40  0000 C CNN
-F 1 "BAT54HT1G" H 7250 5933 40  0000 C CNN
-F 2 "kicad-libraries:SOD-323" H 7250 5918 60  0001 C CNN
-F 3 "" H 7250 6050 60  0000 C CNN
-	1    7250 6050
-	-1   0    0    1   
-$EndComp
 Text GLabel 10150 3000 2    39   Input ~ 0
 ESP_IO0
 Text GLabel 9650 3950 3    39   Input ~ 0
 ESP_IO2
-Text GLabel 7550 6400 2    39   Output ~ 0
-ESP_IO2
-Text GLabel 7550 6050 2    39   Output ~ 0
+Text GLabel 7050 6200 2    39   Output ~ 0
 ESP_IO0
-Wire Wire Line
-	7450 6050 7550 6050
-Wire Wire Line
-	7450 6400 7550 6400
-Wire Wire Line
-	7050 6400 6900 6400
-Wire Wire Line
-	7050 6050 6900 6050
-Wire Wire Line
-	6900 6050 6900 6200
-Connection ~ 6900 6200
-Wire Wire Line
-	6900 6200 6900 6400
 Wire Wire Line
 	6700 6000 6700 6200
 $Comp
@@ -833,9 +796,6 @@ Wire Wire Line
 	10650 3550 10650 3450
 Wire Wire Line
 	10500 3850 10650 3850
-Wire Wire Line
-	10650 3850 10650 3550
-Connection ~ 10650 3550
 NoConn ~ 10500 3650
 NoConn ~ 10500 3750
 NoConn ~ 10100 3750
@@ -1417,4 +1377,17 @@ Wire Wire Line
 Wire Wire Line
 	1800 4300 1800 4400
 Connection ~ 1800 4400
+$Comp
+L tinkerforge:GND #PWR0150
+U 1 1 5F5E2219
+P 10650 3850
+F 0 "#PWR0150" H 10650 3850 30  0001 C CNN
+F 1 "GND" H 10650 3780 30  0001 C CNN
+F 2 "" H 10650 3850 60  0000 C CNN
+F 3 "" H 10650 3850 60  0000 C CNN
+	1    10650 3850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6900 6200 7050 6200
 $EndSCHEMATC
