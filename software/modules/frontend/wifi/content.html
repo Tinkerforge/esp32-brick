@@ -1,0 +1,132 @@
+<div class="tab-pane fade" role="tabpanel" aria-labelledby="sidebar-wifi" id="wifi">
+    <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">WiFi Settings</h1>
+        <div class="text-right">
+            <button id="wifi_carousel_abort_button" type="button" class="btn btn-primary btn-danger"
+                hidden><span data-feather="x"></span>Cancel</button>
+            <button id="wifi_carousel_back_button" type="button" class="btn btn-primary"
+                hidden><span data-feather="arrow-left"></span>Back</button>
+        </div>
+    </div>
+    <div id="wifi_config_carousel" class="carousel slide" data-interval="false"
+        data-keyboard="false">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <h4>Client Configuration</h4>
+                <div class="form-group row">
+                    <div class="col-lg-4 mt-2">
+                        <label for='wifi_ap_configuration_state'>Configured Access Point</label>
+                        <input class="form-control" type="text"
+                            placeholder="Configured Access Point..." readonly
+                            id="wifi_ap_configuration_state">
+                    </div>
+
+                    <div class="col-lg-4 mt-2">
+                        <div class="">
+                            <label for='scan_wifi_button'>Configure another Access Point</label>
+                            <button id="scan_wifi_button" type="button" class="btn btn-primary"
+                                style="display: block">Configure connection</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="wifi_configuration" tabindex="-1" role="dialog"
+                    aria-hidden="true">
+
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div id="wifi_scan_title"
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
+                    <h4>Scanning for Access Points...</h4>
+                </div>
+                <div id="wifi_config_scan_spinner">
+                    <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                        <span class="sr-only">Scanning...</span>
+                    </div>
+                </div>
+                <div id="wifi_scan_results" hidden>
+
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div id="wifi_config_content" class="col-lg-6"></div>
+            </div>
+            <div class="carousel-item">
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
+                    <h4>Configure local access point behaviour</h4>
+                </div>
+                <div class="col-lg-6">
+                    <form>
+                        <div class="form-group row">
+                            <div class="custom-control custom-switch form_control">
+                                <input type="checkbox" class="custom-control-input"
+                                    id="wifi_save_enable_sta" checked>
+                                <label id="wifi_config_connect_to_ap_switch"
+                                    class="custom-control-label" for="wifi_save_enable_sta">
+                                    Connect to this access point on start-up.
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input"
+                                    id="wifi_save_enable_ap" checked>
+                                <label class="custom-control-label" for="wifi_save_enable_ap">
+                                    Open local access point on start-up.
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input"
+                                    id="wifi_save_ap_fallback_only" checked>
+                                <label id="wifi_config_ap_fallback_switch"
+                                    class="custom-control-label" for="wifi_save_ap_fallback_only">
+                                    Use access point only as fallback if connecting to the access
+                                    point
+                                    fails.
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="text-right">
+                        <button id="wifi_config_ap_fallback_save" type="button"
+                            class="btn btn-primary">Finish</button>
+                    </div>
+                </div>
+
+
+                <div class="modal fade" id="wifi_reboot" tabindex="-1" role="dialog"
+                    aria-hidden="true">
+                    <div id="wifi_reboot_content"
+                        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <form-label class="modal-title">Reboot to apply configuration</form-label>
+                                <button type="button" class="close" data-dismiss="modal"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>To apply the changed WiFi configuration, the ESP has to be
+                                    rebooted. Reboot
+                                    now?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary"
+                                    data-dismiss="modal">Abort</button>
+                                <button id="wifi_reboot_button" type="button"
+                                    class="btn btn-danger">Reboot</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
