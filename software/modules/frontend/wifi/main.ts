@@ -406,7 +406,7 @@ function save_wifi_sta_config(continuation = function () { }) {
         ssid: $('#wifi_cfg_ssid').text(),
         bssid: $('#wifi_cfg_bssid').text().split(':').map(x => parseInt(x, 16)),
         bssid_lock: $('#wifi_cfg_bssid_lock').is(':checked'),
-        passphrase: $('#wifi_cfg_passphrase').val().toString(),
+        passphrase: $('#wifi_cfg_passphrase').length > 0 ? $('#wifi_cfg_passphrase').val().toString() : "",
         ip: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_cfg_static_ip_ip').val().toString()),
         subnet: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_cfg_static_ip_subnet').val().toString()),
         gateway: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_cfg_static_ip_gateway').val().toString()),
