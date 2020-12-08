@@ -26,16 +26,16 @@ String update_config(Config &cfg, String config_name, JsonVariant &json) {
 
     if (error == "") {
         if (SPIFFS.exists(tmp_path))
-            SPIFFS.remove(tmp_path);
+            Serial.println(SPIFFS.remove(tmp_path));
 
         File file = SPIFFS.open(tmp_path, "w");
         cfg.save_to_file(file);
         file.close();
 
         if (SPIFFS.exists(path))
-            SPIFFS.remove(path);
+            Serial.println(SPIFFS.remove(path));
 
-        SPIFFS.rename(tmp_path, path);
+        Serial.println(SPIFFS.rename(tmp_path, path));
         Serial.print(path);
         Serial.println(" updated");
     } else {
@@ -220,6 +220,16 @@ void Wifi::apply_soft_ap_config_and_start() {
 }
 
 void Wifi::apply_sta_config_and_connect() {
+    if(this->state == WifiState::CONNECTED) {
+        return;
+    }
+
+    this->state = WifiState::CONNECTING;
+
+    WiFi.persistent(false);
+    WiFi.setAutoReconnect(false);
+    WiFi.disconnect(false, true);
+
     String ssid = wifi_sta_config_in_use.get("ssid")->asString();
 
     uint8_t bssid[6];
@@ -235,7 +245,6 @@ void Wifi::apply_sta_config_and_connect() {
     wifi_sta_config_in_use.get("dns")->fillUint8Array(dns, 4);
     wifi_sta_config_in_use.get("dns2")->fillUint8Array(dns2, 4);
 
-    WiFi.disconnect(false, false);
 
     WiFi.begin(ssid.c_str(), passphrase.c_str(), 0, bssid_lock ? bssid : nullptr, false);
 
@@ -247,15 +256,62 @@ void Wifi::apply_sta_config_and_connect() {
 
     WiFi.setHostname(wifi_sta_config_in_use.get("hostname")->asString().c_str());
 
-    connect_to_wifi();
+    Serial.print("Connecting to ");
+    Serial.println(wifi_sta_config_in_use.get("ssid")->asString());
+
+    WiFi.begin(ssid.c_str(), passphrase.c_str(), 0, bssid_lock ? bssid : nullptr, true);
 }
 
 void Wifi::setup()
 {
     String default_hostname = String(__HOST_PREFIX__) + String(uid);
     String default_passphrase = String(passphrase);
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {this->state = WifiState::NOT_CONNECTED; Serial.println("Wifi disconnected");}, SYSTEM_EVENT_STA_DISCONNECTED);
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {this->state = WifiState::CONNECTED; Serial.println("Wifi connected");}, SYSTEM_EVENT_STA_CONNECTED);
+
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+            if(this->state == WifiState::CONNECTING) {
+                Serial.print("Failed to connect to ");
+                Serial.print(wifi_sta_config_in_use.get("ssid")->asString());
+            } else if (this->state == WifiState::CONNECTED) {
+                Serial.print("Disconnected from ");
+                Serial.print(wifi_sta_config_in_use.get("ssid")->asString());
+            }
+
+            this->state = WifiState::NOT_CONNECTED;
+
+            connect_attempt_interval_ms = MIN(connect_attempt_interval_ms * 2, MAX_CONNECT_ATTEMPT_INTERVAL_MS);
+
+            Serial.printf(" next attempt in %u seconds.\n", connect_attempt_interval_ms / 1000);
+
+            task_scheduler.scheduleOnce("wifi_connect", [this](){
+                apply_sta_config_and_connect();
+            }, connect_attempt_interval_ms);
+        },
+        SYSTEM_EVENT_STA_DISCONNECTED);
+
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+            this->state = WifiState::CONNECTED;
+
+            Serial.print("Connected to ");
+            Serial.println(WiFi.SSID());
+            connect_attempt_interval_ms = 5000;
+        },
+        SYSTEM_EVENT_STA_CONNECTED);
+
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+            Serial.print("Got IP address: ");
+            Serial.println(WiFi.localIP());
+        },
+        SYSTEM_EVENT_STA_GOT_IP);
+
+    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+        if(this->state != WifiState::CONNECTED)
+            return;
+        Serial.println("Lost IP. Forcing disconnect and reconnect of WiFi" );
+        this->state = WifiState::NOT_CONNECTED;
+        WiFi.disconnect(false, true);
+    }, SYSTEM_EVENT_STA_LOST_IP);
+
+    connect_attempt_interval_ms = 5000;
 
     //TODO read .tmp if real file does not exist
     if(SPIFFS.exists("/wifi_config.json")) {
@@ -328,8 +384,9 @@ void Wifi::setup()
 void Wifi::register_urls()
 {
     server.on("/wifi_state", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        request->send(200, "application/json; charset=utf-8", wifi_state_str());
-        return;
+        auto *response = request->beginResponseStream("application/json; charset=utf-8");
+        wifi_state.write_to_stream(*response);
+        request->send(response);
     });
     server.on("/scan_wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
         WiFi.scanDelete();
@@ -430,14 +487,11 @@ void Wifi::register_urls()
 
 void Wifi::onEventConnect(AsyncEventSourceClient *client)
 {
-    String wifi_config_str = this->wifi_config_str();
-    client->send(wifi_config_str.c_str(), "wifi_config", millis(), 1000);
+    client->send(wifi_config.to_string().c_str(), "wifi_config", millis(), 1000);
 
-    String wifi_state_str = this->wifi_state_str();
-    client->send(wifi_state_str.c_str(), "wifi_state", millis(), 1000);
+    client->send(wifi_state.to_string().c_str(), "wifi_state", millis(), 1000);
 
-    String wifi_sta_config_str = this->wifi_sta_config_str();
-    client->send(wifi_sta_config_str.c_str(), "wifi_sta_config", millis(), 1000);
+    client->send(wifi_sta_config.to_string().c_str(), "wifi_sta_config", millis(), 1000);
 }
 
 void Wifi::loop()
@@ -447,8 +501,7 @@ void Wifi::loop()
     send_event |= wifi_state.get("ap_state")->updateInt(get_ap_state());
 
     if(send_event && send_event_allowed(&events)) {
-        String str = wifi_state_str();
-        events.send(str.c_str(), "wifi_state", millis());
+        events.send(wifi_state.to_string().c_str(), "wifi_state", millis());
     }
 
     if (wifi_config_in_use.get("enable_sta")->asBool() &&
@@ -465,25 +518,6 @@ void Wifi::loop()
         WiFi.softAPdisconnect(true);
         soft_ap_running = false;
     }
-}
-
-String Wifi::wifi_config_str()
-{
-    return wifi_config.to_string();
-}
-
-String Wifi::wifi_soft_ap_config_str()
-{
-    return wifi_soft_ap_config.to_string();
-}
-
-String Wifi::wifi_sta_config_str()
-{
-    return wifi_sta_config.to_string_except({"passphrase"});
-}
-
-String Wifi::wifi_state_str() {
-    return wifi_state.to_string();
 }
 
 int Wifi::get_connection_state() {
@@ -513,41 +547,4 @@ int Wifi::get_ap_state() {
         return 2;
 
     return 3;
-}
-
-void Wifi::attempt_to_connect(int attempt) {
-    if(WiFi.status() != WL_CONNECTED && attempt < 3) {
-        Serial.print("Connecting to ");
-        Serial.print(wifi_sta_config_in_use.get("ssid")->asString());
-        Serial.print(" (");
-        Serial.print(attempt + 1);
-        Serial.print("/3)\n");
-        WiFi.begin();
-
-        task_scheduler.scheduleOnce("wifi_connect_attempt", [this, attempt](){
-            attempt_to_connect(attempt + 1);
-        }, 5000);
-        return;
-    }
-
-    if (WiFi.status() != WL_CONNECTED) {
-        Serial.printf("Failed to connect to %s.", "configured ssid");
-        return;
-    } else {
-        Serial.println("");
-        Serial.print("Connected to ");
-        Serial.println(WiFi.SSID());
-        Serial.print("IP address: ");
-        Serial.println(WiFi.localIP());
-    }
-}
-
-void Wifi::connect_to_wifi()
-{
-    Serial.println("Wifi connecting");
-    Serial.println();
-
-    task_scheduler.scheduleOnce("wifi_connect", [this](){
-        attempt_to_connect(0);
-    }, 0);
 }

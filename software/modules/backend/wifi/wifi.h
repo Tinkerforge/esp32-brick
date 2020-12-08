@@ -4,6 +4,8 @@
 #include "ArduinoJson.h"
 #include "config.h"
 
+#define MAX_CONNECT_ATTEMPT_INTERVAL_MS 5 * 60 * 1000
+
 enum class WifiState {
     NOT_CONNECTED,
     CONNECTING,
@@ -18,19 +20,12 @@ public:
     void onEventConnect(AsyncEventSourceClient *client);
     void loop();
 
-    String wifi_config_str();
-    String wifi_soft_ap_config_str();
-    String wifi_sta_config_str();
-    String wifi_state_str();
-
 private:
     void apply_soft_ap_config_and_start();
     void apply_sta_config_and_connect();
     int read_config_from_flash();
     int write_config_to_flash();
     bool read_wifi_configuration(JsonVariant json, String &message);
-    void connect_to_wifi();
-    void attempt_to_connect(int attempt);
 
     int get_connection_state();
     int get_ap_state();
@@ -47,4 +42,5 @@ private:
     Config wifi_sta_config_in_use;
 
     bool soft_ap_running = false;
+    uint32_t connect_attempt_interval_ms;
 };

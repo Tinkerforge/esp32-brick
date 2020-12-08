@@ -399,7 +399,7 @@ function parse_ip(ip_str: string) {
 }
 
 function save_wifi_sta_config(continuation = function () { }) {
-    let dhcp = $('#wifi_cfg_ip_configuration').val() == "show";
+    let dhcp = $('#wifi_cfg_ip_configuration').val() != "show";
 
     let payload: WifiSTAConfig = {
         hostname: "wallbox",
