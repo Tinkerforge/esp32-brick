@@ -15,7 +15,7 @@ FirmwareUpdate::FirmwareUpdate() {
 
 void FirmwareUpdate::setup()
 {
-
+    initialized = true;
 }
 
 void handleUpdateChunk(int command, AsyncWebServerRequest *request, size_t index, uint8_t *data, size_t len, bool final) {

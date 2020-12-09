@@ -20,6 +20,8 @@ public:
     void onEventConnect(AsyncEventSourceClient *client);
     void loop();
 
+    bool initialized = false;
+
 private:
     void apply_soft_ap_config_and_start();
     void apply_sta_config_and_connect();

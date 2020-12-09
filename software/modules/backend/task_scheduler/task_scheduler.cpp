@@ -17,7 +17,7 @@ bool compare(const Task &a, const Task &b) {
 
 void TaskScheduler::setup()
 {
-
+    initialized = true;
 }
 
 const char *current_scheduler_state = "init";

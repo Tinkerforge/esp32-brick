@@ -87,6 +87,8 @@ void Proxy::setup()
         devices.get(devices.count() - 1)->get("name")->updateString(String(tf_get_device_display_name(device_id)));
         ++i;
     }
+
+    initialized = true;
 }
 
 void Proxy::register_urls()

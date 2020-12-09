@@ -379,6 +379,8 @@ void Wifi::setup()
     } else {
         Serial.println("mDNS responder started");
     }
+
+    initialized = true;
 }
 
 void Wifi::register_urls()

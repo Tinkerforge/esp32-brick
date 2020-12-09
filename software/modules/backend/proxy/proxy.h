@@ -13,6 +13,8 @@ public:
     void onEventConnect(AsyncEventSourceClient *client);
     void loop();
 
+    bool initialized = false;
+
 private:
     TF_NetContext net;
     Config devices;

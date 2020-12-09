@@ -94,3 +94,8 @@ export function addEventListeners(source: EventSource) {
 export function init() {
 
 }
+
+
+export function updateLockState(module_init) {
+    $('#sidebar-bricklets').prop('hidden', !module_init.proxy);
+}

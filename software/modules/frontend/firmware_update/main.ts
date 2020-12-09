@@ -79,3 +79,8 @@ export function addEventListeners(source: EventSource) {
         update_version(<Version>(JSON.parse(e.data)));
     }, false);
 }
+
+
+export function updateLockState(module_init) {
+    $('#sidebar-flash').prop('hidden', !module_init.firmware_update);
+}

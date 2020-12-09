@@ -486,3 +486,8 @@ export function init() {
 
     (<HTMLButtonElement>document.getElementById("wifi_reboot_button")).addEventListener("click", wifi_save_reboot);
 }
+
+
+export function updateLockState(module_init) {
+    $('#sidebar-wifi').prop('hidden', !module_init.wifi);
+}
