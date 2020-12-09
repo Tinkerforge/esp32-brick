@@ -1,10 +1,16 @@
 import secrets
 
-from tinkerforge.ip_connection import base58encode, base58decode, BASE58
+from tinkerforge.ip_connection import base58encode, base58decode
 
-wifi_passphrase = [''.join(secrets.choice(BASE58) for i in range(4)) for j in range(4)]
+rnd = secrets.SystemRandom()
+
+# smallest 4-char-base58 string is "2111" = 195112 ("ZZZ"(= 195111) + 1)
+# largest 4-char-base58 string is "ZZZZ" = 11316495
+# Directly selecting chars out of the BASE58 alphabet can result in numbers with leading 1s
+# (those map to 0, so de- and reencoding will produce the same number without the leading 1)
+wifi_passphrase = [''.join(base58encode(rnd.randint(base58decode("2111"), base58decode("ZZZZ"))) for i in range(4))]
 # TODO: get uid from server when merging this script with flash-test
-uid = 'ESP'
+uid = 'ESQ'
 
 print("UID: " + uid)
 print("Passphrase: {}-{}-{}-{}".format(*wifi_passphrase))
