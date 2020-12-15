@@ -3,11 +3,25 @@
 
 #include <Update.h>
 #include <tools.h>
+#include <SPIFFS.h>
 
 #include "modules/task_scheduler/task_scheduler.h"
 
 extern AsyncWebServer server;
 extern TaskScheduler task_scheduler;
+
+void factory_reset()
+{
+    for(int i = 0; i < 5; ++i) {
+        digitalWrite(GREEN_LED, true);
+        delay(200);
+        digitalWrite(GREEN_LED, false);
+        delay(200);
+    }
+    SPIFFS.end();
+    SPIFFS.format();
+    ESP.restart();
+}
 
 FirmwareUpdate::FirmwareUpdate() {
 
@@ -72,6 +86,24 @@ void FirmwareUpdate::register_urls()
     server.onFileUpload([](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
         handleUpdateChunk(filename == "spiffs" ? U_SPIFFS : U_FLASH, request, index, data, len, final);
     });
+
+    AsyncCallbackJsonWebHandler *factory_reset_handler = new AsyncCallbackJsonWebHandler("/factory_reset", [this](AsyncWebServerRequest *request, JsonVariant &json){
+        if(!json["do_i_know_what_i_am_doing"].is<bool>()) {
+            request->send(400, "text/html", "you don't seem to know what you are doing");
+            return;
+        }
+
+        if(json["do_i_know_what_i_am_doing"].as<bool>()) {
+            task_scheduler.scheduleOnce("factory_reset", [](){
+                Serial.println("Factory reset requested");
+                factory_reset();
+            }, 3000);
+            request->send(200, "text/html", "Factory reset initiated");
+        } else {
+            request->send(400, "text/html", "Factory reset NOT initiated");
+        }
+    });
+    server.addHandler(factory_reset_handler);
 }
 
 void FirmwareUpdate::onEventConnect(AsyncEventSourceClient *client)
@@ -81,5 +113,16 @@ void FirmwareUpdate::onEventConnect(AsyncEventSourceClient *client)
 
 void FirmwareUpdate::loop()
 {
+    bool btn0 = digitalRead(0);
 
+    if(btn0 != last_btn_value) {
+        last_btn_change = millis();
+    }
+
+    last_btn_value = btn0;
+
+    if(!btn0 && deadline_elapsed(last_btn_change + 10000)) {
+        Serial.println("IO0 button was pressed for 10 seconds. Resetting to factory defaults.");
+        factory_reset();
+    }
 }

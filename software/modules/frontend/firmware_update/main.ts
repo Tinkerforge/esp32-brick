@@ -55,21 +55,37 @@ function upload(e: JQuery.SubmitEvent, type: string, name: string) {
     });
 }
 
+function factory_reset_modal() {
+    $('#factory_reset_modal').modal('show');
+}
+
+function factory_reset() {
+    $.ajax({
+        url: `/factory_reset`,
+        type: 'POST',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({"do_i_know_what_i_am_doing": true}),
+        success: () => {
+            $('#factory_reset_modal').modal('hide');
+            util.show_alert("alert-success", `Initiated factory reset.`, "Formatting SPIFFS and rebooting... This takes about one minute.");
+        },
+        error: (_x, _y, error) => {
+            $('#factory_reset_modal').modal('hide');
+            util.show_alert("alert-danger", `Initiating factory reset failed.`, error);
+        }
+    });
+}
+
 export function init() {
     //Firmware upload
     $('#upload_firmware_form').on("submit", function (e) {
         upload(e, "firmware", "Firmware");
     });
 
-    //SPIFFS upload
-    $('#upload_spiffs_form').on("submit", function (e) {
-        upload(e, "spiffs", "SPIFFS");
-    });
+    $('#firmware_file_select').on("change", () => $("#update_firmware_button").prop("disabled", false));
 
-    // TODO: use $
-    (<HTMLInputElement>document.getElementById("firmware_file_select")).addEventListener("change", () => $("#update_firmware_button").prop("disabled", false));
-
-    (<HTMLInputElement>document.getElementById("spiffs_file_select")).addEventListener("change", () => $("#update_spiffs_button").prop("disabled", false));
+    $('#spiffs_factory_reset').on("click", factory_reset_modal);
+    $('#factory_reset_confirm').on("click", factory_reset);
 
     bsCustomFileInput.init();
 }
