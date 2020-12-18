@@ -14,27 +14,18 @@ function update_devices(devices: Device[]) {
         return;
     }
 
-    let result = `<div class="table-responsive col-lg-6"><table id="" class="table table-hover">
-    <thead>
-        <tr>
-        <th scope="col">Port</th>
-        <th scope="col">UID</th>
-        <th scope="col">Device Type</th>
-        </tr>
-    </thead>
-    <tbody>`;
+    let result = "";
 
     for (let device of devices) {
         let line = "<tr>";
         line += "<td>" + device.port + "</td>";
         line += "<td>" + device.uid + "</td>";
-        line += "<td>" + device.name + "</td>";
+        line += "<td>" + (device.name == "unknown device" ? __("proxy.script.unknown_device") : device.name) + "</td>";
         line += "</tr>"
 
         result += line;
     }
 
-    result += "</tbody></table></div>";
     $("#bricklets_content").html(result);
 }
 
@@ -51,17 +42,7 @@ function update_error_counters(error_counters: Map<String, ErrorCounter>) {
         return;
     }
 
-    let result = `<div class="table-responsive col-lg-6"><table class="table table-hover">
-    <thead>
-        <tr>
-            <th scope="col">Port</th>
-            <th scope="col">SPI TFP Checksum</th>
-            <th scope="col">SPI TFP Frame</th>
-            <th scope="col">TFP Frame</th>
-            <th scope="col">TFP Unexpected</th>
-        </tr>
-    </thead>
-    <tbody>`;
+    let result = "";
 
     for (let port in error_counters) {
         let counters = error_counters[port];
@@ -77,7 +58,6 @@ function update_error_counters(error_counters: Map<String, ErrorCounter>) {
         result += line;
     }
 
-    result += "</tbody></table></div>";
     $("#bricklets_error_counters").html(result);
 }
 
@@ -98,4 +78,57 @@ export function init() {
 
 export function updateLockState(module_init) {
     $('#sidebar-bricklets').prop('hidden', !module_init.proxy);
+}
+
+export function getTranslation(lang: string) {
+    return {
+        "de": {
+            "proxy": {
+                "status": {
+
+                },
+                "navbar": {
+                    "bricklets": "Bricklets"
+                },
+                "content": {
+                    "bricklets": "Bricklets",
+                    "port": "Port",
+                    "UID": "UID",
+                    "device_type": "Gerätetyp",
+                    "error_counters": "Fehlerzähler",
+                    "spitfp_checksum": "SPI-TFP-Prüfsumme",
+                    "spitfp_frame": "SPI-TFP-Frame",
+                    "tfp_frame": "TFP-Frame",
+                    "tfp_unexpected": "TFP unerwartet",
+                },
+                "script": {
+                    "unknown_device": "unbekanntes Gerät"
+                }
+            }
+        },
+        "en": {
+            "proxy": {
+                "status": {
+
+                },
+                "navbar": {
+                    "bricklets": "Bricklets"
+                },
+                "content": {
+                    "bricklets": "Bricklets",
+                    "port": "Port",
+                    "UID": "UID",
+                    "device_type": "Device Type",
+                    "error_counters": "Error Counters",
+                    "spitfp_checksum": "SPI-TFP Checksum",
+                    "spitfp_frame": "SPI-TFP Frame",
+                    "tfp_frame": "TFP Frame",
+                    "tfp_unexpected": "TFP Unexpected",
+                },
+                "script": {
+                    "unknown_device": "unknown device"
+                }
+            }
+        }
+    }[lang];
 }

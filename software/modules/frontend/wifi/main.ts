@@ -19,32 +19,27 @@ interface GetWifiResult {
 }
 
 function scan_wifi() {
-    $("#start_wifi_scan").html("<span class=\"spinner-grow spinner-grow-sm\" role=\"status\" aria-hidden=\"true\"></span> Scanning for APs...");
-    $("#start_wifi_scan").prop('disabled', true);
-
     $.get("/scan_wifi").done(function () {
         $("#wifi_config_scan_spinner").prop('hidden', false);
         $("#wifi_scan_results").prop('hidden', true);
-        $("#wifi_scan_title").html("<h4>Scanning for Access Points...</h4>");
         $("#wifi_config_carousel").carousel(1);
 
         setTimeout(function () {
             $.get("/get_wifis").done(function (data: GetWifiResult) {
                 $("#wifi_config_scan_spinner").prop('hidden', true);
                 $("#wifi_scan_results").prop('hidden', false);
-                $("#wifi_scan_title").html("<h4>Select Access Point</h4>");
-                //$("#start_wifi_scan").html("Configure client");
-                //$("#start_wifi_scan").prop('disabled', false);
+                $("#wifi_scan_title").html(`<h4>${__("wifi.script.select_ap")}</h4>`);
+
                 if (data.result.length == 0) {
-                    $("#wifi_scan_results").html("No Wifi networks found.");
+                    $("#wifi_scan_results").html(__("wifi.script.no_ap_found"));
                     return;
                 }
                 let result = `<div class="table-responsive col-lg-6"><table id="wifi_config_found_aps" class="table table-hover">
                 <thead>
                     <tr>
-                    <th scope="col">SSID</th>
-                    <th scope="col">RSSI</th>
-                    <th scope="col">Password</th>
+                    <th scope="col">${__("wifi.script.ssid")}</th>
+                    <th scope="col">${__("wifi.script.rssi")}</th>
+                    <th scope="col">${__("wifi.script.password")}</th>
                     <th scope="col"></th>
                     </tr>
                 </thead>
@@ -58,7 +53,7 @@ function scan_wifi() {
                         line += "<td><span data-feather='unlock'></td>";
                     else
                         line += "<td><span data-feather='lock'></td>";
-                    line += `<td><button id="wifi_scan_result_${i}" type="button" class="btn btn-primary">Connect</button></td>`
+                    line += `<td><button id="wifi_scan_result_${i}" type="button" class="btn btn-primary">${__("wifi.script.connect")}</button></td>`
                     line += "</tr>"
 
                     result += line;
@@ -92,9 +87,9 @@ interface WifiSTAConfig {
 
 function update_wifi_sta_config(config: WifiSTAConfig) {
     if (config.ssid == "")
-        $('#wifi_sta_connection_name').html('<span class="form-label">WiFi Connection </span>');
+        $('#wifi_sta_connection_name').html(`<span class="form-label">${__("wifi.script.wifi_connection")}</span>`);
     else
-        $('#wifi_sta_connection_name').html('<span class="form-label">WiFi Connection to ' + config.ssid + '</span>');
+        $('#wifi_sta_connection_name').html(`<span class="form-label">${__("wifi.script.wifi_connection_pre")} ${config.ssid}</span>`);
 
     if (config.ssid != "") {
         $('#wifi_ap_configuration_state').val(config.ssid);
@@ -102,7 +97,7 @@ function update_wifi_sta_config(config: WifiSTAConfig) {
         //$('#wifi_save_ap_fallback_only').removeProp("disabled");
     }
     else {
-        $('#wifi_ap_configuration_state').val("No Access Point configured.");
+        $('#wifi_ap_configuration_state').val(__("wifi.script.no_ap_configured"));
         //$('#wifi_save_enable_sta').prop("disabled", true);
         //$('#wifi_save_ap_fallback_only').prop("disabled", true);
     }
@@ -215,22 +210,22 @@ function toggle_show_passphrase() {
 function connect_to_ap(ssid: string, bssid: string, encryption: number) {
     let form_passphrase = ""
     let form_bssid_lock = "";
-    let form_ssid = `<span id="wifi_cfg_ssid"></span>Hidden AP (<span id="wifi_cfg_bssid">${bssid}</span>)`;
+    let form_ssid = `<span id="wifi_cfg_ssid"></span>${__("wifi.script.hidden_ap")} (<span id="wifi_cfg_bssid">${bssid}</span>)`;
 
     if (encryption != 0) {
         form_passphrase = `<div class="form-group row no-gutters" id="wifi_cfg_passphrase_form">
-                <label for="wifi_cfg_passphrase" class="col-sm-3 col-form-label">Passphrase</label>
+                <label for="wifi_cfg_passphrase" class="col-sm-3 col-form-label">${__("wifi.script.passphrase")}</label>
                 <div class="col-sm-9">
                     <div class="input-group">
                         <input type="password" id="wifi_cfg_passphrase" class="form-control" value="" required minlength="8" maxlength="63"/>
                         <div class="input-group-append">
                             <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
                                 <input id="wifi_cfg_show_passphrase" type="checkbox" class="custom-control-input" aria-label="Show passphrase" value="test">
-                                <label class="custom-control-label" for="wifi_cfg_show_passphrase">Show</label>
+                                <label class="custom-control-label" for="wifi_cfg_show_passphrase">${__("wifi.script.show")}</label>
                             </div>
                         </div>
                         <div class="invalid-feedback">
-                            The passphrase must be 8-63 ASCII characters.
+                            ${__("wifi.script.passphrase_requirements")}
                         </div>
                     </div>
                 </div>
@@ -239,13 +234,12 @@ function connect_to_ap(ssid: string, bssid: string, encryption: number) {
 
     if (ssid != "") {
         form_bssid_lock = `<div class="form-group row no-gutters">
-                <label for="wifi_cfg_bssid_lock" class="col-sm-3 col-form-label">BSSID Lock</label>
+                <label for="wifi_cfg_bssid_lock" class="col-sm-3 col-form-label">${__("wifi.script.bssid_lock")}</label>
                 <div class="col-sm-9">
                     <div class="custom-control custom-switch">
                         <input type="checkbox" class="custom-control-input" id="wifi_cfg_bssid_lock">
                         <label class="custom-control-label" for="wifi_cfg_bssid_lock">
-                            Connect only to the access point with the BSSID ${bssid}.<br/>Leave deactivated if you use multiple
-                            access points or repeaters with with the same SSID.
+                            ${__("wifi.script.bssid_lock_desc_pre")} ${bssid}${__("wifi.script.bssid_lock_desc_post")}
                         </label>
                     </div>
                 </div>
@@ -255,7 +249,7 @@ function connect_to_ap(ssid: string, bssid: string, encryption: number) {
 
     let form_content = `
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3">
-        <h4>Connect to ${form_ssid}</h4>
+        <h4>${__("wifi.script.connect_to")} ${form_ssid}</h4>
     </div>
     <div>
         <form id="wifi_config_form" class="needs-validation" novalidate>
@@ -267,15 +261,14 @@ function connect_to_ap(ssid: string, bssid: string, encryption: number) {
             ${form_passphrase}
             <div class="form-group row no-gutters">
                 <div id="blah" class="col-sm-3">
-                    <label for="wifi_cfg_ip_configuration" class="col-form-label">IP
-                        Configuration</label>
+                    <label for="wifi_cfg_ip_configuration" class="col-form-label">${__("wifi.script.ip_configuration")}</label>
                 </div>
 
                 <div class="col-sm-9">
                     <select id="wifi_cfg_ip_configuration" class="custom-select">
                         <!-- TODO better toggle behaviour-->
-                        <option value="hide" selected>DHCP</option>
-                        <option value="show">Static</option>
+                        <option value="hide" selected>${__("wifi.script.dhcp")}</option>
+                        <option value="show">${__("wifi.script.static")}</option>
                     </select>
                 </div>
             </div>
@@ -283,68 +276,66 @@ function connect_to_ap(ssid: string, bssid: string, encryption: number) {
                 id="wifi_cfg_static_ip_cfg">
                 <div class="card col-sm-9">
                     <div class="card-body">
-                        <h5 class="card-title">Static IP Configuration</h5>
+                        <h5 class="card-title">${__("wifi.script.static_title")}</h5>
                         <div class="form-group row justify-content-end">
                             <label for="wifi_cfg_static_ip_ip"
-                                class="col-sm-3 col-form-label">IP</label>
+                                class="col-sm-3 col-form-label">${__("wifi.script.static_ip")}</label>
                             <div class="col-sm-9">
                                 <input id="wifi_cfg_static_ip_ip" class="form-control" type="text"
                                     minlength="7" maxlength="15" size="15"
                                     pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
                                 <div class="invalid-feedback">
-                                    The IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.2
+                                    ${__("wifi.script.static_ip_invalid")}
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group row justify-content-end">
                             <label for="wifi_cfg_static_ip_subnet"
-                                class="col-sm-3 col-form-label">Subnet Mask</label>
+                                class="col-sm-3 col-form-label">${__("wifi.script.subnet_mask")}</label>
                             <div class="col-sm-9">
                                 <input id="wifi_cfg_static_ip_subnet" class="form-control" type="text"
                                     minlength="7" maxlength="15" size="15"
                                     pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
                                 <div class="invalid-feedback">
-                                    The Subnet mask must have four groups between 0 and 255 separated with a dot, for example: 255.255.255.0
+                                    ${__("wifi.script.subnet_mask_invalid")}
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group row justify-content-end">
                             <label for="wifi_cfg_static_ip_gateway"
-                                class="col-sm-3 col-form-label">Gateway</label>
+                                class="col-sm-3 col-form-label">${__("wifi.script.gateway")}</label>
                             <div class="col-sm-9">
                                 <input id="wifi_cfg_static_ip_gateway" class="form-control" type="text"
                                     minlength="7" maxlength="15" size="15"
                                     pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
                                 <div class="invalid-feedback">
-                                    The gateway IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.2
+                                    ${__("wifi.script.gateway_invalid")}
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group row justify-content-end">
-                            <label for="wifi_cfg_static_ip_dns" class="col-sm-3 col-form-label">DNS
-                                Server</label>
+                            <label for="wifi_cfg_static_ip_dns" class="col-sm-3 col-form-label">${__("wifi.script.dns")}</label>
                             <div class="col-sm-9">
                                 <input id="wifi_cfg_static_ip_dns" class="form-control" type="text"
                                     minlength="7" maxlength="15" size="15"
                                     pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
                                 <div class="invalid-feedback">
-                                    The DNS IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.2
+                                    ${__("wifi.script.dns_invalid")}
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group row justify-content-end">
-                            <label for="wifi_cfg_static_ip_dns2" class="col-sm-3 col-form-label">DNS Server
-                                (Alternative)</label>
+                            <label for="wifi_cfg_static_ip_dns2" class="col-sm-3 col-form-label">${__("wifi.script.dns2")}</label>
                             <div class="col-sm-9">
                                 <input id="wifi_cfg_static_ip_dns2" class="form-control" type="text"
                                     minlength="7" maxlength="15" size="15"
                                     pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
                                 <div class="invalid-feedback">
-                                    The alternative DNS IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.2
+                                    ${__("wifi.script.dns2_invalid")}
                                 </div>
                             </div>
                         </div>
@@ -355,7 +346,7 @@ function connect_to_ap(ssid: string, bssid: string, encryption: number) {
         </form>
     </div>
     <div class="text-right">
-        <button id="wifi_config_submit_button" type="submit" form="wifi_config_form" class="btn btn-primary">Next</button>
+        <button id="wifi_config_submit_button" type="submit" form="wifi_config_form" class="btn btn-primary">${__("wifi.script.next")}</button>
     </div>`;
 
     $('#wifi_config_content').html(form_content);
@@ -379,9 +370,9 @@ function connect_to_ap(ssid: string, bssid: string, encryption: number) {
         if (form.checkValidity() === false) {
             return;
         }
-        $('#wifi_config_connect_to_ap_switch').html("Connect to " + $('#wifi_cfg_ssid').text() + " on start-up.");
+        $('#wifi_config_connect_to_ap_switch').html(`${__("wifi.script.sta_on_boot_pre")} ${$('#wifi_cfg_ssid').text()} ${__("wifi.script.sta_on_boot_post")}`);
 
-        $('#wifi_config_ap_fallback_switch').html("Open local access point only if connection to " + $('#wifi_cfg_ssid').text() + " fails.");
+        $('#wifi_config_ap_fallback_switch').html(`${__("wifi.script.ap_as_fallback_pre")} ${$('#wifi_cfg_ssid').text()} ${__("wifi.script.ap_as_fallback_post")}`);
         $('#wifi_config_carousel').carousel("next");
     }, false);
 }
@@ -420,7 +411,7 @@ function save_wifi_sta_config(continuation = function () { }) {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: continuation,
-        error: (_x, _y, error) => util.show_alert("alert-danger", "Failed to save access point configuration.", error)
+        error: (_x, _y, error) => util.show_alert("alert-danger", __("wifi.script.sta_config_failed"), error)
     });
 }
 
@@ -441,7 +432,7 @@ function save_wifi_config() {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: () => $('#wifi_reboot').modal('show'),
-        error: (_x, _y, error) => util.show_alert("alert-danger", "Failed to save wifi configuration.", error)
+        error: (_x, _y, error) => util.show_alert("alert-danger", __("wifi.script.config_failed"), error)
     });
 
     return;
@@ -490,4 +481,167 @@ export function init() {
 
 export function updateLockState(module_init) {
     $('#sidebar-wifi').prop('hidden', !module_init.wifi);
+}
+
+export function getTranslation(lang: string) {
+    return {
+        "de": {
+            "wifi": {
+                "status": {
+                    "wifi_connection": "WLAN-Verbindung",
+                    "not_configured": "Nicht konfiguriert",
+                    "not_connected": "Nicht verbunden",
+                    "connecting": "Verbinde",
+                    "connected": "Verbunden",
+                    "wifi_ap": "WLAN-Access-Point",
+                    "deactivated": "Deaktiviert",
+                    "activated": "Aktiviert",
+                    "fallback_inactive": "Fallback inaktiv",
+                    "fallback_active": "Fallback aktiv"
+                },
+                "navbar": {
+                    "wifi": "WLAN"
+                },
+                "content": {
+                    "wifi_settings": "WLAN-Einstellungen",
+                    "cancel": "Abbrechen",
+                    "back": "Zurück",
+                    "client_configuration": "Verbindungseinstellungen",
+                    "configured_ap": "Konfigurierter Access Point",
+                    "configure_connection": "Verbindung zu anderem Access Point konfigurieren",
+                    "connect_to_wifi": "Zu WLAN verbinden",
+                    "scanning_for_aps": "Scanne verfügbare Access Points...",
+                    "scanning": "Scanne...",
+                    "configure_ap_mode": "WLAN-Starteinstellungen",
+                    "sta_on_boot": "Verbinde beim Start zum Access Point",
+                    "ap_on_boot": "Öffne beim Start eigenen Accesspoint",
+                    "ap_as_fallback": "Öffne eigenen Accesspoint nur, falls die Verbindung zum Access Point fehlschlägt",
+                    "finish": "Abschließen",
+                    "reboot_title": "Neu starten um Konfiguration anzuwenden",
+                    "reboot_content": "Die geänderten WLAN-Einstellungen werden nur nach einem Neustart angewendet. Jetzt neu starten?",
+                    "abort": "Abbrechen",
+                    "reboot": "Neu starten",
+                },
+                "script": {
+                    "select_ap": "Gefundene Access Points",
+                    "no_ap_found": "Kein Netzwerk gefunden.",
+                    "ssid": "Netzwerkname",
+                    "rssi": "Empfang",
+                    "password": "Verschlüsselt",
+                    "connect": "Verbinden",
+                    "hidden_ap": "Versteckter AP",
+                    "passphrase": "Passphrase",
+                    "show": "Anzeigen",
+                    "passphrase_requirements": "Die Passphrase muss zwischen 8 und 63 ASCII-Zeichen lang sein.",
+                    "bssid_lock": "BSSID-Sperre",
+                    "bssid_lock_desc_pre": "Verbinde nur zum Access Point mit der BSSID",
+                    "bssid_lock_desc_post": ".<br/>Deaktiviert lassen, falls mehrere Access Points oder Repeater mit dem selben Netzwerknamen verwendet werden.",
+                    "connect_to": "Verbindung zu",
+                    "ip_configuration": "IP-Konfiguration",
+                    "dhcp": "Automatisch (DHCP)",
+                    "static": "Statisch",
+                    "static_title": "Statische IP-Konfiguration",
+                    "static_ip": "IP",
+                    "subnet_mask": "Subnetzmaske",
+                    "gateway": "Gateway",
+                    "dns": "DNS-Server",
+                    "dns2": "Alternativer DNS-Server",
+                    "static_ip_invalid": "Die IP muss aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.2",
+                    "subnet_mask_invalid": "Die Subnetzmaske muss aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 255.255.255.0",
+                    "gateway_invalid": "Die IP des Gateways muss aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1",
+                    "dns_invalid": "Die IP des DNS-Servers muss entweder leer bleiben, oder aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1.",
+                    "dns2_invalid": "Die IP des alternativen DNS-Servers muss entweder leer bleiben, oder aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1.",
+                    "next": "Weiter",
+                    "sta_on_boot_pre": "Verbinde beim Start zu",
+                    "sta_on_boot_post": " ",
+                    "ap_as_fallback_pre": "Öffne eigenen Accesspoint nur, falls die Verbindung zu",
+                    "ap_as_fallback_post": "fehlschlägt",
+                    "sta_config_failed": "Speichern der Verbindungseinstellungen fehlgeschlagen.",
+                    "config_failed": "Speichern der WLAN-Starteinstellungen fehlgeschlagen.",
+                    "wifi_connection": "WLAN-Verbindung",
+                    "wifi_connection_pre": "WLAN-Verbindung zu",
+                    "no_ap_configured": "Kein Access Point konfiguriert"
+                }
+            }
+        },
+        "en": {
+            "wifi": {
+                "status": {
+                    "wifi_connection": "WiFi Connection",
+                    "not_configured": "Not configured",
+                    "not_connected": "Not connected",
+                    "connecting": "Connecting",
+                    "connected": "Connected",
+                    "wifi_ap": "WiFi Access Point",
+                    "deactivated": "Deactivated",
+                    "activated": "Activated",
+                    "fallback_inactive": "Fallback inactive",
+                    "fallback_active": "Fallback active"
+                },
+                "navbar": {
+                    "wifi": "WiFi"
+                },
+                "content": {
+                    "wifi_settings": "WiFi Settings",
+                    "cancel": "Cancel",
+                    "back": "Back",
+                    "client_configuration": "Connection configuration",
+                    "configured_ap": "Configured Access Point",
+                    "configure_connection": "Configure connection to another access point",
+                    "connect_to_wifi": "Connect to WiFi",
+                    "scanning_for_aps": "Scanning for Access Points...",
+                    "scanning": "Scanne...",
+                    "configure_ap_mode": "WiFi Start-Up Settings",
+                    "sta_on_boot": "Connect to access point on start-up",
+                    "ap_on_boot": "Open local access point on start-up",
+                    "ap_as_fallback": "Open local access point only if connection to the access point fails",
+                    "finish": "Finish",
+                    "reboot_title": "Reboot to apply configuration",
+                    "reboot_content": "The changed WiFi configuration will only be applied after rebooting. Reboot now?",
+                    "abort": "Abort",
+                    "reboot": "Reboot",
+                },
+                "script": {
+                    "select_ap": "Found Access Points",
+                    "no_ap_found": "No Wifi networks found.",
+                    "ssid": "Network name",
+                    "rssi": "Reception",
+                    "password": "Encrypted",
+                    "connect": "Connect",
+                    "hidden_ap": "Hidden AP",
+                    "passphrase": "Passphrase",
+                    "show": "Show",
+                    "passphrase_requirements": "The passphrase must be 8-63 ASCII characters.",
+                    "bssid_lock": "BSSID Lock",
+                    "bssid_lock_desc_pre": "Connect only to the access point with the BSSID",
+                    "bssid_lock_desc_post": ".<br/>Leave deactivated if you use multiple access points or repeaters with with the same SSID.",
+                    "connect_to": "Connect to",
+                    "ip_configuration": "IP Configuration",
+                    "dhcp": "Automatic (DHCP)",
+                    "static": "Static",
+                    "static_title": "Static IP Configuration",
+                    "static_ip": "IP",
+                    "subnet_mask": "Subnet Mask",
+                    "gateway": "Gateway",
+                    "dns": "DNS Server",
+                    "dns2": "Alternative DNS Server",
+                    "static_ip_invalid": "The IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.2",
+                    "subnet_mask_invalid": "The subnet mask must have four groups between 0 and 255 separated with a dot, for example: 255.255.255.0",
+                    "gateway_invalid": "The gateway IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.1",
+                    "dns_invalid": "The DNS server IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.1, or be empty.",
+                    "dns2_invalid": "The alternative DNS server IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.1, or be empty.",
+                    "next": "Next",
+                    "sta_on_boot_pre": "Connect to",
+                    "sta_on_boot_post": "on start-up",
+                    "ap_as_fallback_pre": "Open local access point only if connection to",
+                    "ap_as_fallback_post": "fails",
+                    "sta_config_failed": "Failed to save access point configuration.",
+                    "config_failed": "Failed to save wifi configuration.",
+                    "wifi_connection": "WiFi Connection",
+                    "wifi_connection_pre": "WiFi Connection to",
+                    "no_ap_configured": "No access point configured"
+                }
+            }
+        }
+    }[lang];
 }
