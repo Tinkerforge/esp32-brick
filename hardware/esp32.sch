@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 2
 Title "ESP32 Brick"
-Date "2020-09-10"
-Rev "1.3"
+Date "2020-12-22"
+Rev "1.4"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"
@@ -1551,4 +1551,6 @@ Text GLabel 6650 1750 2    39   Input ~ 0
 ESP_IO0
 Wire Wire Line
 	6500 1750 6650 1750
+Text Notes 9900 1000 0    39   ~ 0
+    GPIO 0\n    GPIO 2\n    GPIO 4\n    GPIO 5 (must be HIGH during boot)\n    GPIO 12 (must be LOW during boot)\n    GPIO 15 (must be HIGH during boot)
 $EndSCHEMATC
