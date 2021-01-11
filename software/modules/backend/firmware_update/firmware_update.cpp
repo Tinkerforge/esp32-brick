@@ -54,7 +54,7 @@ void handleUpdateChunk(int command, AsyncWebServerRequest *request, size_t index
 void FirmwareUpdate::register_urls()
 {
     server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(200, "text/html", "<form method='POST' action='/flash_firmware' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form> <form method='POST' action='/flash_spiffs' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update SPIFFS'></form>");
+        request->send(200, "text/html", "<form method='POST' action='/flash_firmware' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update Firmware'></form> <form method='POST' action='/flash_spiffs' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update SPIFFS'></form>");
     });
 
     server.on("/flash_firmware", HTTP_POST, [this](AsyncWebServerRequest *request){
