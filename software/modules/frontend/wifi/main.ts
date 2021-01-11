@@ -19,56 +19,63 @@ interface GetWifiResult {
 }
 
 function scan_wifi() {
-    $.get("/scan_wifi").done(function () {
-        $("#wifi_config_scan_spinner").prop('hidden', false);
-        $("#wifi_scan_results").prop('hidden', true);
-        $("#wifi_config_carousel").carousel(1);
+    $.ajax({
+        url: '/scan_wifi',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(null),
+        error: (_x, _y, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error),
+        success: () => {
+            $("#wifi_config_scan_spinner").prop('hidden', false);
+            $("#wifi_scan_results").prop('hidden', true);
+            $("#wifi_config_carousel").carousel(1);
 
-        setTimeout(function () {
-            $.get("/get_wifis").done(function (data: GetWifiResult) {
-                $("#wifi_config_scan_spinner").prop('hidden', true);
-                $("#wifi_scan_results").prop('hidden', false);
-                $("#wifi_scan_title").html(`<h4>${__("wifi.script.select_ap")}</h4>`);
+            setTimeout(function () {
+                    $.get("/get_wifis").done(function (data: GetWifiResult) {
+                        $("#wifi_config_scan_spinner").prop('hidden', true);
+                        $("#wifi_scan_results").prop('hidden', false);
+                        $("#wifi_scan_title").html(`<h4>${__("wifi.script.select_ap")}</h4>`);
 
-                if (data.result.length == 0) {
-                    $("#wifi_scan_results").html(__("wifi.script.no_ap_found"));
-                    return;
-                }
-                let result = `<div class="table-responsive col-lg-6"><table id="wifi_config_found_aps" class="table table-hover">
-                <thead>
-                    <tr>
-                    <th scope="col">${__("wifi.script.ssid")}</th>
-                    <th scope="col">${__("wifi.script.rssi")}</th>
-                    <th scope="col">${__("wifi.script.password")}</th>
-                    <th scope="col"></th>
-                    </tr>
-                </thead>
-                <tbody>`;
+                        if (data.result.length == 0) {
+                            $("#wifi_scan_results").html(__("wifi.script.no_ap_found"));
+                            return;
+                        }
+                        let result = `<div class="table-responsive col-lg-6"><table id="wifi_config_found_aps" class="table table-hover">
+                        <thead>
+                            <tr>
+                            <th scope="col">${__("wifi.script.ssid")}</th>
+                            <th scope="col">${__("wifi.script.rssi")}</th>
+                            <th scope="col">${__("wifi.script.password")}</th>
+                            <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
 
-                $.each(data.result, (i, v: WifiInfo) => {
-                    let line = "<tr>";
-                    line += "<td>" + v.ssid + "</td>";
-                    line += "<td>" + v.rssi + "</td>";
-                    if (v.encryption == 0)
-                        line += "<td><span data-feather='unlock'></td>";
-                    else
-                        line += "<td><span data-feather='lock'></td>";
-                    line += `<td><button id="wifi_scan_result_${i}" type="button" class="btn btn-primary">${__("wifi.script.connect")}</button></td>`
-                    line += "</tr>"
+                        $.each(data.result, (i, v: WifiInfo) => {
+                            let line = "<tr>";
+                            line += "<td>" + v.ssid + "</td>";
+                            line += "<td>" + v.rssi + "</td>";
+                            if (v.encryption == 0)
+                                line += "<td><span data-feather='unlock'></td>";
+                            else
+                                line += "<td><span data-feather='lock'></td>";
+                            line += `<td><button id="wifi_scan_result_${i}" type="button" class="btn btn-primary">${__("wifi.script.connect")}</button></td>`
+                            line += "</tr>"
 
-                    result += line;
-                });
-                result += "</tbody></table></div>";
-                $("#wifi_scan_results").html(result);
+                            result += line;
+                        });
+                        result += "</tbody></table></div>";
+                        $("#wifi_scan_results").html(result);
 
-                $.each(data.result, (i, v: WifiInfo) => {
-                    let button = document.getElementById(`wifi_scan_result_${i}`);
-                    button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption));
-                });
+                        $.each(data.result, (i, v: WifiInfo) => {
+                            let button = document.getElementById(`wifi_scan_result_${i}`);
+                            button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption));
+                        });
 
-                feather.replace();
-            });
-        }, 5000);
+                        feather.replace();
+                    });
+                }, 5000);
+        }
     });
 }
 
@@ -406,7 +413,7 @@ function save_wifi_sta_config(continuation = function () { }) {
     };
 
     $.ajax({
-        url: '/wifi_sta_config',
+        url: '/wifi_sta_config_update',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(payload),
@@ -427,7 +434,7 @@ function save_wifi_config() {
     }
 
     $.ajax({
-        url: '/wifi_config',
+        url: '/wifi_config_update',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(payload),

@@ -50,3 +50,10 @@ export function show_alert(cls: string, title: string, text: string) {
         setTimeout(() => $('#alert_placeholder').html(""), 10000);
     }
 }
+
+export function toLocaleFixed(i: number, fractionDigits: number) {
+    return i.toLocaleString(undefined, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits
+    });
+}

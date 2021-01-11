@@ -25,9 +25,6 @@ public:
 private:
     void apply_soft_ap_config_and_start();
     void apply_sta_config_and_connect();
-    int read_config_from_flash();
-    int write_config_to_flash();
-    bool read_wifi_configuration(JsonVariant json, String &message);
 
     int get_connection_state();
     int get_ap_state();
@@ -38,6 +35,8 @@ private:
     Config wifi_soft_ap_config;
     Config wifi_sta_config;
     Config wifi_state;
+
+    Config wifi_scan_config;
 
     Config wifi_config_in_use;
     Config wifi_soft_ap_config_in_use;

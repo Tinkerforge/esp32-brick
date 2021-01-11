@@ -8,10 +8,14 @@
 
 #include "modules/task_scheduler/task_scheduler.h"
 
+#include "api.h"
+
 extern TF_HalContext hal;
 extern AsyncWebServer server;
 extern AsyncEventSource events;
 extern TaskScheduler task_scheduler;
+
+extern API api;
 
 Proxy::Proxy()
 {
@@ -93,41 +97,26 @@ void Proxy::setup()
 
 void Proxy::register_urls()
 {
-    server.on("/error_counter", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        auto *response = request->beginResponseStream("application/json; charset=utf-8");
-        error_counters.write_to_stream(*response);
-        request->send(response);
-    });
-
-    server.on("/devices", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        auto *response = request->beginResponseStream("application/json; charset=utf-8");
-        devices.write_to_stream(*response);
-        request->send(response);
-    });
+    api.addState("error_counters", &error_counters, {}, 1000);
+    api.addState("devices", &devices, {}, 10000);
 
     task_scheduler.scheduleWithFixedDelay("update_error_counters", [this](){
-        bool send_event = false;
         for(char c = 'A'; c <= 'F'; ++c) {
             uint32_t spitfp_checksum, spitfp_frame, tfp_frame, tfp_unexpected;
 
             tf_hal_get_error_counters(&hal, c, &spitfp_checksum, &spitfp_frame, &tfp_frame, &tfp_unexpected);
 
-            send_event |= error_counters.get(String(c))->get("SpiTfpChecksum")->updateUint(spitfp_checksum);
-            send_event |= error_counters.get(String(c))->get("SpiTfpFrame")->updateUint(spitfp_checksum);
-            send_event |= error_counters.get(String(c))->get("TfpFrame")->updateUint(spitfp_checksum);
-            send_event |= error_counters.get(String(c))->get("TfpUnexpected")->updateUint(spitfp_checksum);
-        }
-
-        if(send_event && send_event_allowed(&events)) {
-            events.send(error_counters.to_string().c_str(), "bricklet_error_counters", millis());
+            error_counters.get(String(c))->get("SpiTfpChecksum")->updateUint(spitfp_checksum);
+            error_counters.get(String(c))->get("SpiTfpFrame")->updateUint(spitfp_checksum);
+            error_counters.get(String(c))->get("TfpFrame")->updateUint(spitfp_checksum);
+            error_counters.get(String(c))->get("TfpUnexpected")->updateUint(spitfp_checksum);
         }
     }, 5000, 5000);
 }
 
 void Proxy::onEventConnect(AsyncEventSourceClient *client)
 {
-    client->send(error_counters.to_string().c_str(), "bricklet_error_counters", millis(), 1000);
-    client->send(devices.to_string().c_str(), "devices", millis(), 1000);
+
 }
 
 void Proxy::loop()

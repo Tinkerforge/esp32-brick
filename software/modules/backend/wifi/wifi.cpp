@@ -7,8 +7,10 @@
 #include "AsyncJson.h"
 
 #include "modules/task_scheduler/task_scheduler.h"
+#include "modules/mqtt/mqtt.h"
 
 #include "tools.h"
+#include "api.h"
 
 #define RECONNECT_TIMEOUT_MS 30000
 
@@ -18,34 +20,8 @@ extern AsyncEventSource events;
 extern char uid[7];
 extern char passphrase[20];
 
-String update_config(Config &cfg, String config_name, JsonVariant &json) {
-    String error = cfg.update_from_json(json);
-
-    String tmp_path = String("/") + config_name + ".json.tmp";
-    String path = String("/") + config_name + ".json";
-
-    if (error == "") {
-        if (SPIFFS.exists(tmp_path))
-            Serial.println(SPIFFS.remove(tmp_path));
-
-        File file = SPIFFS.open(tmp_path, "w");
-        cfg.save_to_file(file);
-        file.close();
-
-        if (SPIFFS.exists(path))
-            Serial.println(SPIFFS.remove(path));
-
-        Serial.println(SPIFFS.rename(tmp_path, path));
-        Serial.print(path);
-        Serial.println(" updated");
-    } else {
-        Serial.print("Failed to update ");
-        Serial.print(path);
-        Serial.print(":\n    ");
-        Serial.println(error);
-    }
-    return error;
-}
+extern API api;
+extern Mqtt mqtt;
 
 Wifi::Wifi() {
     wifi_config = Config::Object({
@@ -184,6 +160,8 @@ Wifi::Wifi() {
         {"connection_state", Config::Int(0)},
         {"ap_state", Config::Int(0)}
     });
+
+    wifi_scan_config = Config::Null();
 }
 
 void Wifi::apply_soft_ap_config_and_start() {
@@ -191,11 +169,19 @@ void Wifi::apply_soft_ap_config_and_start() {
     uint8_t gateway[4];
     uint8_t subnet[4];
 
+    WiFi.persistent(false);
+
     wifi_soft_ap_config_in_use.get("ip")->fillArray<uint8_t, Config::ConfUint>(ip, 4);
     wifi_soft_ap_config_in_use.get("gateway")->fillArray<uint8_t, Config::ConfUint>(gateway, 4);
     wifi_soft_ap_config_in_use.get("subnet")->fillArray<uint8_t, Config::ConfUint>(subnet, 4);
 
-    WiFi.softAPConfig(ip, gateway, subnet);
+    int counter = 0;
+    while((ip[0] != WiFi.softAPIP()[0]) || (ip[1] != WiFi.softAPIP()[1]) || (ip[2] != WiFi.softAPIP()[2]) || (ip[3] != WiFi.softAPIP()[3])) {
+        WiFi.softAPConfig(ip, gateway, subnet);
+        ++counter;
+    }
+    printf("Had to configure softAP ip %d times.\n", counter);
+
 
     printf("Soft AP started.\n");
     printf("    SSID: %s\n", wifi_soft_ap_config_in_use.get("ssid")->asString().c_str());
@@ -264,7 +250,7 @@ void Wifi::apply_sta_config_and_connect() {
 
 void Wifi::setup()
 {
-    String default_hostname = String(__HOST_PREFIX__) + String(uid);
+    String default_hostname = String(__HOST_PREFIX__) + String("-") + String(uid);
     String default_passphrase = String(passphrase);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -300,6 +286,7 @@ void Wifi::setup()
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
             Serial.print("Got IP address: ");
             Serial.println(WiFi.localIP());
+            mqtt.connect();
         },
         SYSTEM_EVENT_STA_GOT_IP);
 
@@ -385,21 +372,18 @@ void Wifi::setup()
 
 void Wifi::register_urls()
 {
-    server.on("/wifi_state", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        auto *response = request->beginResponseStream("application/json; charset=utf-8");
-        wifi_state.write_to_stream(*response);
-        request->send(response);
-    });
-    server.on("/scan_wifi", HTTP_GET, [](AsyncWebServerRequest *request) {
+    api.addState("wifi_state", &wifi_state, {}, 1000);
+
+    api.addCommand("scan_wifi", &wifi_scan_config, [](){
+        Serial.println("Scanning for wifis...");
         WiFi.scanDelete();
 
         // WIFI_SCAN_FAILED also means the scan is done.
         if(WiFi.scanComplete() == WIFI_SCAN_FAILED){
             WiFi.scanNetworks(true, true);
         }
-
-        request->send(204, "", "");
     });
+
     server.on("/get_wifis", HTTP_GET, [](AsyncWebServerRequest *request) {
         int network_count = WiFi.scanComplete();
 
@@ -438,73 +422,20 @@ void Wifi::register_urls()
         }
     });
 
-    server.on("/wifi_sta_config", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        auto *response = request->beginResponseStream("application/json; charset=utf-8");
-        wifi_sta_config.write_to_stream_except(*response, {"passphrase"});
-        request->send(response);
-    });
-    AsyncCallbackJsonWebHandler *wifi_sta_config_handler = new AsyncCallbackJsonWebHandler("/wifi_sta_config", [this](AsyncWebServerRequest *request, JsonVariant &json){
-        String message = update_config(wifi_sta_config, "wifi_sta_config", json);
-
-        if (message == "") {
-            request->send(200, "text/html", "Settings saved");
-        } else {
-            request->send(400, "text/html", message);
-        }
-    });
-    server.addHandler(wifi_sta_config_handler);
-
-    server.on("/wifi_config", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        auto *response = request->beginResponseStream("application/json; charset=utf-8");
-        wifi_config.write_to_stream(*response);
-        request->send(response);
-    });
-    AsyncCallbackJsonWebHandler *wifi_config_handler = new AsyncCallbackJsonWebHandler("/wifi_config", [this](AsyncWebServerRequest *request, JsonVariant &json){
-        String message = update_config(wifi_config, "wifi_config", json);
-
-        if (message == "") {
-            request->send(200, "text/html", "Settings saved");
-        } else {
-            request->send(400, "text/html", message);
-        }
-    });
-    server.addHandler(wifi_config_handler);
-
-    server.on("/wifi_soft_ap_config", HTTP_GET, [this](AsyncWebServerRequest *request) {
-        auto *response = request->beginResponseStream("application/json; charset=utf-8");
-        wifi_soft_ap_config.write_to_stream(*response);
-        request->send(response);
-    });
-    AsyncCallbackJsonWebHandler *wifi_soft_ap_config_handler = new AsyncCallbackJsonWebHandler("/wifi_soft_ap_config", [this](AsyncWebServerRequest *request, JsonVariant &json){
-        String message = update_config(wifi_soft_ap_config, "wifi_soft_ap_config", json);
-
-        if (message == "") {
-            request->send(200, "text/html", "Settings saved");
-        } else {
-            request->send(400, "text/html", message);
-        }
-    });
-    server.addHandler(wifi_soft_ap_config_handler);
+    api.addPersistentConfig("wifi_sta_config", &wifi_sta_config, {"passphrase"}, 1000);
+    api.addPersistentConfig("wifi_config", &wifi_config, {"passphrase"}, 1000);
+    api.addPersistentConfig("wifi_soft_ap_config", &wifi_soft_ap_config, {"passphrase"}, 1000);
 }
 
 void Wifi::onEventConnect(AsyncEventSourceClient *client)
 {
-    client->send(wifi_config.to_string().c_str(), "wifi_config", millis(), 1000);
 
-    client->send(wifi_state.to_string().c_str(), "wifi_state", millis(), 1000);
-
-    client->send(wifi_sta_config.to_string().c_str(), "wifi_sta_config", millis(), 1000);
 }
 
 void Wifi::loop()
 {
-    bool send_event = false;
-    send_event |= wifi_state.get("connection_state")->updateInt(get_connection_state());
-    send_event |= wifi_state.get("ap_state")->updateInt(get_ap_state());
-
-    if(send_event && send_event_allowed(&events)) {
-        events.send(wifi_state.to_string().c_str(), "wifi_state", millis());
-    }
+    wifi_state.get("connection_state")->updateInt(get_connection_state());
+    wifi_state.get("ap_state")->updateInt(get_ap_state());
 
     if (wifi_config_in_use.get("enable_sta")->asBool() &&
         wifi_config_in_use.get("enable_soft_ap")->asBool() &&

@@ -66,7 +66,7 @@ export function addEventListeners(source: EventSource) {
         update_devices(<Device[]>(JSON.parse(e.data)));
     }, false);
 
-    source.addEventListener('bricklet_error_counters', function (e: util.SSE) {
+    source.addEventListener('error_counters', function (e: util.SSE) {
         update_error_counters(<Map<String, ErrorCounter>>(JSON.parse(e.data)));
     }, false);
 }
