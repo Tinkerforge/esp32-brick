@@ -143,16 +143,30 @@ export function getTranslation(lang: string) {
         "en": {
             "mqtt": {
                 "status": {
-
+                    "connection": "MQTT Connection"
                 },
                 "navbar": {
                     "mqtt": "MQTT"
                 },
                 "content": {
                     "mqtt": "MQTT",
+                    "enable_mqtt_desc": "This allows controlling the device over the configured MQTT broker. See <b>TODO: MQTT API documentation link</b> for details.",
+                    "enable_mqtt": "Enable MQTT",
+                    "broker_host": "Broker hostname or IP",
+                    "port": "Broker port (typically 1883)",
+                    "username": "Broker username (optional)",
+                    "password": "Broker password (optional)",
+                    "topic_prefix": "Topic prefix",
+                    "client_name": "Client name",
+                    "save": "Save",
+                    "reboot_title": "Reboot to apply configuration",
+                    "reboot_content": "The changed MQTT configuration will only be applied after rebooting. Reboot now?",
+                    "abort": "Abort",
+                    "reboot": "Reboot",
                 },
                 "script": {
-
+                    "save_failed": "Failed to save the MQTT configuration.",
+                    "to": "to"
                 }
             }
         }
