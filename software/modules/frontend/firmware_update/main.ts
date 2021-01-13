@@ -126,7 +126,7 @@ export function getTranslation(lang: string) {
                     "abort_reset": "Abbrechen",
                     "confirm_reset": "Zurücksetzen auf Werkseinstellungen",
                     "debug_report": "Debug-Report herunterladen",
-                    "debug_report_desc": "Ein kompletter Report aller Statusinformationen des Geräts außer Passwörtern."
+                    "debug_report_desc": "Ein kompletter Report aller Statusinformationen des Geräts außer Passwörtern"
                 },
                 "script": {
                     "flash_success": "Erfolgreich aktualisiert",
@@ -161,7 +161,7 @@ export function getTranslation(lang: string) {
                     "abort_reset": "Abort",
                     "confirm_reset": "Reset to factory defaults",
                     "debug_report": "Download debug report",
-                    "debug_report_desc": "A complete report of all status information of this device except passwords."
+                    "debug_report_desc": "A complete report of all status information of this device except passwords"
                 },
                 "script": {
                     "flash_success": "Successfully updated",

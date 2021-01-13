@@ -60,16 +60,6 @@ function update_mqtt_state(state: MqttState) {
     }
 }
 
-function mqtt_toggle_show_password() {
-    console.log("hier");
-    let input = <HTMLInputElement>$('#mqtt_broker_password')[0];
-    console.log(input);
-    if (input.type == 'password')
-        input.type = 'text';
-    else
-        input.type = 'password';
-}
-
 export function addEventListeners(source: EventSource) {
     source.addEventListener('mqtt_config', function (e: util.SSE) {
         update_mqtt_config(<MqttConfig>(JSON.parse(e.data)));
@@ -83,7 +73,7 @@ export function addEventListeners(source: EventSource) {
 export function init() {
     console.log("init");
     let button = <HTMLButtonElement>document.getElementById("mqtt_show_password");
-    button.addEventListener("change", () => {console.log("handler"); mqtt_toggle_show_password();});
+    button.addEventListener("change", util.toggle_password_fn("#mqtt_broker_password"));
 
     let form = <HTMLFormElement>$('#mqtt_config_form')[0];
     form.addEventListener('submit', function (event: Event) {
@@ -127,12 +117,13 @@ export function getTranslation(lang: string) {
                     "username": "Broker-Username (optional)",
                     "password": "Broker-Passwort (optional)",
                     "topic_prefix": "Topic-Präfix",
-                    "client_name": "Client-Name",
+                    "client_name": "Name des Clients",
                     "save": "Speichern",
                     "reboot_title": "Neu starten um Konfiguration anzuwenden",
                     "reboot_content": "Die geänderten MQTT-Einstellungen werden nur nach einem Neustart angewendet. Jetzt neu starten?",
                     "abort": "Abbrechen",
                     "reboot": "Neu starten",
+                    "show_password": "Anzeigen"
                 },
                 "script": {
                     "save_failed": "Speichern der MQTT-Einstellungen fehlgeschlagen.",
@@ -163,6 +154,7 @@ export function getTranslation(lang: string) {
                     "reboot_content": "The changed MQTT configuration will only be applied after rebooting. Reboot now?",
                     "abort": "Abort",
                     "reboot": "Reboot",
+                    "show_password": "Show"
                 },
                 "script": {
                     "save_failed": "Failed to save the MQTT configuration.",
