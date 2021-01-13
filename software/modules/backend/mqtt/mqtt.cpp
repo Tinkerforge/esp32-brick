@@ -42,6 +42,9 @@ void Mqtt::apply_config() {
 }
 
 void Mqtt::connect() {
+    if(!initialized)
+        return;
+
     if(!this->mqtt_config_in_use.get("enable_mqtt")->asBool())
         return;
 
