@@ -24,14 +24,9 @@ extern API api;
 extern Mqtt mqtt;
 
 Wifi::Wifi() {
-    wifi_config = Config::Object({
-        {"enable_soft_ap", Config::Bool(true)},
-        {"enable_sta", Config::Bool(false)},
+    wifi_ap_config = Config::Object({
+        {"enable_ap", Config::Bool(true)},
         {"ap_fallback_only", Config::Bool(false)},
-    });
-
-
-    wifi_soft_ap_config = Config::Object({
         {"ssid",  Config::Str("esp-brick", 32)},
         {"hide_ssid", Config::Bool(false)},
         {"passphrase", Config::Str("0123456789", 64, [](const Config::ConfString &s) {
@@ -76,6 +71,7 @@ Wifi::Wifi() {
             )},
     });
     wifi_sta_config = Config::Object({
+        {"enable_sta", Config::Bool(false)},
         {"ssid", Config::Str("", 32)},
         {"bssid", Config::Array({
                 Config::Uint8(0),
@@ -158,7 +154,8 @@ Wifi::Wifi() {
 
     wifi_state = Config::Object({
         {"connection_state", Config::Int(0)},
-        {"ap_state", Config::Int(0)}
+        {"ap_state", Config::Int(0)},
+        {"ap_bssid", Config::Str("", 20)}
     });
 
     wifi_scan_config = Config::Null();
@@ -169,11 +166,9 @@ void Wifi::apply_soft_ap_config_and_start() {
     uint8_t gateway[4];
     uint8_t subnet[4];
 
-    WiFi.persistent(false);
-
-    wifi_soft_ap_config_in_use.get("ip")->fillArray<uint8_t, Config::ConfUint>(ip, 4);
-    wifi_soft_ap_config_in_use.get("gateway")->fillArray<uint8_t, Config::ConfUint>(gateway, 4);
-    wifi_soft_ap_config_in_use.get("subnet")->fillArray<uint8_t, Config::ConfUint>(subnet, 4);
+    wifi_ap_config_in_use.get("ip")->fillArray<uint8_t, Config::ConfUint>(ip, 4);
+    wifi_ap_config_in_use.get("gateway")->fillArray<uint8_t, Config::ConfUint>(gateway, 4);
+    wifi_ap_config_in_use.get("subnet")->fillArray<uint8_t, Config::ConfUint>(subnet, 4);
 
     int counter = 0;
     while((ip[0] != WiFi.softAPIP()[0]) || (ip[1] != WiFi.softAPIP()[1]) || (ip[2] != WiFi.softAPIP()[2]) || (ip[3] != WiFi.softAPIP()[3])) {
@@ -181,28 +176,24 @@ void Wifi::apply_soft_ap_config_and_start() {
         ++counter;
     }
     printf("Had to configure softAP ip %d times.\n", counter);
-
+    delay(2000);
 
     printf("Soft AP started.\n");
-    printf("    SSID: %s\n", wifi_soft_ap_config_in_use.get("ssid")->asString().c_str());
-    printf("    passphrase: %s\n", wifi_soft_ap_config_in_use.get("passphrase")->asString().c_str());
-    printf("    hostname: %s\n", wifi_soft_ap_config_in_use.get("hostname")->asString().c_str());
+    printf("    SSID: %s\n", wifi_ap_config_in_use.get("ssid")->asString().c_str());
+    printf("    passphrase: %s\n", wifi_ap_config_in_use.get("passphrase")->asString().c_str());
+    printf("    hostname: %s\n", wifi_ap_config_in_use.get("hostname")->asString().c_str());
 
-    WiFi.softAPsetHostname(wifi_soft_ap_config_in_use.get("hostname")->asString().c_str());
+    WiFi.softAPsetHostname(wifi_ap_config_in_use.get("hostname")->asString().c_str());
 
-    WiFi.softAP(wifi_soft_ap_config_in_use.get("ssid")->asString().c_str(),
-                wifi_soft_ap_config_in_use.get("passphrase")->asString().c_str(),
-                wifi_soft_ap_config_in_use.get("channel")->asUint(),
-                wifi_soft_ap_config_in_use.get("hide_ssid")->asBool());
+    WiFi.softAP(wifi_ap_config_in_use.get("ssid")->asString().c_str(),
+                wifi_ap_config_in_use.get("passphrase")->asString().c_str(),
+                wifi_ap_config_in_use.get("channel")->asUint(),
+                wifi_ap_config_in_use.get("hide_ssid")->asBool());
 
     soft_ap_running = true;
     IPAddress myIP = WiFi.softAPIP();
     Serial.print("    IP: ");
     Serial.println(myIP);
-    /*Serial.print("Subnet CIDR: ");
-    Serial.println(WiFi.softAPSubnetCIDR());
-    Serial.print("Broadcast IP: ");
-    Serial.println(WiFi.softAPBroadcastIP());*/
 }
 
 void Wifi::apply_sta_config_and_connect() {
@@ -253,6 +244,8 @@ void Wifi::setup()
     String default_hostname = String(__HOST_PREFIX__) + String("-") + String(uid);
     String default_passphrase = String(passphrase);
 
+    WiFi.persistent(false);
+
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
             if(this->state == WifiState::CONNECTING) {
                 Serial.print("Failed to connect to ");
@@ -300,15 +293,6 @@ void Wifi::setup()
 
     connect_attempt_interval_ms = 5000;
 
-    //TODO read .tmp if real file does not exist
-    if(SPIFFS.exists("/wifi_config.json")) {
-        File file = SPIFFS.open("/wifi_config.json");
-        String error = wifi_config.update_from_file(file);
-        file.close();
-        if(error != "")
-            Serial.println(error);
-    }
-
     if(SPIFFS.exists("/wifi_sta_config.json")) {
         File file = SPIFFS.open("/wifi_sta_config.json");
         String error = wifi_sta_config.update_from_file(file);
@@ -319,32 +303,31 @@ void Wifi::setup()
         wifi_sta_config.get("hostname")->updateString(default_hostname);
     }*/
 
-    if(SPIFFS.exists("/wifi_soft_ap_config.json")) {
-        File file = SPIFFS.open("/wifi_soft_ap_config.json");
-        String error = wifi_soft_ap_config.update_from_file(file);
+    if(SPIFFS.exists("/wifi_ap_config.json")) {
+        File file = SPIFFS.open("/wifi_ap_config.json");
+        String error = wifi_ap_config.update_from_file(file);
         file.close();
         if(error != "")
             Serial.println(error);
     } else {
-        wifi_soft_ap_config.get("hostname")->updateString(default_hostname);
-        wifi_soft_ap_config.get("ssid")->updateString(default_hostname);
-        wifi_soft_ap_config.get("passphrase")->updateString(default_passphrase);
-        File file = SPIFFS.open("/wifi_soft_ap_config.json", "w");
-        wifi_soft_ap_config.save_to_file(file);
+        wifi_ap_config.get("hostname")->updateString(default_hostname);
+        wifi_ap_config.get("ssid")->updateString(default_hostname);
+        wifi_ap_config.get("passphrase")->updateString(default_passphrase);
+        File file = SPIFFS.open("/wifi_ap_config.json", "w");
+        wifi_ap_config.save_to_file(file);
         file.close();
     }
 
-    wifi_config_in_use = wifi_config;
-    wifi_soft_ap_config_in_use = wifi_soft_ap_config;
+    wifi_ap_config_in_use = wifi_ap_config;
     wifi_sta_config_in_use = wifi_sta_config;
 
-    bool enable_soft_ap = wifi_config_in_use.get("enable_soft_ap")->asBool();
-    bool enable_sta = wifi_config_in_use.get("enable_sta")->asBool();
-    bool ap_fallback_only = wifi_config_in_use.get("ap_fallback_only")->asBool();
+    bool enable_ap = wifi_ap_config_in_use.get("enable_ap")->asBool();
+    bool enable_sta = wifi_sta_config_in_use.get("enable_sta")->asBool();
+    bool ap_fallback_only = wifi_ap_config_in_use.get("ap_fallback_only")->asBool();
 
-    if (enable_sta && enable_soft_ap) {
+    if (enable_sta && enable_ap) {
         WiFi.mode(WIFI_AP_STA);
-    } else if (enable_soft_ap) {
+    } else if (enable_ap) {
         WiFi.mode(WIFI_AP);
     } else if (enable_sta) {
         WiFi.mode(WIFI_STA);
@@ -352,7 +335,9 @@ void Wifi::setup()
         WiFi.mode(WIFI_OFF);
     }
 
-    if (enable_soft_ap && !ap_fallback_only) {
+    wifi_state.get("ap_bssid")->updateString(WiFi.softAPmacAddress());
+
+    if (enable_ap && !ap_fallback_only) {
         apply_soft_ap_config_and_start();
     }
 
@@ -361,7 +346,7 @@ void Wifi::setup()
     }
 
     /*use mdns for host name resolution*/
-    if (!MDNS.begin(wifi_soft_ap_config_in_use.get("hostname")->asString().c_str())) {
+    if (!MDNS.begin(wifi_ap_config_in_use.get("hostname")->asString().c_str())) {
         Serial.println("Error setting up mDNS responder!");
     } else {
         Serial.println("mDNS responder started");
@@ -423,8 +408,7 @@ void Wifi::register_urls()
     });
 
     api.addPersistentConfig("wifi_sta_config", &wifi_sta_config, {"passphrase"}, 1000);
-    api.addPersistentConfig("wifi_config", &wifi_config, {"passphrase"}, 1000);
-    api.addPersistentConfig("wifi_soft_ap_config", &wifi_soft_ap_config, {"passphrase"}, 1000);
+    api.addPersistentConfig("wifi_ap_config", &wifi_ap_config, {"passphrase"}, 1000);
 }
 
 void Wifi::onEventConnect(AsyncEventSourceClient *client)
@@ -437,16 +421,16 @@ void Wifi::loop()
     wifi_state.get("connection_state")->updateInt(get_connection_state());
     wifi_state.get("ap_state")->updateInt(get_ap_state());
 
-    if (wifi_config_in_use.get("enable_sta")->asBool() &&
-        wifi_config_in_use.get("enable_soft_ap")->asBool() &&
-        wifi_config_in_use.get("ap_fallback_only")->asBool() &&
+    if (wifi_sta_config_in_use.get("enable_sta")->asBool() &&
+        wifi_ap_config_in_use.get("enable_ap")->asBool() &&
+        wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
         WiFi.status() != WL_CONNECTED &&
         !soft_ap_running) {
             apply_soft_ap_config_and_start();
     }
 
-    if (wifi_config_in_use.get("enable_sta")->asBool() &&
-        wifi_config_in_use.get("ap_fallback_only")->asBool() &&
+    if (wifi_sta_config_in_use.get("enable_sta")->asBool() &&
+        wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
         WiFi.status() == WL_CONNECTED) {
         WiFi.softAPdisconnect(true);
         soft_ap_running = false;
@@ -454,7 +438,7 @@ void Wifi::loop()
 }
 
 int Wifi::get_connection_state() {
-    if (!wifi_config_in_use.get("enable_sta")->asBool())
+    if (!wifi_sta_config_in_use.get("enable_sta")->asBool())
         return -1;
 
     switch(WiFi.status()) {
@@ -470,8 +454,8 @@ int Wifi::get_connection_state() {
 }
 
 int Wifi::get_ap_state() {
-    bool enable_ap = wifi_config_in_use.get("enable_soft_ap")->asBool();
-    bool ap_fallback = wifi_config_in_use.get("ap_fallback_only")->asBool();
+    bool enable_ap = wifi_ap_config_in_use.get("enable_ap")->asBool();
+    bool ap_fallback = wifi_ap_config_in_use.get("ap_fallback_only")->asBool();
     if(!enable_ap)
         return 0;
     if(!ap_fallback)

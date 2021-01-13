@@ -31,15 +31,13 @@ private:
 
     WifiState state;
 
-    Config wifi_config;
-    Config wifi_soft_ap_config;
+    Config wifi_ap_config;
     Config wifi_sta_config;
     Config wifi_state;
 
     Config wifi_scan_config;
 
-    Config wifi_config_in_use;
-    Config wifi_soft_ap_config_in_use;
+    Config wifi_ap_config_in_use;
     Config wifi_sta_config_in_use;
 
     bool soft_ap_running = false;
