@@ -401,8 +401,8 @@ export function getTranslation(lang: string) {
                     "wifi_ap": "WLAN-Access-Point",
                 },
                 "content": {
-                    "sta_settings": "WLAN-Verbindungseinstellungen",
-                    "client_configuration": "Verbindungseinstellungen",
+                    "sta_settings": "WLAN-Verbindungs&shy;einstellungen",
+                    "client_configuration": "Verbindungs&shy;einstellungen",
                     "sta_enable_sta": "Verbindung zu Netzwerk aktivieren",
                     "sta_enable_sta_desc": "Wenn aktiviert, verbindet sich das Gerät beim Start automatisch zum konfigurierten Netzwerk.",
                     "sta_ssid": "Netzwerkname (SSID)",

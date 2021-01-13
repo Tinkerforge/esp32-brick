@@ -109,7 +109,7 @@ export function getTranslation(lang: string) {
                     "mqtt": "MQTT"
                 },
                 "content": {
-                    "mqtt": "MQTT",
+                    "mqtt": "MQTT-Einstellungen",
                     "enable_mqtt_desc": "Hierdurch kann das Gerät über den konfigurierten MQTT-Broker kontrolliert werden. Siehe <b>TODO: MQTT API documentation link</b> für Details.",
                     "enable_mqtt": "MQTT aktiviert",
                     "broker_host": "Broker-Hostname oder -IP",
@@ -140,7 +140,7 @@ export function getTranslation(lang: string) {
                     "mqtt": "MQTT"
                 },
                 "content": {
-                    "mqtt": "MQTT",
+                    "mqtt": "MQTT Settings",
                     "enable_mqtt_desc": "This allows controlling the device over the configured MQTT broker. See <b>TODO: MQTT API documentation link</b> for details.",
                     "enable_mqtt": "Enable MQTT",
                     "broker_host": "Broker hostname or IP",
