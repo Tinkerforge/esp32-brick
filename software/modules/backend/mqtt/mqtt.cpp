@@ -46,13 +46,22 @@ void Mqtt::connect() {
     if(!this->mqtt_config_in_use.get("enable_mqtt")->asBool())
         return;
 
+    auto state = (MqttConnectionState)this->mqtt_state.get("connection_state")->asInt();
+    if(state != MqttConnectionState::NOT_CONNECTED && state != MqttConnectionState::ERROR) {
+        return;
+    }
+
     this->mqttClient.connect();
 }
 
 void Mqtt::publish(String topic_suffix, String payload)
 {
+    if(this->mqtt_state.get("connection_state")->asInt() != (int)MqttConnectionState::CONNECTED) {
+        return;
+    }
     String prefix = mqtt_config_in_use.get("global_topic_prefix")->asString();
     String topic = prefix + "/" + topic_suffix;
+
     this->mqttClient.publish(topic.c_str(), payload.c_str(), payload.length(), 1, true);
 }
 
@@ -70,6 +79,8 @@ void Mqtt::onMqttError(uint8_t e,uint32_t info){
         // usually because your structure is wrong and you called a function before onMqttConnect
         // Serial.printf("ERROR: NOT CONNECTED info=%d\n",info);
         // Ignore not connected errors, this allows us to not check this every time we publish
+        /*this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
+        this->mqtt_state.get("last_error")->updateInt(e);*/
         break;
     case MQTT_SERVER_UNAVAILABLE:
         // server has gone away - network problem? server crash?
@@ -161,12 +172,12 @@ void Mqtt::onMqttMessage(const char* topic, const uint8_t* payload, size_t len,u
 }
 
 void Mqtt::onMqttDisconnect(int8_t reason) {
+    printf("onMqttDisconnect\n");
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::NOT_CONNECTED);
     if(this->was_connected) {
         Serial.printf("Disconnected from MQTT reason=%d\n",reason);
         this->was_connected = false;
     }
-    task_scheduler.scheduleOnce("reconnect MQTT", [this](){this->connect();}, 5000);
 }
 
 void Mqtt::setup()
@@ -208,7 +219,7 @@ void Mqtt::setup()
     apply_config();
 
     initialized = true;
-    connect();
+    task_scheduler.scheduleWithFixedDelay("reconnect MQTT", [this](){this->connect();}, 5000, 5000);
 }
 
 void Mqtt::register_urls()
