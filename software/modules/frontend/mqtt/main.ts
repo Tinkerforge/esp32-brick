@@ -103,7 +103,11 @@ export function getTranslation(lang: string) {
         "de": {
             "mqtt": {
                 "status": {
-                    "connection": "MQTT-Verbindung"
+                    "connection": "MQTT-Verbindung",
+                    "not_configured": "Nicht konfiguriert",
+                    "not_connected": "Nicht verbunden",
+                    "connected": "Verbunden",
+                    "error": "Fehler"
                 },
                 "navbar": {
                     "mqtt": "MQTT"
@@ -134,7 +138,11 @@ export function getTranslation(lang: string) {
         "en": {
             "mqtt": {
                 "status": {
-                    "connection": "MQTT Connection"
+                    "connection": "MQTT Connection",
+                    "not_configured": "Not configured",
+                    "not_connected": "Not connected",
+                    "connected": "Connected",
+                    "error": "Error"
                 },
                 "navbar": {
                     "mqtt": "MQTT"
