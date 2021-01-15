@@ -338,6 +338,8 @@ void Wifi::setup()
 
     if (enable_ap && !ap_fallback_only) {
         apply_soft_ap_config_and_start();
+    } else {
+        WiFi.softAPdisconnect(true);
     }
 
     if (enable_sta) {
