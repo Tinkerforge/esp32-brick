@@ -39,7 +39,7 @@ def print_esp32_label(ssid, passphrase):
     data = data.replace(SSID_PLACEHOLDER, ssid.encode('ascii'))
 
     if data.find(PASSPHRASE_PLACEHOLDER) < 0:
-        raise Exception('Passphrase placholder missing in EZPL file')
+        raise Exception('Passphrase placeholder missing in EZPL file')
 
     data = data.replace(PASSPHRASE_PLACEHOLDER, passphrase.encode('ascii'))
 
