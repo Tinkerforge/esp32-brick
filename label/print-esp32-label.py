@@ -17,7 +17,7 @@ SSID_PLACEHOLDER = b'esp32-XXXXXX'
 PASSPHRASE_PLACEHOLDER = b'ZZZZ-ZZZZ-ZZZZ-ZZZZ'
 
 def print_esp32_label(ssid, passphrase):
-    if re.match('^esp32-[{0}]{{3,6}}$'.format(BASE58), ssid) == None:
+    if re.match('^(esp32|warp)-[{0}]{{3,6}}$'.format(BASE58), ssid) == None:
         raise Exception('Invalid SSID: {0}'.format(ssid))
 
     if re.match('^[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}$'.format(BASE58), passphrase) == None:
