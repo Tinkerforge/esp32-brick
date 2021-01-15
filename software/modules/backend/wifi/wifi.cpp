@@ -431,7 +431,9 @@ void Wifi::loop()
 
     if (wifi_sta_config_in_use.get("enable_sta")->asBool() &&
         wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
-        WiFi.status() == WL_CONNECTED) {
+        WiFi.status() == WL_CONNECTED &&
+        soft_ap_running) {
+        Serial.println("Wifi connected. Stopping soft AP");
         WiFi.softAPdisconnect(true);
         soft_ap_running = false;
     }
