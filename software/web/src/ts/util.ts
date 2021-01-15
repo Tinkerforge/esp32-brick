@@ -51,6 +51,59 @@ export function show_alert(cls: string, title: string, text: string) {
     }
 }
 
+export function format_timespan(secs: number) {
+    let days = 0;
+    let hours = 0;
+    let mins = 0;
+
+    let dayString = "";
+    let hourString = "";
+    let minString = "";
+    let secString = "";
+
+    if (secs >= 60 * 60 * 24) {
+        days = Math.floor(secs / (60 * 60 * 24));
+        if (days > 1) {
+            dayString = days + ` ${__("days")}, `;
+        } else if (days > 0) {
+            dayString = days + ` ${__("day")}, `;
+        }
+        secs %= 60 * 60 * 24;
+    }
+
+    if (secs >= 60 * 60) {
+        hours = Math.floor(secs / (60 * 60));
+        if (hours >= 10) {
+            hourString = hours + ":";
+        } else {
+            hourString = "0" + hours + ":";
+        }
+        secs %= 60 * 60;
+    } else {
+        hourString = "00:";
+    }
+
+    if (secs >= 60) {
+        mins = Math.floor(secs / 60);
+        if (mins >= 10) {
+            minString = mins + ":";
+        } else {
+            minString = "0" + mins + ":";
+        }
+        secs %= 60;
+    } else {
+        minString = "00:";
+    }
+
+    if (secs >= 10) {
+        secString = secs.toString();
+    } else {
+        secString = "0" + secs;
+    }
+
+    return dayString + hourString + minString + secString;
+}
+
 export function toLocaleFixed(i: number, fractionDigits: number) {
     return i.toLocaleString(undefined, {
         minimumFractionDigits: fractionDigits,
