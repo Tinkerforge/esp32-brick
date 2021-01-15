@@ -13,8 +13,6 @@
 #include "tools.h"
 #include "api.h"
 
-#define RECONNECT_TIMEOUT_MS 30000
-
 extern TaskScheduler task_scheduler;
 extern AsyncWebServer server;
 extern AsyncEventSource events;
@@ -135,7 +133,7 @@ void Mqtt::onMqttError(uint8_t e,uint32_t info){
 }
 
 void Mqtt::onMqttConnect(bool sessionPresent) {
-    Serial.printf("Connected to MQTT session=%d max payload size=%d\n",sessionPresent,mqttClient.getMaxPayloadSize());
+    Serial.printf("Connected to MQTT session=%d max payload size=%d\r\n",sessionPresent,mqttClient.getMaxPayloadSize());
     this->was_connected = true;
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::CONNECTED);
 
@@ -168,7 +166,7 @@ void Mqtt::onMqttDisconnect(int8_t reason) {
         Serial.printf("Disconnected from MQTT reason=%d\n",reason);
         this->was_connected = false;
     }
-    task_scheduler.scheduleOnce("reconnect MQTT", [this](){this->connect();}, 1000);
+    task_scheduler.scheduleOnce("reconnect MQTT", [this](){this->connect();}, 5000);
 }
 
 void Mqtt::setup()
@@ -210,6 +208,7 @@ void Mqtt::setup()
     apply_config();
 
     initialized = true;
+    connect();
 }
 
 void Mqtt::register_urls()

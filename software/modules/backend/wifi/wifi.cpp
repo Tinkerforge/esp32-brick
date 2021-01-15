@@ -279,7 +279,6 @@ void Wifi::setup()
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
             Serial.print("Got IP address: ");
             Serial.println(WiFi.localIP());
-            mqtt.connect();
         },
         SYSTEM_EVENT_STA_GOT_IP);
 
