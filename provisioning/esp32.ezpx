@@ -49,7 +49,7 @@
     <qlabel>
       <GraphicShape xsi:type="Image" Style="Cross" IsPrint="true" Locked="false" bStroke="true" bFill="true" Direction="Angle0" X="186" Y="28" Alignment="Left" AlignPointX="186" AlignPointY="28">
         <qHitOnCircumferance>false</qHitOnCircumferance>
-        <Selected>true</Selected>
+        <Selected>false</Selected>
         <iBackground_color>4294967295</iBackground_color>
         <Id>66</Id>
         <Name>Y</Name>
@@ -332,7 +332,7 @@
     <IntegratedSecurity>false</IntegratedSecurity>
     <RowIndex>0</RowIndex>
   </Label>
-  <Setup LabelLength="23" LabelWidth="38" LeftMargin="0" TopMargin="0" LabelType="0" GapLength="3" FeedLength="0" ZSign="45" BlackMark="0" Position="0" Speed="4" Copy="1" bCopyDataBase="false" CopyField="None" Stripper="0" LabelsPerCut="0" Rotate180="200" Stop="16" Darkness="8" Number="1" bNumberDataBase="false" NumberField="None" PageDirection="Portrait" PrintMode="0">
+  <Setup LabelLength="23" LabelWidth="38" LeftMargin="0" TopMargin="0" LabelType="0" GapLength="3" FeedLength="0" ZSign="45" BlackMark="0" Position="0" Speed="4" Copy="1" bCopyDataBase="false" CopyField="None" Stripper="0" LabelsPerCut="0" Rotate180="200" Stop="16" Darkness="13" Number="1" bNumberDataBase="false" NumberField="None" PageDirection="Portrait" PrintMode="0">
     <Layout Shape="0" AcrossType="Copied" PageDirection="Portrait" HorAcross="1" VerAcross="1" HorGap="0" VerGap="0" HorAcrossMode1="1" VerAcrossMode1="1" LabelMode="0" HorGapMode1="0" VerGapMode1="0" />
     <Description>New Label</Description>
     <UnitType>Mm</UnitType>

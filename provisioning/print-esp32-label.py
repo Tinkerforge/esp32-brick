@@ -30,6 +30,9 @@ def print_esp32_label(ssid, passphrase):
     with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'esp32.prn'), 'rb') as f:
         data = f.read()
 
+    if data.find(b'^H13\r') < 0:
+        raise Exception('EZPL file is using wrong darkness setting')
+
     # patch QR code
     qr_code_command = QR_CODE_FORMAT.format(QR_CODE_LENGTH).encode('ascii')
 
