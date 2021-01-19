@@ -471,7 +471,7 @@ def main():
     print("Flashing real firmware")
     flash_firmware(sys.argv[2])
     input("When LED 0 starts blinking again, press any key.")
-    run(["python3", os.path.join("..", "label", "print-esp32-label.py"), ssid, passphrase])
+    run(["python3", "print-esp32-label.py", ssid, passphrase])
 
 if __name__ == "__main__":
     main()
