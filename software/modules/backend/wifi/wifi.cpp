@@ -298,9 +298,9 @@ void Wifi::setup()
         file.close();
         if(error != "")
             Serial.println(error);
-    } /*else {
+    } else {
         wifi_sta_config.get("hostname")->updateString(default_hostname);
-    }*/
+    }
 
     if(SPIFFS.exists("/wifi_ap_config.json")) {
         File file = SPIFFS.open("/wifi_ap_config.json");
