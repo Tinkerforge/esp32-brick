@@ -98,64 +98,59 @@
                     <option value="hide" selected data-i18n="wifi.content.sta_dhcp">Automatic (DHCP)</option>
                     <option value="show" data-i18n="wifi.content.sta_static">Static</option>
                 </select>
-                <div class="collapse no-gutters" id="wifi_sta_static_ip_cfg">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title" data-i18n="wifi.content.static_title"></h5>
-                            <div class="form-group row justify-content-end">
-                                <label for="wifi_sta_ip"
-                                    class="col-sm-3 col-form-label" data-i18n="wifi.content.static_ip"></label>
-                                <div class="col-sm-9">
-                                    <input id="wifi_sta_ip" class="form-control" type="text"
-                                        minlength="7" maxlength="15" size="15"
-                                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
-                                    <div class="invalid-feedback"  data-i18n="wifi.content.static_ip_invalid"></div>
-                                </div>
-                            </div>
+            </div>
+        </div>
+        <div class="collapse" id="wifi_sta_static_ip_cfg">
+            <div class="form-group row">
+                <label for="wifi_sta_ip"
+                    class="col-lg-3 col-xl-2 col-form-label" data-i18n="wifi.content.static_ip"></label>
+                <div class="col-lg-9 col-xl-6">
+                    <input id="wifi_sta_ip" class="form-control" type="text"
+                        minlength="7" maxlength="15" size="15"
+                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                    <div class="invalid-feedback"  data-i18n="wifi.content.static_ip_invalid"></div>
+                </div>
+            </div>
 
-                            <div class="form-group row justify-content-end">
-                                <label for="wifi_sta_subnet"
-                                    class="col-sm-3 col-form-label" data-i18n="wifi.content.subnet"></label>
-                                <div class="col-sm-9">
-                                    <input id="wifi_sta_subnet" class="form-control" type="text"
-                                        minlength="7" maxlength="15" size="15"
-                                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
-                                    <div class="invalid-feedback" data-i18n="wifi.content.subnet_invalid"></div>
-                                </div>
-                            </div>
+            <div class="form-group row">
+                <label for="wifi_sta_subnet"
+                    class="col-lg-3 col-xl-2 col-form-label" data-i18n="wifi.content.subnet"></label>
+                <div class="col-lg-9 col-xl-6">
+                    <input id="wifi_sta_subnet" class="form-control" type="text"
+                        minlength="7" maxlength="15" size="15"
+                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                    <div class="invalid-feedback" data-i18n="wifi.content.subnet_invalid"></div>
+                </div>
+            </div>
 
-                            <div class="form-group row justify-content-end">
-                                <label for="wifi_sta_gateway"
-                                    class="col-sm-3 col-form-label" data-i18n="wifi.content.gateway"></label>
-                                <div class="col-sm-9">
-                                    <input id="wifi_sta_gateway" class="form-control" type="text"
-                                        minlength="7" maxlength="15" size="15"
-                                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
-                                    <div class="invalid-feedback" data-i18n="wifi.content.gateway_invalid"></div>
-                                </div>
-                            </div>
+            <div class="form-group row">
+                <label for="wifi_sta_gateway"
+                    class="col-lg-3 col-xl-2 col-form-label" data-i18n="wifi.content.gateway"></label>
+                <div class="col-lg-9 col-xl-6">
+                    <input id="wifi_sta_gateway" class="form-control" type="text"
+                        minlength="7" maxlength="15" size="15"
+                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                    <div class="invalid-feedback" data-i18n="wifi.content.gateway_invalid"></div>
+                </div>
+            </div>
 
-                            <div class="form-group row justify-content-end">
-                                <label for="wifi_sta_dns" class="col-sm-3 col-form-label" data-i18n="wifi.content.dns"></label>
-                                <div class="col-sm-9">
-                                    <input id="wifi_sta_dns" class="form-control" type="text"
-                                        minlength="7" maxlength="15" size="15"
-                                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
-                                    <div class="invalid-feedback" data-i18n="wifi.content.dns_invalid"></div>
-                                </div>
-                            </div>
+            <div class="form-group row">
+                <label for="wifi_sta_dns" class="col-lg-3 col-xl-2 col-form-label" data-i18n="wifi.content.dns"></label>
+                <div class="col-lg-9 col-xl-6">
+                    <input id="wifi_sta_dns" class="form-control" type="text"
+                        minlength="7" maxlength="15" size="15"
+                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                    <div class="invalid-feedback" data-i18n="wifi.content.dns_invalid"></div>
+                </div>
+            </div>
 
-                            <div class="form-group row justify-content-end">
-                                <label for="wifi_sta_dns2" class="col-sm-3 col-form-label" data-i18n="wifi.content.dns2"></label>
-                                <div class="col-sm-9">
-                                    <input id="wifi_sta_dns2" class="form-control" type="text"
-                                        minlength="7" maxlength="15" size="15"
-                                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
-                                    <div class="invalid-feedback" data-i18n="wifi.content.dns2_invalid"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="form-group row">
+                <label for="wifi_sta_dns2" class="col-lg-3 col-xl-2 col-form-label" data-i18n="wifi.content.dns2"></label>
+                <div class="col-lg-9 col-xl-6">
+                    <input id="wifi_sta_dns2" class="form-control" type="text"
+                        minlength="7" maxlength="15" size="15"
+                        pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                    <div class="invalid-feedback" data-i18n="wifi.content.dns2_invalid"></div>
                 </div>
             </div>
         </div>
