@@ -49,7 +49,7 @@ function save_mqtt_config() {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: $('#mqtt_reboot').modal('show'),
-        error: (_x, _y, error) => util.show_alert("alert-danger", __("mqtt.script.save_failed"), error)
+        error: (xhr, status, error) => util.show_alert("alert-danger", __("mqtt.script.save_failed"), error + ": " + xhr.responseText)
     });
 }
 

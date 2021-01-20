@@ -34,7 +34,7 @@ function scan_wifi() {
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(null),
-        error: (_x, _y, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error),
+        error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error + ": " + xhr.responseText),
         success: () => {
             setTimeout(function () {
                     $.get("/get_wifis").done(function (data: GetWifiResult) {
@@ -278,7 +278,7 @@ function save_wifi_sta_config(continuation = function () { }) {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: continuation,
-        error: (_x, _y, error) => util.show_alert("alert-danger", __("wifi.script.sta_config_failed"), error)
+        error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.sta_config_failed"), error + ": " + xhr.responseText)
     });
 }
 
@@ -303,7 +303,7 @@ function save_wifi_ap_config(continuation = function () { }) {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: continuation,
-        error: (_x, _y, error) => util.show_alert("alert-danger", __("wifi.script.ap_config_failed"), error)
+        error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.ap_config_failed"), error + ": " + xhr.responseText),
     });
 }
 

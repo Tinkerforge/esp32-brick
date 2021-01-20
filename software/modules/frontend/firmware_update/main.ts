@@ -42,15 +42,13 @@ function upload(e: JQuery.SubmitEvent, type: string) {
             }, false);
             return xhr;
         },
-        statusCode: {
-            200: function () {
-                progress.prop("hidden", true);
+        success: () => {
+            progress.prop("hidden", true);
                 util.show_alert("alert-success", __("firmware_update.script.flash_success"), __("firmware_update.script.flash_reboot"));
-            },
-            400: function (result) {
-                progress.prop("hidden", true);
-                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), result.responseText);
-            }
+        },
+        error: (xhr, status, error) => {
+            progress.prop("hidden", true);
+            util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
         }
     });
 }
@@ -69,9 +67,9 @@ function factory_reset() {
             $('#factory_reset_modal').modal('hide');
             util.show_alert("alert-success", __("firmware_update.script.factory_reset_init"), __("firmware_update.script.factory_reset_reboot"));
         },
-        error: (_x, _y, error) => {
+        error: (xhr, status, error) => {
             $('#factory_reset_modal').modal('hide');
-            util.show_alert("alert-danger", __("firmware_update.script.factory_reset_error"), error);
+            util.show_alert("alert-danger", __("firmware_update.script.factory_reset_error"), error + ": " + xhr.responseText);
         }
     });
 }
