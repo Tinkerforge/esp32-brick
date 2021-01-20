@@ -32,14 +32,32 @@ void FirmwareUpdate::setup()
     initialized = true;
 }
 
-void handleUpdateChunk(int command, AsyncWebServerRequest *request, size_t index, uint8_t *data, size_t len, bool final) {
-    if(index == 0 && !Update.begin(UPDATE_SIZE_UNKNOWN, command)) {
+void handleUpdateChunk(int command, AsyncWebServerRequest *request, size_t chunk_index, uint8_t *data, size_t chunk_length, bool final) {
+    if(chunk_index == 0 && !Update.begin(UPDATE_SIZE_UNKNOWN, command)) {
         request->send(400, "text/html", Update.errorString());
         return;
     }
 
-    if(Update.write(data, len) != len) {
-        request->send(400, "text/html", String("Failed to write with length") + len + ": " + Update.errorString());
+    // The firmware files are merged with the bootloader, partition table and slot configuration bins.
+    // The bootloader starts at offset 0x1000, which is the first byte in the firmware file.
+    // The first firmware slot (i.e. the one that is flashed over USB) starts at 0x10000.
+    // So we have to skip the first 0x10000 - 0x1000 bytes, after them the actual firmware starts.
+    const size_t firmware_offset = 0x10000 - 0x1000;
+    if (chunk_index + chunk_length < firmware_offset) {
+        return;
+    }
+
+    uint8_t *start = data;
+    size_t length = chunk_length;
+
+    if (chunk_index < firmware_offset) {
+        size_t to_skip = firmware_offset - chunk_index;
+        start += to_skip;
+        length -= to_skip;
+    }
+
+    if(Update.write(start, length) != length) {
+        request->send(400, "text/html", String("Failed to write with length") + length + ": " + Update.errorString());
         return;
     }
 
