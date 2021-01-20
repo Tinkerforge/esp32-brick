@@ -11,10 +11,10 @@
 
         <div class="form-group row">
             <div id="blah" class="col-lg-3 col-xl-2">
-                <label for="mqtt_enable" class="col-form-label" data-i18n="mqtt.content.enable_mqtt">Enable MQTT</label>
+                <label for="mqtt_enable" class="col-form-label form-label" data-i18n="mqtt.content.enable_mqtt">Enable MQTT</label>
             </div>
             <div class="col-lg-9 col-xl-6">
-                <div class="custom-control custom-switch">
+                <div class="borderless-form-control custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="mqtt_enable">
                     <label class="custom-control-label" for="mqtt_enable" data-i18n="mqtt.content.enable_mqtt_desc">
                         This allows controlling the device over the configured MQTT broker. See <b>TODO: MQTT API documentation link</b> for details.
@@ -24,7 +24,7 @@
         </div>
         <div class="form-group row">
             <label for="mqtt_broker_host"
-                class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.broker_host">Broker Host</label>
+                class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.broker_host">Broker Host</label>
             <div class="col-lg-9 col-xl-6">
                 <input id="mqtt_broker_host" class="form-control" type="text" required>
             </div>
@@ -62,14 +62,14 @@
         </div>
 
         <div class="form-group row">
-            <label for="mqtt_topic_prefix" class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.topic_prefix">Topic Prefix</label>
+            <label for="mqtt_topic_prefix" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.topic_prefix">Topic Prefix</label>
             <div class="col-lg-9 col-xl-6">
                 <input id="mqtt_topic_prefix" class="form-control" type="text">
             </div>
         </div>
 
         <div class="form-group row">
-            <label for="mqtt_client_name" class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.client_name">Client Name</label>
+            <label for="mqtt_client_name" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.client_name">Client Name</label>
             <div class="col-lg-9 col-xl-6">
                 <input id="mqtt_client_name" class="form-control" type="text">
             </div>

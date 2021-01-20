@@ -7,12 +7,12 @@
     <form method='POST' action='#' enctype='multipart/form-data' id='upload_firmware_form'>
         <div class="form-group row">
             <div class="col-lg-3 mt-2">
-                <input class="form-control" type="text" placeholder="..." readonly id="current_firmware">
+                <input class="form-control mb-1" type="text" placeholder="..." readonly id="current_firmware">
                 <label for='current_firmware' data-i18n="firmware_update.content.current_firmware">Current Firmware</label>
             </div>
 
             <div class="col-lg-6 mt-2">
-                <div class="input-group">
+                <div class="input-group mb-1">
                     <div class="custom-file">
                         <input name="firmware" type="file" class="custom-file-input form-control"
                             id="firmware_file_select">
@@ -27,7 +27,7 @@
                 <label id="firmware_label" for='firmware_file_select' data-i18n="firmware_update.content.firmware_update">Firmware Update</label>
             </div>
             <div class="col-lg-3 mt-2" id="firmware-progress" hidden>
-                <div class="form-progress">
+                <div class="form-progress mb-1">
                     <div id="firmware-progress-bar" class="progress-bar form-control"
                         role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0"
                         aria-valuemax="100"></div>
@@ -40,17 +40,17 @@
     <form method='POST' action='#' enctype='multipart/form-data' id='upload_spiffs_form'>
         <div class="form-group row">
             <div class="col-lg-3 mt-2">
-                <input class="form-control" type="text" placeholder="..." readonly id="current_spiffs">
+                <input class="form-control mb-1" type="text" placeholder="..." readonly id="current_spiffs">
                 <label for='current_spiffs' data-i18n="firmware_update.content.current_spiffs">Current SPIFFS</label>
             </div>
 
             <div class="col-lg-3 mt-2">
-                <button id="spiffs_factory_reset" type="button" class="form-control btn btn-danger" data-i18n="firmware_update.content.factory_reset">Factory Reset</button>
+                <button id="spiffs_factory_reset" type="button" class="form-control btn btn-danger mb-1" data-i18n="firmware_update.content.factory_reset">Factory Reset</button>
                 <label id="spiffs_label" for='spiffs_factory_reset' data-i18n="firmware_update.content.factory_reset_desc">Reset all settings to factory default</label>
             </div>
 
             <div class="col-lg-3 mt-2">
-                <a href="/debug_report" class="form-control btn btn-primary" data-i18n="firmware_update.content.debug_report" download>Download Debug Report</a>
+                <a href="/debug_report" class="form-control btn btn-primary mb-1" data-i18n="firmware_update.content.debug_report" download>Download Debug Report</a>
                 <label id="spiffs_label" for='debug_report' data-i18n="firmware_update.content.debug_report_desc">A complete report of all status information of this device except passwords.</label>
             </div>
         </div>
