@@ -76,7 +76,7 @@ def main():
 
     parser.add_argument('ssid')
     parser.add_argument('passphrase')
-    parser.add_argument('-c', '--copies', type=int)
+    parser.add_argument('-c', '--copies', type=int, default=1)
 
     args = parser.parse_args()
 
