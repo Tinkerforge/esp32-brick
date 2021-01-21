@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <div class="form-group row" id="wifi_cfg_passphrase_form">
+        <div class="form-group row">
             <label for="mqtt_broker_password" class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.password">Broker Password</label>
             <div class="col-lg-9 col-xl-6">
                 <div class="input-group">
@@ -64,7 +64,8 @@
         <div class="form-group row">
             <label for="mqtt_topic_prefix" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.topic_prefix">Topic Prefix</label>
             <div class="col-lg-9 col-xl-6">
-                <input id="mqtt_topic_prefix" class="form-control" type="text">
+                <input id="mqtt_topic_prefix" class="form-control" type="text" pattern="^[^#+$][^#+]*">
+                <div class="invalid-feedback"  data-i18n="mqtt.content.topic_prefix_invalid"></div>
             </div>
         </div>
 

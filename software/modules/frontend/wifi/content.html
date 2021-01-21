@@ -27,7 +27,7 @@
             <label for="wifi_sta_ssid"
                 class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="wifi.content.sta_ssid">Network name (SSID)</label>
             <div class="col-lg-9 col-xl-6 input-group">
-                <input id="wifi_sta_ssid" class="form-control" type="text" required>
+                <input id="wifi_sta_ssid" class="form-control" type="text" maxlength="32" required>
                 <div id="scan_wifi_dropdown" class="input-group-append dropdown">
                     <button id="scan_wifi_button" class="form-control btn btn-primary rounded-right dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-i18n="wifi.content.sta_scan" style="color: white !important;">Scan for Networks</button>
                     <div class="dropdown-menu  dropdown-menu-right" aria-labelledby="dropdownMenuButton" style="box-shadow: 0rem 0.25rem 0.5rem rgba(0, 0, 0, 0.2);">
@@ -49,7 +49,8 @@
             <label for="wifi_sta_bssid"
                 class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="wifi.content.sta_bssid">BSSID</label>
             <div class="col-lg-9 col-xl-6">
-                <input id="wifi_sta_bssid" class="form-control" type="text" required>
+                <input id="wifi_sta_bssid" class="form-control" type="text" pattern="([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}" required>
+                <div class="invalid-feedback"  data-i18n="wifi.content.sta_bssid_invalid"></div>
             </div>
         </div>
 
@@ -71,7 +72,7 @@
             <label for="wifi_sta_passphrase" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="wifi.content.sta_passphrase">Passphrase</label>
             <div class="col-lg-9 col-xl-6">
                 <div class="input-group">
-                    <input type="password" id="wifi_sta_passphrase" class="form-control" value="" placeholder="" data-i18n="wifi.content.unchanged" data-i18n-attr="placeholder"/>
+                    <input type="password" id="wifi_sta_passphrase" class="form-control" value="" placeholder="" data-i18n="wifi.content.unchanged" data-i18n-attr="placeholder" minlength="8" maxlength="63"/>
                     <div class="input-group-append">
                         <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
                             <input id="wifi_sta_show_passphrase" type="checkbox" class="custom-control-input" aria-label="Show password" value="test">
@@ -86,7 +87,8 @@
             <label for="wifi_sta_hostname"
                 class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="wifi.content.sta_hostname">Hostname</label>
             <div class="col-lg-9 col-xl-6">
-                <input id="wifi_sta_hostname" class="form-control" type="text" required>
+                <input id="wifi_sta_hostname" class="form-control" type="text"  pattern="[a-zA-Z0-9\-]*" maxlength="63" required>
+                <div class="invalid-feedback"  data-i18n="wifi.content.sta_hostname_invalid"></div>
             </div>
         </div>
 
@@ -207,7 +209,7 @@
             <label for="wifi_ap_passphrase" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="wifi.content.ap_passphrase">Passphrase</label>
             <div class="col-lg-9 col-xl-6">
                 <div class="input-group">
-                    <input type="password" id="wifi_ap_passphrase" class="form-control" value="" placeholder="" data-i18n="wifi.content.unchanged" data-i18n-attr="placeholder"/>
+                    <input type="password" id="wifi_ap_passphrase" class="form-control" value="" placeholder="" data-i18n="wifi.content.unchanged" data-i18n-attr="placeholder" minlength="8" maxlength="63"/>
                     <div class="input-group-append">
                         <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
                             <input id="wifi_ap_show_passphrase" type="checkbox" class="custom-control-input" aria-label="Show password" value="test">
@@ -222,7 +224,8 @@
             <label for="wifi_ap_hostname"
                 class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="wifi.content.ap_hostname">Hostname</label>
             <div class="col-lg-9 col-xl-6">
-                <input id="wifi_ap_hostname" class="form-control" type="text" required>
+                <input id="wifi_ap_hostname" class="form-control" type="text" pattern="[a-zA-Z0-9\-]*" maxlength="63" required>
+                <div class="invalid-feedback"  data-i18n="wifi.content.ap_hostname_invalid"></div>
             </div>
         </div>
 
