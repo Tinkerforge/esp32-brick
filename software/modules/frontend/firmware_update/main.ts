@@ -85,6 +85,8 @@ export function init() {
     $('#spiffs_factory_reset').on("click", factory_reset_modal);
     $('#factory_reset_confirm').on("click", factory_reset);
 
+    $('#download_debug_report').on("click", () => $('#download_debug_report').attr("download", "debug-report-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".json"));
+
     bsCustomFileInput.init();
 }
 
