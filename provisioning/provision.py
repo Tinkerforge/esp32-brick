@@ -1,19 +1,20 @@
-import os
-import ssl
-import urllib.request
-import secrets
-import subprocess
-import re
-import sys
 import contextlib
-import io
-import tempfile
-import shutil
-import time
-import threading
-import socket
-
 from contextlib import contextmanager
+import datetime
+import io
+import json
+import os
+import re
+import secrets
+import shutil
+import socket
+import ssl
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import urllib.request
 
 from tinkerforge.ip_connection import IPConnection, base58encode, base58decode, BASE58
 from tinkerforge.bricklet_rgb_led_v2 import BrickletRGBLEDV2
@@ -229,7 +230,7 @@ def handle_voltage_fuses(set_voltage_fuses):
 def handle_block3_fuses(set_block_3, uid, passphrase):
     if not set_block_3:
         print("Block 3 eFuses already set. UID: {}, Passphrase valid".format(uid))
-        return
+        return uid, passphrase
 
     print("Reading staging password")
     try:
@@ -299,6 +300,8 @@ def handle_block3_fuses(set_block_3, uid, passphrase):
         print("Burning UID and Wifi passphrase eFuses")
         espefuse(["--port", PORT, "burn_block_data", "BLOCK3", name, "--do-not-confirm"])
 
+    return uid, wifi_passphrase
+
 def erase_flash():
     output = '\n'.join(esptool(["--port", PORT, "erase_flash"]))
 
@@ -363,12 +366,23 @@ def blink_thread_fn(rgbs, stop_event):
             rgb.set_rgb_value(0,0,0)
             time.sleep(0.2)
 
+def now():
+    return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+
 def main():
     global uids
 
     if len(sys.argv) != 3:
         print("Usage: {} [test_firmware] [real_firmware]")
         sys.exit(0)
+
+    if not os.path.exists(sys.argv[1]):
+        print("Test firmware {} not found.".format(sys.argv[1])
+
+    if not os.path.exists(sys.argv[2]):
+        print("Firmware {} not found.".format(sys.argv[2])
+
+    result = {"start": now()}
 
     try:
         with socket.create_connection((PRINTER_HOST, PRINTER_PORT)):
@@ -380,18 +394,23 @@ def main():
     print("Checking ESP state")
     mac_address = check_if_esp_is_sane_and_get_mac()
     print("MAC Address is {}".format(mac_address))
+    result["mac"] = mac_address
 
     set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
+    result["set_voltage_fuses"] = set_voltage_fuses
+    result["set_block_3"] = set_block_3
 
     handle_voltage_fuses(set_voltage_fuses)
 
-    handle_block3_fuses(set_block_3, uid, passphrase)
+    uid, passphrase = handle_block3_fuses(set_block_3, uid, passphrase)
+    result["uid"] = uid
 
     print("Erasing flash")
     erase_flash()
 
     print("Flashing test firmware")
     flash_firmware(sys.argv[1])
+    result["test_firmware"] = sys.argv[1]
 
     ssid = "warp-" + uid
 
@@ -465,13 +484,25 @@ def main():
         print("EN button does not work")
         sys.exit(0)
 
+    result["tests_successful"] = True
+
     print("Erasing flash")
     erase_flash()
 
     print("Flashing real firmware")
     flash_firmware(sys.argv[2])
+    result["firmware"] = sys.argv[2]
+
     input("When LED 0 starts blinking again, press any key.")
-    run(["python3", "print-esp32-label.py", ssid, passphrase])
+
+    run(["python3", "print-esp32-label.py", ssid, passphrase, "-c", "3"])
+    label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
+    while label_success != "y" and label_success != "n":
+        label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
+    result["labels_printed"] = label_success
+
+    with open("{}_{}_report.json".format(ssid, now())) as f:
+        json.dump(result, f)
 
 if __name__ == "__main__":
     main()
