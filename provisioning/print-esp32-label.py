@@ -17,7 +17,9 @@ SSID_PLACEHOLDER = b'esp32-XXXXXX'
 
 PASSPHRASE_PLACEHOLDER = b'ZZZZ-ZZZZ-ZZZZ-ZZZZ'
 
-def print_esp32_label(ssid, passphrase):
+COPIES_FORMAT = '^C{0}\r'
+
+def print_esp32_label(ssid, passphrase, copies=1):
     # check SSID
     if re.match('^(esp32|warp)-[{0}]{{3,6}}$'.format(BASE58), ssid) == None:
         raise Exception('Invalid SSID: {0}'.format(ssid))
@@ -25,6 +27,10 @@ def print_esp32_label(ssid, passphrase):
     # check passphrase
     if re.match('^[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}$'.format(BASE58), passphrase) == None:
         raise Exception('Invalid passphrase: {0}'.format(passphrase))
+
+    # check copies
+    if copies < 1 or copies > 5:
+        raise Exception('Invalid copies: {0}'.format(copies))
 
     # read EZPL file
     with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'esp32.prn'), 'rb') as f:
@@ -53,6 +59,14 @@ def print_esp32_label(ssid, passphrase):
 
     data = data.replace(PASSPHRASE_PLACEHOLDER, passphrase.encode('ascii'))
 
+    # patch copies
+    copies_command = COPIES_FORMAT.format(1).encode('ascii')
+
+    if data.find(copies_command) < 0:
+        raise Exception('Copies command missing in EZPL file')
+
+    data = data.replace(copies_command, COPIES_FORMAT.format(copies).encode('ascii'))
+
     # print label
     with socket.create_connection((PRINTER_HOST, PRINTER_PORT)) as s:
         s.send(data)
@@ -62,10 +76,11 @@ def main():
 
     parser.add_argument('ssid')
     parser.add_argument('passphrase')
+    parser.add_argument('-c', '--copies', type=int)
 
     args = parser.parse_args()
 
-    print_esp32_label(args.ssid, args.passphrase)
+    print_esp32_label(args.ssid, args.passphrase, args.copies)
 
 if __name__ == '__main__':
     main()
