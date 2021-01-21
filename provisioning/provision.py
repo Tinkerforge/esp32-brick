@@ -300,7 +300,7 @@ def handle_block3_fuses(set_block_3, uid, passphrase):
         print("Burning UID and Wifi passphrase eFuses")
         espefuse(["--port", PORT, "burn_block_data", "BLOCK3", name, "--do-not-confirm"])
 
-    return uid, wifi_passphrase
+    return uid, '-'.join(wifi_passphrase)
 
 def erase_flash():
     output = '\n'.join(esptool(["--port", PORT, "erase_flash"]))
@@ -377,10 +377,10 @@ def main():
         sys.exit(0)
 
     if not os.path.exists(sys.argv[1]):
-        print("Test firmware {} not found.".format(sys.argv[1])
+        print("Test firmware {} not found.".format(sys.argv[1]))
 
     if not os.path.exists(sys.argv[2]):
-        print("Firmware {} not found.".format(sys.argv[2])
+        print("Firmware {} not found.".format(sys.argv[2]))
 
     result = {"start": now()}
 
@@ -423,6 +423,7 @@ def main():
     with wifi(ssid, passphrase):
         ipcon = IPConnection()
         ipcon.connect("10.0.0.1", 4223)
+        result["wifi_test_successful"] = True
         print("Connected. Testing bricklet ports")
         # Register Enumerate Callback
         ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, cb_enumerate)
@@ -455,6 +456,8 @@ def main():
         if error_count != 0:
             sys.exit(0)
 
+        result["bricklet_port_test_successful"] = True
+
         stop_event = threading.Event()
         blink_thread = threading.Thread(target=blink_thread_fn, args=([x[1] for x in bricklets], stop_event))
         blink_thread.start()
@@ -466,6 +469,7 @@ def main():
     led0 = input("Does LED 0 blink blue? [y/n]")
     while led0 != "y" and led0 != "n":
         led0 = input("Does LED 0 blink blue? [y/n]")
+    result["led0_test_successful"] = led0 == "y"
     if led0 == "n":
         print("LED 0 does not work")
         sys.exit(0)
@@ -473,6 +477,7 @@ def main():
     led1 = input("Press IO0 button (for max 3 seconds). Does LED 1 glow green? [y/n]")
     while led1 != "y" and led1 != "n":
         led1 = input("Press IO0 Button (for max 3 seconds). Does LED 1 glow green? [y/n]")
+    result["led1_io0_test_successful"] = led1 == "y"
     if led1 == "n":
         print("LED 1 or IO0 button does not work")
         sys.exit(0)
@@ -480,6 +485,7 @@ def main():
     led0_stop = input("Press EN button. Does LED 0 stop blinking for some seconds? [y/n]")
     while led0_stop != "y" and led0_stop != "n":
         led0_stop = input("Press EN button. Does LED 0 stop blinking for some seconds? [y/n]")
+    result["enable_test_successful"] = led0_stop == "y"
     if led0_stop == "n":
         print("EN button does not work")
         sys.exit(0)
@@ -499,10 +505,11 @@ def main():
     label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
     while label_success != "y" and label_success != "n":
         label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
-    result["labels_printed"] = label_success
+    result["labels_printed"] = label_success == "y"
+    result["end"] = now()
 
-    with open("{}_{}_report.json".format(ssid, now())) as f:
-        json.dump(result, f)
+    with open("{}_{}_report.json".format(ssid, now().replace(":", "-")), "w") as f:
+        json.dump(result, f, indent=4)
 
 if __name__ == "__main__":
     main()
