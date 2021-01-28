@@ -19,7 +19,7 @@ export function init() {
 }
 
 export function addEventListeners(source: EventSource) {
-    source.addEventListener('debug_state', function (e: util.SSE) {
+    source.addEventListener('debug/state', function (e: util.SSE) {
         update_debug_state(<DebugState>(JSON.parse(e.data)));
     }, false);
 }

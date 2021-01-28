@@ -62,11 +62,11 @@ function update_error_counters(error_counters: Map<String, ErrorCounter>) {
 }
 
 export function addEventListeners(source: EventSource) {
-    source.addEventListener('devices', function (e: util.SSE) {
+    source.addEventListener('proxy/devices', function (e: util.SSE) {
         update_devices(<Device[]>(JSON.parse(e.data)));
     }, false);
 
-    source.addEventListener('error_counters', function (e: util.SSE) {
+    source.addEventListener('proxy/error_counters', function (e: util.SSE) {
         update_error_counters(<Map<String, ErrorCounter>>(JSON.parse(e.data)));
     }, false);
 }

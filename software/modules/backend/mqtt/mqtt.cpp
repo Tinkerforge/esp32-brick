@@ -224,8 +224,8 @@ void Mqtt::setup()
 
 void Mqtt::register_urls()
 {
-    api.addPersistentConfig("mqtt_config", &mqtt_config, {"broker_password"}, 1000);
-    api.addState("mqtt_state", &mqtt_state, {}, 1000);
+    api.addPersistentConfig("mqtt/config", &mqtt_config, {"broker_password"}, 1000);
+    api.addState("mqtt/state", &mqtt_state, {}, 1000);
 }
 
 void Mqtt::onEventConnect(AsyncEventSourceClient *client)

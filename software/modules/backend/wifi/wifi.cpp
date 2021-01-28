@@ -358,9 +358,9 @@ void Wifi::setup()
 
 void Wifi::register_urls()
 {
-    api.addState("wifi_state", &wifi_state, {}, 1000);
+    api.addState("wifi/state", &wifi_state, {}, 1000);
 
-    api.addCommand("scan_wifi", &wifi_scan_config, [](){
+    api.addCommand("wifi/scan", &wifi_scan_config, {}, [](){
         Serial.println("Scanning for wifis...");
         WiFi.scanDelete();
 
@@ -370,7 +370,7 @@ void Wifi::register_urls()
         }
     });
 
-    server.on("/get_wifis", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/wifi/scan_results", HTTP_GET, [](AsyncWebServerRequest *request) {
         int network_count = WiFi.scanComplete();
 
         Serial.println("scan done");
@@ -408,8 +408,8 @@ void Wifi::register_urls()
         }
     });
 
-    api.addPersistentConfig("wifi_sta_config", &wifi_sta_config, {"passphrase"}, 1000);
-    api.addPersistentConfig("wifi_ap_config", &wifi_ap_config, {"passphrase"}, 1000);
+    api.addPersistentConfig("wifi/sta_config", &wifi_sta_config, {"passphrase"}, 1000);
+    api.addPersistentConfig("wifi/ap_config", &wifi_ap_config, {"passphrase"}, 1000);
 }
 
 void Wifi::onEventConnect(AsyncEventSourceClient *client)

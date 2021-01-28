@@ -44,7 +44,7 @@ function save_mqtt_config() {
     };
 
     $.ajax({
-        url: '/mqtt_config_update',
+        url: '/mqtt/config_update',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(payload),
@@ -61,11 +61,11 @@ function update_mqtt_state(state: MqttState) {
 }
 
 export function addEventListeners(source: EventSource) {
-    source.addEventListener('mqtt_config', function (e: util.SSE) {
+    source.addEventListener('mqtt/config', function (e: util.SSE) {
         update_mqtt_config(<MqttConfig>(JSON.parse(e.data)));
     }, false);
 
-    source.addEventListener('mqtt_state', function (e: util.SSE) {
+    source.addEventListener('mqtt/state', function (e: util.SSE) {
         update_mqtt_state(<MqttState>(JSON.parse(e.data)));
     }, false);
 }
@@ -114,7 +114,7 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "mqtt": "MQTT-Einstellungen",
-                    "enable_mqtt_desc": "Hierdurch kann das Gerät über den konfigurierten MQTT-Broker kontrolliert werden. Siehe <b>TODO: MQTT API documentation link</b> für Details.",
+                    "enable_mqtt_desc": "Hierdurch kann das Gerät über den konfigurierten MQTT-Broker kontrolliert werden. <a href=\"https://warp-charger.com/api.html\">MQTT-API-Dokumentation</a>",
                     "enable_mqtt": "MQTT aktiviert",
                     "broker_host": "Broker-Hostname oder -IP-Addresse",
                     "port": "<span class=\"form-label pr-2\">Broker-Port</span><span class=\"text-muted\">typischerweise 1883</span>",
@@ -150,7 +150,7 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "mqtt": "MQTT Settings",
-                    "enable_mqtt_desc": "This allows controlling the device over the configured MQTT broker. See <b>TODO: MQTT API documentation link</b> for details.",
+                    "enable_mqtt_desc": "This allows controlling the device over the configured MQTT broker. <a href=\"https://warp-charger.com/api.html\">MQTT API Documentation (german only)</a>",
                     "enable_mqtt": "Enable MQTT",
                     "broker_host": "Broker hostname or IP address",
                     "port": "<span class=\"form-label pr-2\">Broker port</span><span class=\"text-muted\">typically 1883</span>",

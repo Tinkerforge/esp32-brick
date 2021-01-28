@@ -97,8 +97,8 @@ void Proxy::setup()
 
 void Proxy::register_urls()
 {
-    api.addState("error_counters", &error_counters, {}, 1000);
-    api.addState("devices", &devices, {}, 10000);
+    api.addState("proxy/error_counters", &error_counters, {}, 1000);
+    api.addState("proxy/devices", &devices, {}, 10000);
 
     task_scheduler.scheduleWithFixedDelay("update_error_counters", [this](){
         for(char c = 'A'; c <= 'F'; ++c) {
@@ -107,9 +107,9 @@ void Proxy::register_urls()
             tf_hal_get_error_counters(&hal, c, &spitfp_checksum, &spitfp_frame, &tfp_frame, &tfp_unexpected);
 
             error_counters.get(String(c))->get("SpiTfpChecksum")->updateUint(spitfp_checksum);
-            error_counters.get(String(c))->get("SpiTfpFrame")->updateUint(spitfp_checksum);
-            error_counters.get(String(c))->get("TfpFrame")->updateUint(spitfp_checksum);
-            error_counters.get(String(c))->get("TfpUnexpected")->updateUint(spitfp_checksum);
+            error_counters.get(String(c))->get("SpiTfpFrame")->updateUint(spitfp_frame);
+            error_counters.get(String(c))->get("TfpFrame")->updateUint(tfp_frame);
+            error_counters.get(String(c))->get("TfpUnexpected")->updateUint(tfp_unexpected);
         }
     }, 5000, 5000);
 }

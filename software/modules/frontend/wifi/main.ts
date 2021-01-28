@@ -30,14 +30,14 @@ function wifi_symbol(rssi) {
 
 function scan_wifi() {
     $.ajax({
-        url: '/scan_wifi',
+        url: '/wifi/scan',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(null),
         error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error + ": " + xhr.responseText),
         success: () => {
             setTimeout(function () {
-                    $.get("/get_wifis").done(function (data: GetWifiResult) {
+                    $.get("/wifi/scan_results").done(function (data: GetWifiResult) {
                         $("#wifi_config_scan_spinner").prop('hidden', true);
                         $("#wifi_scan_results").prop('hidden', false);
                         $("#wifi_scan_title").html(__("wifi.script.select_ap"));
@@ -273,7 +273,7 @@ function save_wifi_sta_config(continuation = function () { }) {
     };
 
     $.ajax({
-        url: '/wifi_sta_config_update',
+        url: '/wifi/sta_config_update',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(payload),
@@ -298,7 +298,7 @@ function save_wifi_ap_config(continuation = function () { }) {
     };
 
     $.ajax({
-        url: '/wifi_ap_config_update',
+        url: '/wifi/ap_config_update',
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(payload),
@@ -313,15 +313,15 @@ function wifi_save_reboot() {
 }
 
 export function addEventListeners(source: EventSource) {
-    source.addEventListener('wifi_state', function (e: util.SSE) {
+    source.addEventListener('wifi/state', function (e: util.SSE) {
         update_wifi_state(<WifiState>(JSON.parse(e.data)));
     }, false);
 
-    source.addEventListener('wifi_sta_config', function (e: util.SSE) {
+    source.addEventListener('wifi/sta_config', function (e: util.SSE) {
         update_wifi_sta_config(<WifiSTAConfig>(JSON.parse(e.data)));
     }, false);
 
-    source.addEventListener('wifi_ap_config', function (e: util.SSE) {
+    source.addEventListener('wifi/ap_config', function (e: util.SSE) {
         update_wifi_ap_config(<WifiAPConfig>(JSON.parse(e.data)));
     }, false);
 

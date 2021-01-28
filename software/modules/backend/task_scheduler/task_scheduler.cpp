@@ -25,11 +25,11 @@ const char *current_scheduler_task = "init";
 
 void TaskScheduler::register_urls()
 {
-    server.on("/scheduler_state", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/scheduler/state", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(200, "text/html", String(current_scheduler_state));
     });
 
-    server.on("/scheduler_task", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/scheduler/task", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(200, "text/html", String(current_scheduler_task));
     });
 }
