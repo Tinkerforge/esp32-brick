@@ -104,8 +104,10 @@ function update_wifi_sta_config(config: WifiSTAConfig) {
     $('#wifi_sta_hostname').val(config.hostname);
     if(config.ip.join(".") == "0.0.0.0") {
         $('#wifi_sta_show_static').val("hide");
+        wifi_cfg_toggle_static_ip_collapse("hide");
     } else {
         $('#wifi_sta_show_static').val("show");
+        wifi_cfg_toggle_static_ip_collapse("show");
     }
     $('#wifi_sta_ip').val(config.ip.join("."));
     $('#wifi_sta_gateway').val(config.gateway.join("."));
@@ -256,7 +258,7 @@ function parse_ip(ip_str: string) {
 }
 
 function save_wifi_sta_config(continuation = function () { }) {
-    let dhcp = $('#wifi_cfg_ip_configuration').val() != "show";
+    let dhcp = $('#wifi_sta_show_static').val() != "show";
 
     let payload: WifiSTAConfig = {
         enable_sta: $('#wifi_sta_enable_sta').is(':checked'),
