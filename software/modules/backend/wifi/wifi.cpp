@@ -155,7 +155,18 @@ Wifi::Wifi() {
     wifi_state = Config::Object({
         {"connection_state", Config::Int(0)},
         {"ap_state", Config::Int(0)},
-        {"ap_bssid", Config::Str("", 20)}
+        {"ap_bssid", Config::Str("", 20)},
+        {"sta_ip", Config::Array({
+                Config::Uint8(0),
+                Config::Uint8(0),
+                Config::Uint8(0),
+                Config::Uint8(0),
+                },
+                Config::Uint8(0),
+                4,
+                4,
+                Config::type_id<Config::ConfUint>()
+            )},
     });
 
     wifi_scan_config = Config::Null();
@@ -278,7 +289,11 @@ void Wifi::setup()
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
             Serial.print("Got IP address: ");
-            Serial.println(WiFi.localIP());
+            auto ip = WiFi.localIP();
+            wifi_state.get("sta_ip")->get(0)->updateUint(ip[0]);
+            wifi_state.get("sta_ip")->get(1)->updateUint(ip[1]);
+            wifi_state.get("sta_ip")->get(2)->updateUint(ip[2]);
+            wifi_state.get("sta_ip")->get(3)->updateUint(ip[3]);
         },
         SYSTEM_EVENT_STA_GOT_IP);
 
@@ -286,6 +301,10 @@ void Wifi::setup()
         if(this->state != WifiState::CONNECTED)
             return;
         Serial.println("Lost IP. Forcing disconnect and reconnect of WiFi" );
+        wifi_state.get("sta_ip")->get(0)->updateUint(0);
+        wifi_state.get("sta_ip")->get(1)->updateUint(0);
+        wifi_state.get("sta_ip")->get(2)->updateUint(0);
+        wifi_state.get("sta_ip")->get(3)->updateUint(0);
         this->state = WifiState::NOT_CONNECTED;
         WiFi.disconnect(false, true);
     }, SYSTEM_EVENT_STA_LOST_IP);
