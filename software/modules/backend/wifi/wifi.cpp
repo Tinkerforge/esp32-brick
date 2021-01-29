@@ -379,13 +379,13 @@ void Wifi::register_urls()
         //worst case length ~ 140
 
         if (network_count == 0) {
-            request->send(200, "application/json; charset=utf-8", "{\"result\": []}");
+            request->send(200, "application/json; charset=utf-8", "[]");
         } else {
             String result;
             result.reserve(145 * network_count);
             Serial.print(network_count);
             Serial.println(" networks found");
-            result += "{\"result\":[";
+            result += "[";
 
             for (int i = 0; i < network_count; ++i) {
                 // Print SSID and RSSI for each network found
@@ -403,7 +403,7 @@ void Wifi::register_urls()
                 if(i != network_count - 1)
                     result += ",";
             }
-            result += "]}";
+            result += "]";
             request->send(200, "application/json; charset=utf-8", result);
         }
     });

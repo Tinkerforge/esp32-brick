@@ -14,10 +14,6 @@ interface WifiInfo {
     encryption: number
 }
 
-interface GetWifiResult {
-    result: WifiInfo[]
-}
-
 function wifi_symbol(rssi) {
     if(rssi >= -60)
         return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-wifi"><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>';
@@ -37,18 +33,18 @@ function scan_wifi() {
         error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error + ": " + xhr.responseText),
         success: () => {
             setTimeout(function () {
-                    $.get("/wifi/scan_results").done(function (data: GetWifiResult) {
+                    $.get("/wifi/scan_results").done(function (data: WifiInfo[]) {
                         $("#wifi_config_scan_spinner").prop('hidden', true);
                         $("#wifi_scan_results").prop('hidden', false);
                         $("#wifi_scan_title").html(__("wifi.script.select_ap"));
 
-                        if (data.result.length == 0) {
+                        if (data.length == 0) {
                             $("#wifi_scan_results").html(__("wifi.script.no_ap_found"));
                             return;
                         }
                         let result = ``;
 
-                        $.each(data.result, (i, v: WifiInfo) => {
+                        $.each(data, (i, v: WifiInfo) => {
                             let line = `<a id="wifi_scan_result_${i}" class="dropdown-item" href="#">${wifi_symbol(v.rssi)}<span data-feather='${v.encryption == 0 ? 'unlock' : 'lock'}'></span><span class="pl-2">${v.ssid == "" ? __("wifi.script.hidden_ap") + ` (${v.bssid})` : v.ssid}</span></a>`;
                             result += line;
                         });
@@ -56,7 +52,7 @@ function scan_wifi() {
                         $("#wifi_scan_results").html(result);
                         $("#scan_wifi_button").dropdown('update')
 
-                        $.each(data.result, (i, v: WifiInfo) => {
+                        $.each(data, (i, v: WifiInfo) => {
                             let button = document.getElementById(`wifi_scan_result_${i}`);
                             button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption));
                         });
@@ -409,7 +405,7 @@ export function getTranslation(lang: string) {
                     "sta_enable_sta_desc": "Wenn aktiviert, verbindet sich das Gerät beim Start automatisch zum konfigurierten Netzwerk.",
                     "sta_ssid": "Netzwerkname (SSID)",
                     "sta_scan": "Netzwerksuche",
-                    "sta_scanning": "Scanne Netzwerke...",
+                    "sta_scanning": "Suche Netzwerke...",
                     "sta_bssid": "BSSID",
                     "sta_bssid_lock": "BSSID-Sperre",
                     "sta_bssid_invalid": "Die BSSID muss aus sechs Gruppen mit jeweils einer zweistelligen Hexadezimalzahl, getrennt durch einen Doppelpunkt, bestehen. Zum Beispiel 01:23:45:67:89:AB",
