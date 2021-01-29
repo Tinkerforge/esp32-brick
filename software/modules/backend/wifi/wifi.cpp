@@ -290,6 +290,7 @@ void Wifi::setup()
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
             Serial.print("Got IP address: ");
             auto ip = WiFi.localIP();
+            Serial.println(ip);
             wifi_state.get("sta_ip")->get(0)->updateUint(ip[0]);
             wifi_state.get("sta_ip")->get(1)->updateUint(ip[1]);
             wifi_state.get("sta_ip")->get(2)->updateUint(ip[2]);
