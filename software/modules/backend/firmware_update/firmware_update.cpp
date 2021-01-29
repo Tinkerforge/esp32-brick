@@ -10,6 +10,8 @@
 extern AsyncWebServer server;
 extern TaskScheduler task_scheduler;
 
+extern bool firmware_update_allowed;
+
 void factory_reset()
 {
     for(int i = 0; i < 5; ++i) {
@@ -76,6 +78,13 @@ void FirmwareUpdate::register_urls()
     });
 
     server.on("/flash_firmware", HTTP_POST, [this](AsyncWebServerRequest *request){
+        if (!firmware_update_allowed) {
+            AsyncWebServerResponse *response = request->beginResponse(400, "text/plain", "firmware_update.script.vehicle_connected");
+            response->addHeader("Connection", "close");
+            request->send(response);
+            return;
+        }
+
         AsyncWebServerResponse *response = request->beginResponse(Update.hasError() ? 400: 200, "text/plain", Update.hasError() ? Update.errorString() : "Update OK");
         response->addHeader("Connection", "close");
 
@@ -85,6 +94,14 @@ void FirmwareUpdate::register_urls()
 
         request->send(response);
     },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+        if (!firmware_update_allowed) {
+            if(final) {
+                AsyncWebServerResponse *response = request->beginResponse(413, "text/plain", "firmware_update.script.vehicle_connected");
+                response->addHeader("Connection", "close");
+                request->send(response);
+            }
+            return;
+        }
         handleUpdateChunk(U_FLASH, request, index, data, len, final);
     });
 
@@ -99,10 +116,6 @@ void FirmwareUpdate::register_urls()
         request->send(response);
     },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
         handleUpdateChunk(U_SPIFFS, request, index, data, len, final);
-    });
-
-    server.onFileUpload([](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-        handleUpdateChunk(filename == "spiffs" ? U_SPIFFS : U_FLASH, request, index, data, len, final);
     });
 
     AsyncCallbackJsonWebHandler *factory_reset_handler = new AsyncCallbackJsonWebHandler("/factory_reset", [this](AsyncWebServerRequest *request, JsonVariant &json){

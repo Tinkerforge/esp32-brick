@@ -48,7 +48,10 @@ function upload(e: JQuery.SubmitEvent, type: string) {
         },
         error: (xhr, status, error) => {
             progress.prop("hidden", true);
-            util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
+            if (__(xhr.responseText) == null)
+                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
+            else
+                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), __(xhr.responseText));
         }
     });
 }
@@ -135,6 +138,7 @@ export function getTranslation(lang: string) {
                     "factory_reset_init": "Beginne Zurücksetzen auf Auslieferungszustand",
                     "factory_reset_reboot": "Formatiere Konfigurationspartition und starte neu... Dies dauert ungefähr eine Minute.",
                     "factory_reset_error": "Zurücksetzen auf Auslieferungszustand fehlgeschlagen",
+                    "vehicle_connected": "Es kann keine Aktualisierung vorgenommen werden, während ein Fahrzeug verbunden ist."
                 }
             }
         },
@@ -170,6 +174,7 @@ export function getTranslation(lang: string) {
                     "factory_reset_init": "Initiated factory reset",
                     "factory_reset_reboot": "Formatting configuration partition and rebooting... This takes about one minute.",
                     "factory_reset_error": "Initiating factory reset failed",
+                    "vehicle_connected": "Can't update the firmware while a vehicle is connected."
                 }
             }
         }
