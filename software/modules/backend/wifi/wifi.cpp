@@ -3,6 +3,8 @@
 #include <ESPmDNS.h>
 #include <SPIFFS.h>
 
+#include <esp_wifi.h>
+
 #include "ArduinoJson.h"
 #include "AsyncJson.h"
 
@@ -353,6 +355,19 @@ void Wifi::setup()
     } else {
         WiFi.mode(WIFI_OFF);
     }
+
+    wifi_country_t config;
+    config.cc[0] = 'D';
+    config.cc[1] = 'E';
+    config.cc[2] = ' ';
+    config.schan = 1;
+    config.nchan = 13;
+    config.policy = WIFI_COUNTRY_POLICY_AUTO;
+    esp_wifi_set_country(&config);
+
+    esp_wifi_set_ps(WIFI_PS_NONE);
+
+    WiFi.setTxPower(WIFI_POWER_19_5dBm);
 
     wifi_state.get("ap_bssid")->updateString(WiFi.softAPmacAddress());
 
