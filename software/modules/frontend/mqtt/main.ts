@@ -116,7 +116,7 @@ export function getTranslation(lang: string) {
                     "mqtt": "MQTT-Einstellungen",
                     "enable_mqtt_desc": "Hierdurch kann das Gerät über den konfigurierten MQTT-Broker kontrolliert werden. <a href=\"https://warp-charger.com/api.html\">MQTT-API-Dokumentation</a>",
                     "enable_mqtt": "MQTT aktiviert",
-                    "broker_host": "Broker-Hostname oder -IP-Addresse",
+                    "broker_host": "Broker-Hostname oder -IP-Adresse",
                     "port": "<span class=\"form-label pr-2\">Broker-Port</span><span class=\"text-muted\">typischerweise 1883</span>",
                     "username": "<span class=\"form-label pr-2\">Broker-Benutzername</span><span class=\"text-muted\">optional</span>",
                     "password": "<span class=\"form-label pr-2\">Broker-Passwort</span><span class=\"text-muted\">optional</span>",
@@ -128,7 +128,9 @@ export function getTranslation(lang: string) {
                     "reboot_content": "Die geänderten MQTT-Einstellungen werden nur nach einem Neustart angewendet. Jetzt neu starten?",
                     "abort": "Abbrechen",
                     "reboot": "Neu starten",
-                    "show_password": "Anzeigen"
+                    "show_password": "Anzeigen",
+
+                    "unchanged": "unverändert"
                 },
                 "script": {
                     "save_failed": "Speichern der MQTT-Einstellungen fehlgeschlagen.",
@@ -164,7 +166,9 @@ export function getTranslation(lang: string) {
                     "reboot_content": "The changed MQTT configuration will only be applied after rebooting. Reboot now?",
                     "abort": "Abort",
                     "reboot": "Reboot",
-                    "show_password": "Show"
+                    "show_password": "Show",
+
+                    "unchanged": "unchanged"
                 },
                 "script": {
                     "save_failed": "Failed to save the MQTT configuration.",

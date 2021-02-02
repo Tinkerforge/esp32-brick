@@ -218,7 +218,7 @@ function update_wifi_state(state: WifiState) {
     $('#wifi_ap_bssid').html(state.ap_bssid);
 
     if (state.sta_ip != [0,0,0,0]) {
-        $('#status_wifi_sta_ip').html("IP: " + state.sta_ip.join("."));
+        $('#status_wifi_sta_ip').html(state.sta_ip.join("."));
     }
 }
 
@@ -420,8 +420,8 @@ export function getTranslation(lang: string) {
                     "sta_hostname": "Hostname",
                     "sta_hostname_invalid": "Der Hostname darf nur aus den Groß- und Kleinbuchstaben A-Z und a-z, sowie den Ziffern 0-9 und Bindestrichen bestehen. Zum Beispiel: warp-A1c",
                     "sta_ip_configuration": "IP-Konfiguration",
-                    "sta_dhcp": "Automatisch (DHCP)",
-                    "sta_static": "Statisch",
+                    "sta_dhcp": "automatisch (DHCP)",
+                    "sta_static": "statisch",
                     "save": "Speichern",
 
                     "reboot_title": "Neu starten um Konfiguration anzuwenden",
@@ -430,7 +430,7 @@ export function getTranslation(lang: string) {
                     "reboot": "Neu starten",
 
                     "static_title": "Statische IP-Konfiguration",
-                    "static_ip": "IP-Addresse",
+                    "static_ip": "IP-Adresse",
                     "subnet": "Subnetzmaske",
                     "gateway": "Gateway",
                     "dns": "DNS-Server",
@@ -442,7 +442,7 @@ export function getTranslation(lang: string) {
                     "dns2_invalid": "Die IP des alternativen DNS-Servers muss entweder leer bleiben, oder aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1.",
 
                     "ap_settings": "WLAN-Access-Point-Einstellungen",
-                    "ap_enable": "Access Point",
+                    "ap_enable": "<span class=\"form-label\">Access Point</span><span class=\"text-muted\"><a href=\"https://www.warp-charger.com/#documents\">siehe Betriebsanleitung für Details</a></span></label>",
                     "ap_enabled": "aktiviert",
                     "ap_fallback_only": "nur als Fallback",
                     "ap_disabled": "deaktiviert",
@@ -455,14 +455,14 @@ export function getTranslation(lang: string) {
                     "ap_hostname": "Hostname",
                     "ap_hostname_invalid": "Der Hostname darf nur aus den Groß- und Kleinbuchstaben A-Z und a-z, sowie den Ziffern 0-9 und Bindestrichen bestehen. Zum Beispiel: warp-A1c",
                     "ap_channel": "<span class=\"form-label pr-2\">Kanal</span><span class=\"text-muted\">ignoriert wenn WLAN-Verbindung aktiv ist</span>",
-                    "ap_ip": "IP-Addresse",
+                    "ap_ip": "IP-Adresse",
                     "ap_subnet": "Subnetzmaske",
                     "ap_gateway": "Gateway",
                     "ap_ip_invalid": "Die IP muss aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.2",
                     "ap_subnet_invalid": "Die Subnetzmaske muss aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 255.255.255.0",
                     "ap_gateway_invalid": "Die IP des Gateways muss aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1",
 
-                    "unchanged": "Unverändert"
+                    "unchanged": "unverändert"
                 },
                 "script": {
                     "scan_wifi_failed": "Suche nach Netzwerken fehlgeschlagen",
@@ -513,8 +513,8 @@ export function getTranslation(lang: string) {
                     "sta_hostname": "Hostname",
                     "sta_hostname_invalid": "The hostname must contain only upper and lower case letters A-Z and a-z the digits 0-9 or dashes. For example: warp-A1c",
                     "sta_ip_configuration": "IP Configuration",
-                    "sta_dhcp": "Automatic (DHCP)",
-                    "sta_static": "Static",
+                    "sta_dhcp": "automatic (DHCP)",
+                    "sta_static": "static",
                     "save": "Save",
 
                     "reboot_title": "Restart to apply configuration",
@@ -535,7 +535,7 @@ export function getTranslation(lang: string) {
                     "dns2_invalid": "The alternative DNS server IP must have four groups between 0 and 255 separated with a dot, for example: 10.0.0.1, or be empty.",
 
                     "ap_settings": "WiFi Access Point Settings",
-                    "ap_enable": "Access Point",
+                    "ap_enable": "<span class=\"form-label\">Access Point</span><span class=\"text-muted\"><a href=\"https://www.warp-charger.com/#documents\">see manual for details</a></span></label>",
                     "ap_enabled": "enabled",
                     "ap_fallback_only": "as fallback only",
                     "ap_disabled": "disabled",
