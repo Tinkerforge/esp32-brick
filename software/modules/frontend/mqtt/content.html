@@ -1,7 +1,7 @@
 <div class="tab-pane fade" role="tabpanel" aria-labelledby="sidebar-mqtt" id="mqtt">
     <div
             class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2" data-i18n="mqtt.content.mqtt">MQTT</h1>
+            <h1 class="h2" data-i18n="mqtt.content.mqtt"></h1>
     </div>
     <form id="mqtt_config_form" class="needs-validation" novalidate>
         <!--
@@ -11,20 +11,18 @@
 
         <div class="form-group row">
             <div id="blah" class="col-lg-3 col-xl-2">
-                <label for="mqtt_enable" class="col-form-label form-label" data-i18n="mqtt.content.enable_mqtt">Enable MQTT</label>
+                <label for="mqtt_enable" class="col-form-label form-label" data-i18n="mqtt.content.enable_mqtt"></label>
             </div>
             <div class="col-lg-9 col-xl-6">
                 <div class="borderless-form-control custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="mqtt_enable">
-                    <label class="custom-control-label" for="mqtt_enable" data-i18n="mqtt.content.enable_mqtt_desc">
-                        This allows controlling the device over the configured MQTT broker. See <b>TODO: MQTT API documentation link</b> for details.
-                    </label>
+                    <label class="custom-control-label" for="mqtt_enable" data-i18n="mqtt.content.enable_mqtt_desc"></label>
                 </div>
             </div>
         </div>
         <div class="form-group row">
             <label for="mqtt_broker_host"
-                class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.broker_host">Broker Host</label>
+                class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.broker_host"></label>
             <div class="col-lg-9 col-xl-6">
                 <input id="mqtt_broker_host" class="form-control" type="text" required>
             </div>
@@ -32,29 +30,29 @@
 
         <div class="form-group row">
             <label for="mqtt_broker_port"
-                class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.port">Broker Port</label>
+                class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.port"></label>
             <div class="col-lg-9 col-xl-6">
-                <input id="mqtt_broker_port" class="form-control" type="number" min="1" max="65536" value="1883">
+                <input id="mqtt_broker_port" class="form-control" type="number" min="1" max="65535" value="1883">
             </div>
         </div>
 
         <div class="form-group row">
             <label for="mqtt_broker_username"
-                class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.username">Broker Username</label>
+                class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.username"></label>
             <div class="col-lg-9 col-xl-6">
                 <input id="mqtt_broker_username" class="form-control" type="text">
             </div>
         </div>
 
         <div class="form-group row">
-            <label for="mqtt_broker_password" class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.password">Broker Password</label>
+            <label for="mqtt_broker_password" class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.password"></label>
             <div class="col-lg-9 col-xl-6">
                 <div class="input-group">
                     <input type="password" id="mqtt_broker_password" class="form-control" value="" placeholder="" data-i18n="mqtt.content.unchanged" data-i18n-attr="placeholder"/>
                     <div class="input-group-append">
                         <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
                             <input id="mqtt_show_password" type="checkbox" class="custom-control-input" aria-label="Show password" value="test">
-                            <label class="custom-control-label" for="mqtt_show_password" data-i18n="mqtt.content.show_password">Show password</label>
+                            <label class="custom-control-label" for="mqtt_show_password" data-i18n="mqtt.content.show_password"></label>
                         </div>
                     </div>
                 </div>
@@ -62,7 +60,7 @@
         </div>
 
         <div class="form-group row">
-            <label for="mqtt_topic_prefix" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.topic_prefix">Topic Prefix</label>
+            <label for="mqtt_topic_prefix" class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.topic_prefix"></label>
             <div class="col-lg-9 col-xl-6">
                 <input id="mqtt_topic_prefix" class="form-control" type="text" pattern="^[^#+$][^#+]*">
                 <div class="invalid-feedback"  data-i18n="mqtt.content.topic_prefix_invalid"></div>
@@ -70,7 +68,7 @@
         </div>
 
         <div class="form-group row">
-            <label for="mqtt_client_name" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="mqtt.content.client_name">Client Name</label>
+            <label for="mqtt_client_name" class="col-lg-3 col-xl-2 col-form-label" data-i18n="mqtt.content.client_name"></label>
             <div class="col-lg-9 col-xl-6">
                 <input id="mqtt_client_name" class="form-control" type="text">
             </div>
@@ -78,7 +76,7 @@
 
         <div class="form-group row">
             <div class="col-lg-12 col-xl-8 text-right">
-                <button id="mqtt_save_button" type="submit" form="mqtt_config_form" class="btn btn-primary" data-i18n="mqtt.content.save">Save</button>
+                <button id="mqtt_save_button" type="submit" form="mqtt_config_form" class="btn btn-primary" data-i18n="mqtt.content.save"></button>
             </div>
         </div>
     </form>
@@ -88,20 +86,18 @@
             class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <form-label class="modal-title" data-i18n="mqtt.content.reboot_title">Reboot to apply configuration</form-label>
+                    <form-label class="modal-title" data-i18n="mqtt.content.reboot_title"></form-label>
                     <button type="button" class="close" data-dismiss="modal"
                         aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" data-i18n="mqtt.content.reboot_content">
-                    To apply the changed MQTT configuration, the ESP has to be rebooted. Reboot now?
-                </div>
+                <div class="modal-body" data-i18n="mqtt.content.reboot_content"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
-                        data-dismiss="modal" data-i18n="mqtt.content.abort">Abort</button>
+                        data-dismiss="modal" data-i18n="mqtt.content.abort"></button>
                     <button id="mqtt_reboot_button" type="button"
-                        class="btn btn-danger" data-i18n="mqtt.content.reboot">Reboot</button>
+                        class="btn btn-danger" data-i18n="mqtt.content.reboot"></button>
                 </div>
             </div>
         </div>

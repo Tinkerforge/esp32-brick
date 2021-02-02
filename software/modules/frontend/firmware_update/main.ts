@@ -123,7 +123,7 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "system": "System",
-                    "current_firmware": "Firmwareversion",
+                    "current_firmware": "Firmware-Version",
                     "firmware_update": "Firmware-Aktualisierung",
                     "browse": "Durchsuchen",
                     "select_file": "Firmware-Datei",
