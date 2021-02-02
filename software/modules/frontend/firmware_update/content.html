@@ -55,6 +55,19 @@
             </div>
         </div>
     </form>
+    <hr>
+    <div class="form-group row">
+        <div class="col-lg-12 col-xl-3">
+            <button id="load_event_log" type="button" class="form-control btn btn-primary mb-1" data-i18n="firmware_update.content.load_event_log">Factory Reset</button>
+            <label for='load_event_log' data-i18n="firmware_update.content.load_event_log_desc">Reset all settings to factory default</label>
+            <a id="save_event_log" href="/event_log" class="form-control btn btn-primary mt-2 mb-1" data-i18n="firmware_update.content.save_event_log" download="event_log.txt">Download Event Log</a>
+            <label for='save_event_log' data-i18n="firmware_update.content.save_event_log_desc" class="mb-3">A complete report of all status information of this device except passwords.</label>
+        </div>
+        <div class="col-lg-12 col-xl-6">
+            <textarea class="text-monospace mb-1" placeholder="Event-Log..." readonly id="event_log" rows="10" style="width: 100%; white-space: pre;" data-i18n="firmware_update.content.event_log_placeholder" data-i18n-attr="placeholder"></textarea>
+            <label for='event_log' data-i18n="firmware_update.content.event_log">Event Log</label>
+        </div>
+    </div>
 
     <div class="modal fade" id="factory_reset_modal" tabindex="-1" role="dialog" aria-hidden="true">
         <div id="factory_reset_content" class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">

@@ -42,7 +42,6 @@ void TaskScheduler::onEventConnect(AsyncEventSourceClient *client)
 void TaskScheduler::loop() {
     current_scheduler_state = "checking for empty queue";
     if(tasks.empty()) {
-        Serial.println("no tasks!");
         return;
     }
     current_scheduler_state = "top";

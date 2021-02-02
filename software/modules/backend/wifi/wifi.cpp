@@ -13,6 +13,9 @@
 
 #include "tools.h"
 #include "api.h"
+#include "event_log.h"
+
+extern EventLog logger;
 
 #define RECONNECT_TIMEOUT_MS 30000
 
@@ -188,13 +191,13 @@ void Wifi::apply_soft_ap_config_and_start() {
         WiFi.softAPConfig(ip, gateway, subnet);
         ++counter;
     }
-    printf("Had to configure softAP ip %d times.\n", counter);
+    logger.printfln("Had to configure softAP ip %d times.", counter);
     delay(2000);
 
-    printf("Soft AP started.\n");
-    printf("    SSID: %s\n", wifi_ap_config_in_use.get("ssid")->asString().c_str());
-    printf("    passphrase: %s\n", wifi_ap_config_in_use.get("passphrase")->asString().c_str());
-    printf("    hostname: %s\n", wifi_ap_config_in_use.get("hostname")->asString().c_str());
+    logger.printfln("Soft AP started.");
+    logger.printfln("    SSID: %s", wifi_ap_config_in_use.get("ssid")->asString().c_str());
+    logger.printfln("    passphrase: %s", wifi_ap_config_in_use.get("passphrase")->asString().c_str());
+    logger.printfln("    hostname: %s", wifi_ap_config_in_use.get("hostname")->asString().c_str());
 
     WiFi.softAPsetHostname(wifi_ap_config_in_use.get("hostname")->asString().c_str());
 
@@ -205,8 +208,7 @@ void Wifi::apply_soft_ap_config_and_start() {
 
     soft_ap_running = true;
     IPAddress myIP = WiFi.softAPIP();
-    Serial.print("    IP: ");
-    Serial.println(myIP);
+    logger.printfln("    IP: %u.%u.%u.%u", myIP[0], myIP[1], myIP[2], myIP[3]);
 }
 
 void Wifi::apply_sta_config_and_connect() {
@@ -246,8 +248,7 @@ void Wifi::apply_sta_config_and_connect() {
 
     WiFi.setHostname(wifi_sta_config_in_use.get("hostname")->asString().c_str());
 
-    Serial.print("Connecting to ");
-    Serial.println(wifi_sta_config_in_use.get("ssid")->asString());
+    logger.printfln("Connecting to %s", wifi_sta_config_in_use.get("ssid")->asString().c_str());
 
     WiFi.begin(ssid.c_str(), passphrase.c_str(), 0, bssid_lock ? bssid : nullptr, true);
 }
@@ -261,18 +262,16 @@ void Wifi::setup()
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
             if(this->state == WifiState::CONNECTING) {
-                Serial.print("Failed to connect to ");
-                Serial.print(wifi_sta_config_in_use.get("ssid")->asString());
+                logger.printfln("Failed to connect to %s", wifi_sta_config_in_use.get("ssid")->asString().c_str());
             } else if (this->state == WifiState::CONNECTED) {
-                Serial.print("Disconnected from ");
-                Serial.print(wifi_sta_config_in_use.get("ssid")->asString());
+                logger.printfln("Disconnected from %s", wifi_sta_config_in_use.get("ssid")->asString().c_str());
             }
 
             this->state = WifiState::NOT_CONNECTED;
 
             connect_attempt_interval_ms = MIN(connect_attempt_interval_ms * 2, MAX_CONNECT_ATTEMPT_INTERVAL_MS);
 
-            Serial.printf(" next attempt in %u seconds.\n", connect_attempt_interval_ms / 1000);
+            logger.printfln(" next attempt in %u seconds.", connect_attempt_interval_ms / 1000);
 
             task_scheduler.scheduleOnce("wifi_connect", [this](){
                 apply_sta_config_and_connect();
@@ -283,16 +282,14 @@ void Wifi::setup()
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
             this->state = WifiState::CONNECTED;
 
-            Serial.print("Connected to ");
-            Serial.println(WiFi.SSID());
+            logger.printfln("Connected to %s", WiFi.SSID().c_str());
             connect_attempt_interval_ms = 5000;
         },
         SYSTEM_EVENT_STA_CONNECTED);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            Serial.print("Got IP address: ");
             auto ip = WiFi.localIP();
-            Serial.println(ip);
+            logger.printfln("Got IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
             wifi_state.get("sta_ip")->get(0)->updateUint(ip[0]);
             wifi_state.get("sta_ip")->get(1)->updateUint(ip[1]);
             wifi_state.get("sta_ip")->get(2)->updateUint(ip[2]);
@@ -303,7 +300,7 @@ void Wifi::setup()
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
         if(this->state != WifiState::CONNECTED)
             return;
-        Serial.println("Lost IP. Forcing disconnect and reconnect of WiFi" );
+        logger.printfln("Lost IP. Forcing disconnect and reconnect of WiFi");
         wifi_state.get("sta_ip")->get(0)->updateUint(0);
         wifi_state.get("sta_ip")->get(1)->updateUint(0);
         wifi_state.get("sta_ip")->get(2)->updateUint(0);
@@ -319,7 +316,7 @@ void Wifi::setup()
         String error = wifi_sta_config.update_from_file(file);
         file.close();
         if(error != "")
-            Serial.println(error);
+            logger.printfln(error.c_str());
     } else {
         wifi_sta_config.get("hostname")->updateString(default_hostname);
     }
@@ -329,7 +326,7 @@ void Wifi::setup()
         String error = wifi_ap_config.update_from_file(file);
         file.close();
         if(error != "")
-            Serial.println(error);
+            logger.printfln(error.c_str());
     } else {
         wifi_ap_config.get("hostname")->updateString(default_hostname);
         wifi_ap_config.get("ssid")->updateString(default_hostname);
@@ -383,9 +380,9 @@ void Wifi::setup()
 
     /*use mdns for host name resolution*/
     if (!MDNS.begin(wifi_ap_config_in_use.get("hostname")->asString().c_str())) {
-        Serial.println("Error setting up mDNS responder!");
+        logger.printfln("Error setting up mDNS responder!");
     } else {
-        Serial.println("mDNS responder started");
+        logger.printfln("mDNS responder started");
     }
 
     initialized = true;
@@ -396,7 +393,7 @@ void Wifi::register_urls()
     api.addState("wifi/state", &wifi_state, {}, 1000);
 
     api.addCommand("wifi/scan", &wifi_scan_config, {}, [](){
-        Serial.println("Scanning for wifis...");
+        logger.printfln("Scanning for wifis...");
         WiFi.scanDelete();
 
         // WIFI_SCAN_FAILED also means the scan is done.
@@ -408,7 +405,7 @@ void Wifi::register_urls()
     server.on("/wifi/scan_results", HTTP_GET, [](AsyncWebServerRequest *request) {
         int network_count = WiFi.scanComplete();
 
-        Serial.println("scan done");
+        logger.printfln("scan done");
 
         //result line: {"ssid": "%s", "bssid": "%s", "rssi": %d, "channel": %d, "encryption": %d}
         //worst case length ~ 140
@@ -418,8 +415,7 @@ void Wifi::register_urls()
         } else {
             String result;
             result.reserve(145 * network_count);
-            Serial.print(network_count);
-            Serial.println(" networks found");
+            logger.printfln("%d networks found", network_count);
             result += "[";
 
             for (int i = 0; i < network_count; ++i) {
@@ -469,7 +465,7 @@ void Wifi::loop()
         wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
         WiFi.status() == WL_CONNECTED &&
         soft_ap_running) {
-        Serial.println("Wifi connected. Stopping soft AP");
+        logger.printfln("Wifi connected. Stopping soft AP");
         WiFi.softAPdisconnect(true);
         soft_ap_running = false;
     }

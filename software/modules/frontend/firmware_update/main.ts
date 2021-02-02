@@ -91,6 +91,13 @@ export function init() {
     $('#download_debug_report').on("click", () => $('#download_debug_report').attr("download", "debug-report-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".json"));
 
     bsCustomFileInput.init();
+
+    $('#load_event_log').on("click",
+        () => $.get("/event_log")
+               .done((result) => {$('#event_log').html(result)})
+               .fail((xhr, status, error) => util.show_alert("alert-danger", __("firmware_update.script.load_event_report_error"), error + ": " + xhr.responseText)));
+
+    $('#save_event_log').on("click", () => $('#save_event_log').attr("download", "event-log-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".txt"));
 }
 
 export function addEventListeners(source: EventSource) {
@@ -129,7 +136,13 @@ export function getTranslation(lang: string) {
                     "abort_reset": "Abbrechen",
                     "confirm_reset": "Zurücksetzen auf Auslieferungszustand",
                     "debug_report": "Debug-Report",
-                    "debug_report_desc": "Ein kompletter Report aller Statusinformationen des Geräts außer Passwörtern"
+                    "debug_report_desc": "Ein kompletter Report aller Statusinformationen des Geräts außer Passwörtern",
+                    "event_log": "Ereignis-Log",
+                    "event_log_placeholder": "Ereignis-Log...",
+                    "load_event_log": "Log laden",
+                    "load_event_log_desc": "Lädt das aktuelle Ereignis-Log",
+                    "save_event_log": "Log speichern",
+                    "save_event_log_desc": "Speichert das aktuelle Ereignis-Log",
                 },
                 "script": {
                     "flash_success": "Erfolgreich aktualisiert",
@@ -165,7 +178,13 @@ export function getTranslation(lang: string) {
                     "abort_reset": "Abort",
                     "confirm_reset": "Restore",
                     "debug_report": "Debug report",
-                    "debug_report_desc": "A complete report of all status information of this device except passwords"
+                    "debug_report_desc": "A complete report of all status information of this device except passwords",
+                    "event_log": "Event Log",
+                    "event_log_placeholder": "Event Log...",
+                    "load_event_log": "Load Log",
+                    "load_event_log_desc": "Downloads the current event log",
+                    "save_event_log": "Save Log",
+                    "save_event_log_desc": "Saves the current event log",
                 },
                 "script": {
                     "flash_success": "Successfully updated",

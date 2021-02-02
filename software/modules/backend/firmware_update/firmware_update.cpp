@@ -7,6 +7,10 @@
 
 #include "modules/task_scheduler/task_scheduler.h"
 
+#include "event_log.h"
+
+extern EventLog logger;
+
 extern AsyncWebServer server;
 extern TaskScheduler task_scheduler;
 
@@ -126,7 +130,7 @@ void FirmwareUpdate::register_urls()
 
         if(json["do_i_know_what_i_am_doing"].as<bool>()) {
             task_scheduler.scheduleOnce("factory_reset", [](){
-                Serial.println("Factory reset requested");
+                logger.printfln("Factory reset requested");
                 factory_reset();
             }, 3000);
             request->send(200, "text/html", "Factory reset initiated");
@@ -153,7 +157,7 @@ void FirmwareUpdate::loop()
     last_btn_value = btn0;
 
     if(!btn0 && deadline_elapsed(last_btn_change + 10000)) {
-        Serial.println("IO0 button was pressed for 10 seconds. Resetting to factory defaults.");
+        logger.printfln("IO0 button was pressed for 10 seconds. Resetting to factory defaults.");
         factory_reset();
     }
 }
