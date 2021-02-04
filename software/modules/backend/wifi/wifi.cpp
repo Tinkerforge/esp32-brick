@@ -196,7 +196,7 @@ void Wifi::apply_soft_ap_config_and_start() {
 
     logger.printfln("Soft AP started.");
     logger.printfln("    SSID: %s", wifi_ap_config_in_use.get("ssid")->asString().c_str());
-    logger.printfln("    passphrase: %s", wifi_ap_config_in_use.get("passphrase")->asString().c_str());
+    Serial.printf("    passphrase: %s\n", wifi_ap_config_in_use.get("passphrase")->asString().c_str());
     logger.printfln("    hostname: %s", wifi_ap_config_in_use.get("hostname")->asString().c_str());
 
     WiFi.softAPsetHostname(wifi_ap_config_in_use.get("hostname")->asString().c_str());
