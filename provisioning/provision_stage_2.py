@@ -791,7 +791,7 @@ def now():
 
 
 def my_input(s):
-    return input(green(s))
+    return input(green(s) + " ")
 
 def main():
     global uids
@@ -981,7 +981,7 @@ def main():
         json.dump(result, f, indent=4)
 
     with wifi(ssid, passphrase):
-        my_input("Do the electrical tests and press any key when done")
+        my_input("Pull the USB cable, do the electrical tests and press any key when done")
 
 if __name__ == "__main__":
     main()
