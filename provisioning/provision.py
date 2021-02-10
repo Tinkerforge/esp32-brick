@@ -266,13 +266,10 @@ def handle_block3_fuses(set_block_3, uid, passphrase):
     # Directly selecting chars out of the BASE58 alphabet can result in numbers with leading 1s
     # (those map to 0, so de- and reencoding will produce the same number without the leading 1)
     wifi_passphrase = [base58encode(rnd.randint(base58decode("2111"), base58decode("ZZZZ"))) for i in range(4)]
-    # TODO: get uid from server when merging this script with flash-test
-    #uid = 'ESQ'
     print("Generating UID")
     uid = base58encode(get_new_uid())
 
     print("UID: " + uid)
-    #print("Passphrase: {}-{}-{}-{}".format(*wifi_passphrase))
 
     print("Generating efuse binary")
     uid_bytes = base58decode(uid).to_bytes(4, byteorder='little')
@@ -372,15 +369,12 @@ def now():
 def main():
     global uids
 
-    if len(sys.argv) != 3:
-        print("Usage: {} [test_firmware] [real_firmware]")
+    if len(sys.argv) != 2:
+        print("Usage: {} [test_firmware]")
         sys.exit(0)
 
     if not os.path.exists(sys.argv[1]):
         print("Test firmware {} not found.".format(sys.argv[1]))
-
-    if not os.path.exists(sys.argv[2]):
-        print("Firmware {} not found.".format(sys.argv[2]))
 
     result = {"start": now()}
 
@@ -413,6 +407,8 @@ def main():
     result["test_firmware"] = sys.argv[1]
 
     ssid = "warp-" + uid
+
+    run(["systemctl", "restart", "NetworkManager.service"])
 
     print("Waiting for ESP wifi. Takes about one minute.")
     if not wait_for_wifi(ssid, 90):
@@ -492,15 +488,6 @@ def main():
 
     result["tests_successful"] = True
 
-    print("Erasing flash")
-    erase_flash()
-
-    print("Flashing real firmware")
-    flash_firmware(sys.argv[2])
-    result["firmware"] = sys.argv[2]
-
-    input("When LED 0 starts blinking again, press any key.")
-
     run(["python3", "print-esp32-label.py", ssid, passphrase, "-c", "3"])
     label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
     while label_success != "y" and label_success != "n":
@@ -508,7 +495,7 @@ def main():
     result["labels_printed"] = label_success == "y"
     result["end"] = now()
 
-    with open("{}_{}_report.json".format(ssid, now().replace(":", "-")), "w") as f:
+    with open("{}_{}_report_stage_1.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
 
 if __name__ == "__main__":
