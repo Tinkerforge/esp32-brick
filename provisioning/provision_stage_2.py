@@ -975,13 +975,13 @@ def main():
     if not wait_for_wifi(ssid, 90):
         fatal_error("ESP wifi not found after 90 seconds")
 
-    with wifi(ssid, passphrase):
-        my_input("Do the electrical tests and press any key when done")
-
     result["end"] = now()
 
     with open("{}_{}_report_stage_2.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
+
+    with wifi(ssid, passphrase):
+        my_input("Do the electrical tests and press any key when done")
 
 if __name__ == "__main__":
     main()
