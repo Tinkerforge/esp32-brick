@@ -9,6 +9,7 @@
 #include "AsyncJson.h"
 
 #include "modules/task_scheduler/task_scheduler.h"
+#include "modules/wifi/wifi.h"
 
 #include "tools.h"
 #include "api.h"
@@ -21,6 +22,8 @@ extern AsyncWebServer server;
 extern AsyncEventSource events;
 extern char uid[7];
 extern API api;
+
+extern Wifi wifi;
 
 Mqtt::Mqtt() {
 
@@ -53,6 +56,9 @@ void Mqtt::connect() {
     if(state != MqttConnectionState::NOT_CONNECTED && state != MqttConnectionState::ERROR) {
         return;
     }
+
+    if (wifi.state == WifiState::CONNECTING)
+        return;
 
     this->mqttClient.connect();
 }

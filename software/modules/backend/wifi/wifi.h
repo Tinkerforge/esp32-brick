@@ -22,6 +22,8 @@ public:
 
     bool initialized = false;
 
+    WifiState state;
+
 private:
     void apply_soft_ap_config_and_start();
     void apply_sta_config_and_connect();
@@ -29,7 +31,6 @@ private:
     int get_connection_state();
     int get_ap_state();
 
-    WifiState state;
 
     Config wifi_ap_config;
     Config wifi_sta_config;

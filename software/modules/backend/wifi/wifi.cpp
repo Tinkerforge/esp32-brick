@@ -9,7 +9,6 @@
 #include "AsyncJson.h"
 
 #include "modules/task_scheduler/task_scheduler.h"
-#include "modules/mqtt/mqtt.h"
 
 #include "tools.h"
 #include "api.h"
@@ -26,7 +25,6 @@ extern char uid[7];
 extern char passphrase[20];
 
 extern API api;
-extern Mqtt mqtt;
 
 Wifi::Wifi() {
     wifi_ap_config = Config::Object({
