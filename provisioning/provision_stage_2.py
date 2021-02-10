@@ -875,15 +875,15 @@ def main():
         time.sleep(3)
 
         if len(enumerations) not in [1, 2]:
-            fatal_error("Unexpected number of bricklets! Expected 1 or 2 but got {}.".format(len(enumerations)))
+            fatal_error("Unexpected number of Bricklets! Expected 1 or 2 but got {}.".format(len(enumerations)))
 
         is_pro = len(enumerations) == 2
 
         if is_pro and qr_variant == "S":
-            fatal_error("Scanned QR-Code implies Variant Pro, but detected was Smart")
+            fatal_error("Scanned QR-Code implies Variant Smart, but detected was Pro")
 
         if not is_pro and qr_variant == "P":
-            fatal_error("Scanned QR-Code implies Variant Smart, but detected was Pro")
+            fatal_error("Scanned QR-Code implies Variant Pro, but detected was Smart")
 
         try:
             evse_uid = [e for e in enumerations if e[5] == 2159][0][0]
