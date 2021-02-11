@@ -18,6 +18,14 @@ interface MqttState {
 }
 
 function update_mqtt_config(config: MqttConfig) {
+    // Remove the was-validated class to fix a visual bug
+    // where saving the config triggers an update
+    // that fills the elements, but clears the passphrase field.
+    // An empty passphrase is invalid, so the input
+    // field is marked as non-validated, confusing the user.
+    let form = <HTMLFormElement>$('#mqtt_config_form')[0];
+    form.classList.remove('was-validated');
+
     $('#mqtt_enable').prop("checked", config.enable_mqtt);
     $('#mqtt_broker_host').val(config.broker_host);
     $('#mqtt_broker_port').val(config.broker_port);

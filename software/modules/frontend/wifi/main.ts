@@ -79,6 +79,14 @@ interface WifiSTAConfig {
 }
 
 function update_wifi_sta_config(config: WifiSTAConfig) {
+    // Remove the was-validated class to fix a visual bug
+    // where saving the config triggers an update
+    // that fills the elements, but clears the passphrase field.
+    // An empty passphrase is invalid, so the input
+    // field is marked as non-validated, confusing the user.
+    let form = <HTMLFormElement>$('#wifi_sta_form')[0];
+    form.classList.remove('was-validated');
+
     $('#wifi_sta_enable_sta').prop("checked", config.enable_sta);
 
     if (config.ssid == "")
@@ -126,6 +134,14 @@ interface WifiAPConfig {
 }
 
 function update_wifi_ap_config(config: WifiAPConfig) {
+    // Remove the was-validated class to fix a visual bug
+    // where saving the config triggers an update
+    // that fills the elements, but clears the passphrase field.
+    // An empty passphrase is invalid, so the input
+    // field is marked as non-validated, confusing the user.
+    let form = <HTMLFormElement>$('#wifi_ap_form')[0];
+    form.classList.remove('was-validated');
+
     $('#wifi_ap_ssid').val(config.ssid);
     $('#wifi_ap_hide_ssid').prop("checked", config.hide_ssid);
     $('#wifi_ap_passphrase').val(config.passphrase);
