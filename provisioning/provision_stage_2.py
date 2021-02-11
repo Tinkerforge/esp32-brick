@@ -879,6 +879,12 @@ def main():
 
         is_pro = len(enumerations) == 2
 
+        if len([e for e in enumerations if e[5] == 2159]) == 0:
+            fatal_error("No EVSE Bricklet found!")
+
+        if is_pro and len([e for e in enumerations if e[5] == 277]) == 0:
+            fatal_error("No RS485 Bricklet found!")
+
         if is_pro and qr_variant == "S":
             fatal_error("Scanned QR-Code implies Variant Smart, but detected was Pro")
 
