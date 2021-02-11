@@ -6,7 +6,7 @@
 #include "bindings/errors.h"
 #include "bindings/hal_common.h"
 
-#include "modules/task_scheduler/task_scheduler.h"
+#include "task_scheduler.h"
 
 #include "api.h"
 

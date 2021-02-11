@@ -8,9 +8,9 @@
 #include "ArduinoJson.h"
 #include "AsyncJson.h"
 
-#include "modules/task_scheduler/task_scheduler.h"
-#include "modules/wifi/wifi.h"
+#include "../wifi/wifi.h"
 
+#include "task_scheduler.h"
 #include "tools.h"
 #include "api.h"
 #include "event_log.h"

@@ -6,13 +6,14 @@ import feather = require("feather-icons");
 
 import Translator from '@andreasremdt/simple-translator';
 
-import {reboot} from "./ts/util";
+import * as util from "./ts/util";
 
 {{{module_imports}}}
 
 interface Module {
     init(): any;
     addEventListeners(source: EventSource): any;
+    updateLockState(m: Modules);
     getTranslation(lang: string);
 }
 
@@ -23,24 +24,39 @@ $('.navbar-collapse a').on("click", function () {
 });
 
 
+interface Modules {
+    {{{module_interface}}}
+}
+
+function update_modules(module_init: Modules) {
+    for (let m of modules) {
+        m.updateLockState(module_init);
+    }
+}
+
 $(function () {
     feather.replace();
 
     let de = Object.assign({
         "main": {
             "navbar_status": "Status",
-            "content_status": "Status"
-        }
+            "content_status": "Status",
+        },
+        "days": "Tage",
+        "day": "Tag",
     }, ...modules.map(m => m.getTranslation('de')));
     let en = Object.assign({
         "main": {
             "navbar_status": "Status",
             "content_status": "Status"
-        }
+        },
+        "days": "days",
+        "day": "day",
     }, ...modules.map(m => m.getTranslation('en')));
 
     var translator = new Translator();
 
+    // Add the language to the translator and translate the page
     translator.add('de', de).add('en', en).translatePageTo();
 
     for (let m of modules) {
@@ -60,9 +76,14 @@ $(function () {
             }
         }, false);
 
+        source.addEventListener('modules', function (e: util.SSE) {
+            update_modules(<Modules>(JSON.parse(e.data)));
+        }, false);
+
         for (let m of modules) {
             m.addEventListeners(source);
         }
     }
 
+    setTimeout(() => $('#container').removeAttr("style"), 200);
 });

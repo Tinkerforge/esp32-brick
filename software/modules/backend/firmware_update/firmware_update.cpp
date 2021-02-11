@@ -2,12 +2,11 @@
 #include "Arduino.h"
 
 #include <Update.h>
-#include <tools.h>
 #include <SPIFFS.h>
 
-#include "modules/task_scheduler/task_scheduler.h"
-
 #include "event_log.h"
+#include "task_scheduler.h"
+#include "tools.h"
 
 extern EventLog logger;
 

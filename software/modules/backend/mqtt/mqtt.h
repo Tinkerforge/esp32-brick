@@ -1,5 +1,7 @@
 #pragma once
 
+#define ESP32_LIB_MODULE_MQTT
+
 #include "ESPAsyncWebServer.h"
 #include "ArduinoJson.h"
 #include <PangolinMQTT.h>
