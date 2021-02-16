@@ -490,7 +490,7 @@ def ansi_format(fmt, s):
 
 def fatal_error(*args):
     for line in args:
-        print(red(line))
+        print(red(str(line)))
     sys.exit(0)
 
 @contextmanager
