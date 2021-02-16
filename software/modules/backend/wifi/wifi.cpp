@@ -168,6 +168,7 @@ Wifi::Wifi() {
                 4,
                 Config::type_id<Config::ConfUint>()
             )},
+        {"sta_rssi", Config::Int8(0)}
     });
 
     wifi_scan_config = Config::Null();
@@ -380,6 +381,10 @@ void Wifi::setup()
     } else {
         logger.printfln("mDNS responder started");
     }
+
+    task_scheduler.scheduleWithFixedDelay("wifi_rssi", [this](){
+        wifi_state.get("sta_rssi")->updateInt(WiFi.RSSI());
+    }, 5000, 5000);
 
     initialized = true;
 }

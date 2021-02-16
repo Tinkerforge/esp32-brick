@@ -33,11 +33,6 @@ function update_mqtt_config(config: MqttConfig) {
     // omit password
     $('#mqtt_topic_prefix').val(config.global_topic_prefix);
     $('#mqtt_client_name').val(config.client_name);
-    if(config.enable_mqtt && config.broker_host != ""){
-        $('#mqtt_status_broker_host').html(" " + __("mqtt.script.to") + " " + config.broker_host);
-    } else {
-        $('#mqtt_status_broker_host').html("");
-    }
 }
 
 function save_mqtt_config() {

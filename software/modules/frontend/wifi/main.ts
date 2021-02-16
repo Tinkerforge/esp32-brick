@@ -89,11 +89,6 @@ function update_wifi_sta_config(config: WifiSTAConfig) {
 
     $('#wifi_sta_enable_sta').prop("checked", config.enable_sta);
 
-    if (config.ssid == "")
-        $('#wifi_sta_connection_name').html(`${__("wifi.script.wifi_connection")}`);
-    else
-        $('#wifi_sta_connection_name').html(`${__("wifi.script.wifi_connection_pre")} ${config.ssid}`);
-
     if (config.ssid != "") {
         $('#wifi_ap_configuration_state').val(config.ssid);
     }
@@ -167,6 +162,7 @@ interface WifiState {
     ap_state: number,
     ap_bssid: string,
     sta_ip: number[],
+    sta_rssi: number
 }
 
 function update_wifi_state(state: WifiState) {
@@ -235,6 +231,7 @@ function update_wifi_state(state: WifiState) {
 
     if (state.sta_ip != [0,0,0,0]) {
         $('#status_wifi_sta_ip').html(state.sta_ip.join("."));
+        $('#status_wifi_sta_rssi').html(wifi_symbol(state.sta_rssi));
     }
 }
 
