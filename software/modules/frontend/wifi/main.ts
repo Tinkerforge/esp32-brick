@@ -229,7 +229,7 @@ function update_wifi_state(state: WifiState) {
 
     $('#wifi_ap_bssid').html(state.ap_bssid);
 
-    if (state.sta_ip != [0,0,0,0]) {
+    if (state.sta_ip.join(".") != "0.0.0.0") {
         $('#status_wifi_sta_ip').html(state.sta_ip.join("."));
         $('#status_wifi_sta_rssi').html(wifi_symbol(state.sta_rssi));
     }
