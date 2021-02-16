@@ -209,10 +209,76 @@ void Mqtt::onMqttMessage(const char* topic, const uint8_t* payload, size_t len,u
     }
 }
 
+String mqttError(int8_t reason) {
+    switch (reason) {
+        //Pangolin errors
+        case TCP_DISCONNECTED:
+            return "TCP_DISCONNECTED";
+        case MQTT_SERVER_UNAVAILABLE:
+            return "MQTT_SERVER_UNAVAILABLE";
+        case UNRECOVERABLE_CONNECT_FAIL:
+            return "UNRECOVERABLE_CONNECT_FAIL";
+        case TLS_BAD_FINGERPRINT:
+            return "TLS_BAD_FINGERPRINT";
+        case SUBSCRIBE_FAIL:
+            return "SUBSCRIBE_FAIL";
+        case INBOUND_QOS_ACK_FAIL:
+            return "INBOUND_QOS_ACK_FAIL";
+        case OUTBOUND_QOS_ACK_FAIL:
+            return "OUTBOUND_QOS_ACK_FAIL";
+        case INBOUND_PUB_TOO_BIG:
+            return "INBOUND_PUB_TOO_BIG";
+        case OUTBOUND_PUB_TOO_BIG:
+            return "OUTBOUND_PUB_TOO_BIG";
+        case BOGUS_PACKET:
+            return "BOGUS_PACKET";
+        case X_INVALID_LENGTH:
+            return "X_INVALID_LENGTH";
+
+        // LWIP errors
+        case -1:
+            return "Out of memory error (ERR_MEM)";
+        case -2:
+            return "Buffer error (ERR_BUF)";
+        case -3:
+            return "Timeout (ERR_TIMEOUT)";
+        case -4:
+            return "Routing problem (ERR_RTE)";
+        case -5:
+            return "Operation in progress (ERR_INPROGRESS)";
+        case -6:
+            return "Illegal value (ERR_VAL)";
+        case -7:
+            return "Operation would block (ERR_WOULDBLOCK)";
+        case -8:
+            return "Address in use (ERR_USE)";
+        case -9:
+            return "Already connecting (ERR_ALREADY)";
+        case -10:
+            return "Conn already established (ERR_ISCONN)";
+        case -11:
+            return "Not connected (ERR_CONN)";
+        case -12:
+            return "Low-level netif error (ERR_IF)";
+        case -13:
+            return "Connection aborted (ERR_ABRT)";
+        case -14:
+            return "Connection reset (ERR_RST)";
+        case -15:
+            return "Connection closed (ERR_CLSD)";
+        case -16:
+            return "Illegal argument (ERR_ARG)";
+
+        // Async TCP errors
+        case -55:
+            return "Can't resolve hostname";
+    }
+}
+
 void Mqtt::onMqttDisconnect(int8_t reason) {
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::NOT_CONNECTED);
     if(this->was_connected) {
-        logger.printfln("Disconnected from MQTT reason=%d",reason);
+        logger.printfln("Disconnected from MQTT: %s (%d)", mqttError(reason).c_str(), reason);
         this->was_connected = false;
     }
 }
