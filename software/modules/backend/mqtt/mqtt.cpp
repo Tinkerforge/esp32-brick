@@ -18,15 +18,13 @@
 extern EventLog logger;
 
 extern TaskScheduler task_scheduler;
-extern AsyncWebServer server;
-extern AsyncEventSource events;
 extern char uid[7];
 extern API api;
 
 extern Wifi wifi;
 
 Mqtt::Mqtt() {
-
+    api.registerBackend(this);
 }
 
 void Mqtt::apply_config() {
@@ -70,7 +68,6 @@ void Mqtt::publish(String topic_suffix, String payload)
     }
     String prefix = mqtt_config_in_use.get("global_topic_prefix")->asString();
     String topic = prefix + "/" + topic_suffix;
-
     this->mqttClient.publish(topic.c_str(), payload.c_str(), payload.length(), 1, true);
 }
 
@@ -80,6 +77,27 @@ void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::func
     String topic = prefix + "/" + topic_suffix;
     this->commands.push_back({topic, max_payload_length, callback});
     this->mqttClient.subscribe(topic.c_str(), 2);
+}
+
+void Mqtt::addCommand(CommandRegistration reg)
+{
+    subscribe(reg.path, reg.config->json_size(), [reg](String payload){
+        String error = reg.config->update_from_string(payload);
+        if(error == "")
+            task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);
+        else
+            logger.printfln("%s", error.c_str());
+    });
+}
+
+void Mqtt::addState(StateRegistration reg)
+{
+
+}
+
+void Mqtt::pushStateUpdate(String payload, String path)
+{
+    publish(path, payload);
 }
 
 void Mqtt::onMqttError(uint8_t e,uint32_t info){
@@ -157,7 +175,21 @@ void Mqtt::onMqttConnect(bool sessionPresent) {
     this->was_connected = true;
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::CONNECTED);
 
-    api.onMqttConnect();
+    // Do the publishing in the "main thread". Otherwise this would be a race condition with the publishing in addState.
+    task_scheduler.scheduleOnce("onMqttConnect", [this](){
+        for(auto &reg : api.commands) {
+            subscribe(reg.path, reg.config->json_size(), [reg](String payload){
+                String error = reg.config->update_from_string(payload);
+                if(error == "")
+                    task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);
+                else
+                    logger.printfln("%s", error.c_str());
+            });
+        }
+        for(auto &reg : api.states) {
+            publish(reg.path, reg.config->to_string_except(reg.keys_to_censor));
+        }
+    }, 0);
 }
 
 void Mqtt::onMqttMessage(const char* topic, const uint8_t* payload, size_t len,uint8_t qos,bool retain,bool dup) {
@@ -233,10 +265,6 @@ void Mqtt::register_urls()
     api.addState("mqtt/state", &mqtt_state, {}, 1000);
 }
 
-void Mqtt::onEventConnect(AsyncEventSourceClient *client)
-{
-
-}
 
 void Mqtt::loop()
 {

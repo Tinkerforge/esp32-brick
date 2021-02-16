@@ -1,11 +1,9 @@
 #pragma once
 
-#define ESP32_LIB_MODULE_MQTT
-
-#include "ESPAsyncWebServer.h"
 #include "ArduinoJson.h"
 #include <PangolinMQTT.h>
 
+#include "api.h"
 #include "config.h"
 
 #define MAX_CONNECT_ATTEMPT_INTERVAL_MS 5 * 60 * 1000
@@ -23,17 +21,21 @@ struct MqttCommand {
     std::function<void(String)> callback;
 };
 
-class Mqtt {
+class Mqtt : public IAPIBackend {
 public:
     Mqtt();
     void setup();
     void register_urls();
-    void onEventConnect(AsyncEventSourceClient *client);
     void loop();
     void connect();
 
     void publish(String topic_suffix, String payload);
     void subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback);
+
+    //IAPIBackend implementation
+    void addCommand(CommandRegistration reg);
+    void addState(StateRegistration reg);
+    void pushStateUpdate(String payload, String path);
 
     bool initialized = false;
 

@@ -19,7 +19,6 @@ extern EventLog logger;
 
 extern TaskScheduler task_scheduler;
 extern AsyncWebServer server;
-extern AsyncEventSource events;
 extern char uid[7];
 extern char passphrase[20];
 
@@ -438,11 +437,6 @@ void Wifi::register_urls()
 
     api.addPersistentConfig("wifi/sta_config", &wifi_sta_config, {"passphrase"}, 1000);
     api.addPersistentConfig("wifi/ap_config", &wifi_ap_config, {"passphrase"}, 1000);
-}
-
-void Wifi::onEventConnect(AsyncEventSourceClient *client)
-{
-
 }
 
 void Wifi::loop()
