@@ -273,6 +273,7 @@ String mqttError(int8_t reason) {
         case -55:
             return "Can't resolve hostname";
     }
+    return "Unknown error";
 }
 
 void Mqtt::onMqttDisconnect(int8_t reason) {
