@@ -3,9 +3,11 @@
 #include "ESPAsyncWebServer.h"
 
 #include "api.h"
+#include "task_scheduler.h"
 
 extern API api;
 extern AsyncWebServer server;
+extern TaskScheduler task_scheduler;
 
 Sse::Sse() : events("/events") {
     api.registerBackend(this);
@@ -23,6 +25,9 @@ void Sse::setup() {
     });
 
     server.addHandler(&events);
+    task_scheduler.scheduleWithFixedDelay("SSE_keep_alive", [this](){
+        events.send("keep-alive", "keep-alive", millis());
+    }, 1000, 1000);
 }
 
 void Sse::register_urls() {

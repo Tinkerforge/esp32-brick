@@ -44,7 +44,7 @@ function upload(e: JQuery.SubmitEvent, type: string) {
         },
         success: () => {
             progress.prop("hidden", true);
-                util.show_alert("alert-success", __("firmware_update.script.flash_success"), __("firmware_update.script.flash_reboot"));
+            util.postReboot(__("firmware_update.script.flash_success"), __("util.reboot_text"));
         },
         error: (xhr, status, error) => {
             progress.prop("hidden", true);
@@ -68,7 +68,7 @@ function factory_reset() {
         data: JSON.stringify({"do_i_know_what_i_am_doing": true}),
         success: () => {
             $('#factory_reset_modal').modal('hide');
-            util.show_alert("alert-success", __("firmware_update.script.factory_reset_init"), __("firmware_update.script.factory_reset_reboot"));
+            util.postReboot(__("firmware_update.script.factory_reset_init"), __("util.reboot_text"));
         },
         error: (xhr, status, error) => {
             $('#factory_reset_modal').modal('hide');
@@ -145,11 +145,9 @@ export function getTranslation(lang: string) {
                     "save_event_log_desc": "Speichert das aktuelle Ereignis-Log",
                 },
                 "script": {
-                    "flash_success": "Erfolgreich aktualisiert",
-                    "flash_reboot": "Starte neu... Bitte das Web-Interface in ungefähr 30 Sekunden neuladen.",
+                    "flash_success": "Erfolgreich aktualisiert; starte neu...",
                     "flash_fail": "Aktualisierung fehlgeschlagen",
-                    "factory_reset_init": "Beginne Zurücksetzen auf Auslieferungszustand",
-                    "factory_reset_reboot": "Formatiere Konfigurationspartition und starte neu... Dies dauert ungefähr eine Minute.",
+                    "factory_reset_init": "Formatiere Konfigurationspartition und starte neu...",
                     "factory_reset_error": "Zurücksetzen auf Auslieferungszustand fehlgeschlagen",
                     "vehicle_connected": "Es kann keine Aktualisierung vorgenommen werden, während ein Fahrzeug verbunden ist."
                 }
@@ -187,11 +185,9 @@ export function getTranslation(lang: string) {
                     "save_event_log_desc": "Saves the current event log",
                 },
                 "script": {
-                    "flash_success": "Successfully updated",
-                    "flash_reboot": "Rebooting... Please reload the web interface in about 30 seconds.",
+                    "flash_success": "Successfully updated; restarting...",
                     "flash_fail": "Failed to update",
-                    "factory_reset_init": "Initiated factory reset",
-                    "factory_reset_reboot": "Formatting configuration partition and rebooting... This takes about one minute.",
+                    "factory_reset_init": "Formatting configuration partition and restarting...",
                     "factory_reset_error": "Initiating factory reset failed",
                     "vehicle_connected": "Can't update the firmware while a vehicle is connected."
                 }
