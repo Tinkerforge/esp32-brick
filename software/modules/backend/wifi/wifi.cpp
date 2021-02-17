@@ -285,6 +285,12 @@ void Wifi::setup()
         SYSTEM_EVENT_STA_CONNECTED);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+            // Sometimes the SYSTEM_EVENT_STA_CONNECTED is not fired.
+            // Instead we get the SYSTEM_EVENT_STA_GOT_IP twice?
+            // Make sure that the state is set to connected here,
+            // or else MQTT will never attempt to connect.
+            this->state = WifiState::CONNECTED;
+
             auto ip = WiFi.localIP();
             logger.printfln("Got IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
             wifi_state.get("sta_ip")->get(0)->updateUint(ip[0]);
