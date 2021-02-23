@@ -9,7 +9,15 @@ interface Version {
     spiffs: string
 }
 
+let last_version = null;
+
 function update_version(version: Version) {
+    if (last_version == null) {
+        last_version = version.firmware;
+    } else if (last_version != version.firmware) {
+        window.location.reload();
+    }
+
     $('#current_firmware').val(version.firmware);
     $('#current_spiffs').val(version.spiffs);
 }
