@@ -15,8 +15,6 @@
 
 extern EventLog logger;
 
-#define RECONNECT_TIMEOUT_MS 30000
-
 extern TaskScheduler task_scheduler;
 extern AsyncWebServer server;
 extern char uid[7];
@@ -209,11 +207,14 @@ void Wifi::apply_soft_ap_config_and_start() {
 }
 
 void Wifi::apply_sta_config_and_connect() {
-    if(this->state == WifiState::CONNECTED) {
+    if (get_connection_state() == WifiState::CONNECTED) {
         return;
     }
 
-    this->state = WifiState::CONNECTING;
+    if (!api.attemptReconnect("Wifi")) {
+        //logger.printfln("Another reconnect in progress. Aborting Wifi reconnect.");
+        return;
+    }
 
     WiFi.persistent(false);
     WiFi.setAutoReconnect(false);
@@ -250,6 +251,22 @@ void Wifi::apply_sta_config_and_connect() {
     WiFi.begin(ssid.c_str(), passphrase.c_str(), 0, bssid_lock ? bssid : nullptr, true);
 }
 
+const char *reason2str(uint8_t reason) {
+    switch(reason) {
+        case WIFI_REASON_NO_AP_FOUND:
+            return "Access Point not found. Is the reception too poor or the SSID incorrect?";
+        case WIFI_REASON_AUTH_FAIL:
+            return "Authentication failed. Is the passphrase correct?";
+        case WIFI_REASON_ASSOC_FAIL:
+            return "Assiociation failed.";
+        case WIFI_REASON_HANDSHAKE_TIMEOUT:
+        case WIFI_REASON_BEACON_TIMEOUT:
+            return "Reception too poor";
+        default:
+            return "Unknown reason.";
+    }
+}
+
 void Wifi::setup()
 {
     String default_hostname = String(__HOST_PREFIX__) + String("-") + String(uid);
@@ -258,38 +275,35 @@ void Wifi::setup()
     WiFi.persistent(false);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            if(this->state == WifiState::CONNECTING) {
-                logger.printfln("Failed to connect to %s", wifi_sta_config_in_use.get("ssid")->asString().c_str());
-            } else if (this->state == WifiState::CONNECTED) {
-                logger.printfln("Disconnected from %s", wifi_sta_config_in_use.get("ssid")->asString().c_str());
+            uint8_t reason_code = info.disconnected.reason;
+            const char *reason = reason2str(reason_code);
+            if(!this->was_connected) {
+                logger.printfln("Failed to connect to %s: %s (%u)", wifi_sta_config_in_use.get("ssid")->asString().c_str(), reason, reason_code);
+            } else {
+                logger.printfln("Disconnected from %s: %s (%u)", wifi_sta_config_in_use.get("ssid")->asString().c_str(), reason, reason_code);
             }
-
-            this->state = WifiState::NOT_CONNECTED;
-
-            connect_attempt_interval_ms = MIN(connect_attempt_interval_ms * 2, MAX_CONNECT_ATTEMPT_INTERVAL_MS);
-
-            logger.printfln(" next attempt in %u seconds.", connect_attempt_interval_ms / 1000);
-
-            task_scheduler.scheduleOnce("wifi_connect", [this](){
-                apply_sta_config_and_connect();
-            }, connect_attempt_interval_ms);
+            this->was_connected = false;
+            api.reconnectDone("wifi disconnected");
         },
         SYSTEM_EVENT_STA_DISCONNECTED);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            this->state = WifiState::CONNECTED;
+            if(!this->was_connected)
+                api.reconnectDone("wifi connected");
+            this->was_connected = true;
 
             logger.printfln("Connected to %s", WiFi.SSID().c_str());
-            connect_attempt_interval_ms = 5000;
         },
         SYSTEM_EVENT_STA_CONNECTED);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+            if(!this->was_connected)
+                api.reconnectDone("wifi got ip");
             // Sometimes the SYSTEM_EVENT_STA_CONNECTED is not fired.
             // Instead we get the SYSTEM_EVENT_STA_GOT_IP twice?
             // Make sure that the state is set to connected here,
             // or else MQTT will never attempt to connect.
-            this->state = WifiState::CONNECTED;
+            this->was_connected = true;
 
             auto ip = WiFi.localIP();
             logger.printfln("Got IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
@@ -297,22 +311,26 @@ void Wifi::setup()
             wifi_state.get("sta_ip")->get(1)->updateUint(ip[1]);
             wifi_state.get("sta_ip")->get(2)->updateUint(ip[2]);
             wifi_state.get("sta_ip")->get(3)->updateUint(ip[3]);
+
+            api.wifiAvailable();
         },
         SYSTEM_EVENT_STA_GOT_IP);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-        if(this->state != WifiState::CONNECTED)
+        if(!this->was_connected)
             return;
+
+        this->was_connected = false;
+        api.reconnectDone("wifi lost ip");
+
         logger.printfln("Lost IP. Forcing disconnect and reconnect of WiFi");
         wifi_state.get("sta_ip")->get(0)->updateUint(0);
         wifi_state.get("sta_ip")->get(1)->updateUint(0);
         wifi_state.get("sta_ip")->get(2)->updateUint(0);
         wifi_state.get("sta_ip")->get(3)->updateUint(0);
-        this->state = WifiState::NOT_CONNECTED;
+
         WiFi.disconnect(false, true);
     }, SYSTEM_EVENT_STA_LOST_IP);
-
-    connect_attempt_interval_ms = 5000;
 
     if(SPIFFS.exists("/wifi_sta_config.json")) {
         File file = SPIFFS.open("/wifi_sta_config.json");
@@ -378,7 +396,9 @@ void Wifi::setup()
     }
 
     if (enable_sta) {
-        apply_sta_config_and_connect();
+        task_scheduler.scheduleWithFixedDelay("wifi_connect", [this](){
+            apply_sta_config_and_connect();
+        }, 0, 9000);
     }
 
     /*use mdns for host name resolution*/
@@ -452,20 +472,21 @@ void Wifi::register_urls()
 
 void Wifi::loop()
 {
-    wifi_state.get("connection_state")->updateInt(get_connection_state());
+    auto connection_state = get_connection_state();
+    wifi_state.get("connection_state")->updateInt((int)connection_state);
     wifi_state.get("ap_state")->updateInt(get_ap_state());
 
     if (wifi_sta_config_in_use.get("enable_sta")->asBool() &&
         wifi_ap_config_in_use.get("enable_ap")->asBool() &&
         wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
-        WiFi.status() != WL_CONNECTED &&
+        connection_state != WifiState::CONNECTED &&
         !soft_ap_running) {
             apply_soft_ap_config_and_start();
     }
 
     if (wifi_sta_config_in_use.get("enable_sta")->asBool() &&
         wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
-        WiFi.status() == WL_CONNECTED &&
+        connection_state == WifiState::CONNECTED &&
         soft_ap_running) {
         logger.printfln("Wifi connected. Stopping soft AP");
         WiFi.softAPdisconnect(true);
@@ -473,19 +494,25 @@ void Wifi::loop()
     }
 }
 
-int Wifi::get_connection_state() {
+WifiState Wifi::get_connection_state() {
     if (!wifi_sta_config_in_use.get("enable_sta")->asBool())
-        return -1;
+        return WifiState::NOT_CONFIGURED;
 
     switch(WiFi.status()) {
         case WL_CONNECT_FAILED:
         case WL_CONNECTION_LOST:
         case WL_DISCONNECTED:
-            return (int) WifiState::NOT_CONNECTED;
+        case WL_NO_SSID_AVAIL:
+            return WifiState::NOT_CONNECTED;
         case WL_CONNECTED:
-            return (int) WifiState::CONNECTED;
+            return WifiState::CONNECTED;
+        case WL_NO_SHIELD:
+            return WifiState::NOT_CONFIGURED;
+        case WL_IDLE_STATUS:
+            return WifiState::CONNECTING;
         default:
-            return (int) WifiState::CONNECTING;
+            // this will only be reached with WL_SCAN_COMPLETED, but this value is never set
+            return WifiState::CONNECTED;
     }
 }
 

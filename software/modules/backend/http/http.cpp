@@ -59,3 +59,8 @@ void Http::pushStateUpdate(String payload, String path)
 {
 
 }
+
+void Http::wifiAvailable()
+{
+
+}

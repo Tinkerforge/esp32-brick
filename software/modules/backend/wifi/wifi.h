@@ -8,6 +8,7 @@
 #define MAX_CONNECT_ATTEMPT_INTERVAL_MS 5 * 60 * 1000
 
 enum class WifiState {
+    NOT_CONFIGURED = -1,
     NOT_CONNECTED,
     CONNECTING,
     CONNECTED
@@ -23,13 +24,14 @@ public:
 
     bool initialized = false;
 
-    WifiState state;
+    bool was_connected = false;
+
+    WifiState get_connection_state();
 
 private:
     void apply_soft_ap_config_and_start();
     void apply_sta_config_and_connect();
 
-    int get_connection_state();
     int get_ap_state();
 
 

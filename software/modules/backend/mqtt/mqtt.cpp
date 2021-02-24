@@ -55,9 +55,11 @@ void Mqtt::connect() {
         return;
     }
 
-    if (wifi.state == WifiState::CONNECTING)
+    if(!api.attemptReconnect("MQTT")) {
+        //logger.printfln("Another reconnect in progress. Aborting MQTT reconnect.");
         return;
-
+    }
+    logger.printfln("Connecting to MQTT broker");
     this->mqttClient.connect();
 }
 
@@ -68,7 +70,7 @@ void Mqtt::publish(String topic_suffix, String payload)
     }
     String prefix = mqtt_config_in_use.get("global_topic_prefix")->asString();
     String topic = prefix + "/" + topic_suffix;
-    this->mqttClient.publish(topic.c_str(), payload.c_str(), payload.length(), 1, true);
+    this->mqttClient.publish(topic.c_str(), payload.c_str(), payload.length(), 0, true);
 }
 
 void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback)
@@ -76,7 +78,7 @@ void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::func
     String prefix = mqtt_config_in_use.get("global_topic_prefix")->asString();
     String topic = prefix + "/" + topic_suffix;
     this->commands.push_back({topic, max_payload_length, callback});
-    this->mqttClient.subscribe(topic.c_str(), 2);
+    this->mqttClient.subscribe(topic.c_str(), 0);
 }
 
 void Mqtt::addCommand(CommandRegistration reg)
@@ -98,6 +100,11 @@ void Mqtt::addState(StateRegistration reg)
 void Mqtt::pushStateUpdate(String payload, String path)
 {
     publish(path, payload);
+}
+
+void Mqtt::wifiAvailable()
+{
+    connect();
 }
 
 void Mqtt::onMqttError(uint8_t e,uint32_t info){
@@ -171,6 +178,8 @@ void Mqtt::onMqttError(uint8_t e,uint32_t info){
 }
 
 void Mqtt::onMqttConnect(bool sessionPresent) {
+    api.reconnectDone("mqtt connect");
+
     logger.printfln("Connected to MQTT session=%d max payload size=%d",sessionPresent,mqttClient.getMaxPayloadSize());
     this->was_connected = true;
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::CONNECTED);
@@ -277,6 +286,7 @@ String mqttError(int8_t reason) {
 }
 
 void Mqtt::onMqttDisconnect(int8_t reason) {
+    api.reconnectDone("mqtt disconnect");
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::NOT_CONNECTED);
     if(this->was_connected) {
         logger.printfln("Disconnected from MQTT: %s (%d)", mqttError(reason).c_str(), reason);
@@ -323,7 +333,7 @@ void Mqtt::setup()
     apply_config();
 
     initialized = true;
-    task_scheduler.scheduleWithFixedDelay("reconnect MQTT", [this](){this->connect();}, 5000, 5000);
+    task_scheduler.scheduleWithFixedDelay("reconnect MQTT", [this](){this->connect();}, 0, 60000);
 }
 
 void Mqtt::register_urls()
