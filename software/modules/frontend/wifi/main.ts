@@ -402,8 +402,8 @@ export function getTranslation(lang: string) {
             "wifi": {
                 "status": {
                     "wifi_connection": "WLAN-Verbindung",
-                    "not_configured": "Nicht konfiguriert",
-                    "not_connected": "Nicht verbunden",
+                    "not_configured": "Unkonfiguriert",
+                    "not_connected": "Getrennt",
                     "connecting": "Verbinde",
                     "connected": "Verbunden",
                     "wifi_ap": "WLAN-Access-Point",
@@ -419,7 +419,7 @@ export function getTranslation(lang: string) {
                 "content": {
                     "sta_settings": "WLAN-Verbindungs&shy;einstellungen",
                     "client_configuration": "Verbindungs&shy;einstellungen",
-                    "sta_enable_sta": "Verbindung zu Netzwerk aktivieren",
+                    "sta_enable_sta": "Verbindung aktiviert",
                     "sta_enable_sta_desc": "Wenn aktiviert, verbindet sich das Gerät beim Start automatisch zum konfigurierten Netzwerk.",
                     "sta_ssid": "Netzwerkname (SSID)",
                     "sta_scan": "Netzwerksuche",
@@ -461,7 +461,7 @@ export function getTranslation(lang: string) {
                     "ap_fallback_only": "nur als Fallback",
                     "ap_disabled": "deaktiviert",
                     "ap_ssid": "Netzwerkname (SSID)",
-                    "ap_hide_ssid": "Netzwerknamen verstecken",
+                    "ap_hide_ssid": "Netzwerknamen versteckt",
                     "ap_hide_ssid_desc_pre": "Versteckt den Netzwerknamen. Das Gerät ist unter der BSSID ",
                     "ap_hide_ssid_desc_post": " erreichbar.",
                     "ap_passphrase": "Passphrase",
@@ -514,7 +514,7 @@ export function getTranslation(lang: string) {
                 "content": {
                     "sta_settings": "WiFi Connection Settings",
                     "client_configuration": "Connection configuration",
-                    "sta_enable_sta": "Enable connection to network",
+                    "sta_enable_sta": "Connection enabled",
                     "sta_enable_sta_desc": "Automatically connects to the configured network on start-up if activated.",
                     "sta_ssid": "Network name (SSID)",
                     "sta_scan": "Search for networks",
@@ -556,7 +556,7 @@ export function getTranslation(lang: string) {
                     "ap_fallback_only": "as fallback only",
                     "ap_disabled": "disabled",
                     "ap_ssid": "Network name (SSID)",
-                    "ap_hide_ssid": "Hide network name",
+                    "ap_hide_ssid": "Network name hidden",
                     "ap_hide_ssid_desc_pre": "Hides the network name. The device is reachable under the BSSID ",
                     "ap_hide_ssid_desc_post": ".",
                     "ap_passphrase": "Passphrase",

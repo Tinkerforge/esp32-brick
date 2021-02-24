@@ -107,8 +107,8 @@ export function getTranslation(lang: string) {
             "mqtt": {
                 "status": {
                     "connection": "MQTT-Verbindung",
-                    "not_configured": "Nicht konfiguriert",
-                    "not_connected": "Nicht verbunden",
+                    "not_configured": "Unkonfiguriert",
+                    "not_connected": "Getrennt",
                     "connected": "Verbunden",
                     "error": "Fehler"
                 },
