@@ -10,29 +10,30 @@
                 <input class="form-control mb-1" type="text" placeholder="..." readonly id="current_firmware">
                 <label for='current_firmware' data-i18n="firmware_update.content.current_firmware">/label>
             </div>
-
-            <div class="col-lg-6 mt-2">
-                <div class="input-group mb-1">
-                    <div class="custom-file">
-                        <input name="firmware" type="file" class="custom-file-input form-control"
-                            id="firmware_file_select">
-                        <label class="custom-file-label form-control"
-                            for="firmware_file_select" data-browse="" data-i18n="firmware_update.content.browse firmware_update.content.select_file" data-i18n-attr="data-browse innerHTML"></label>
+            <div class="col-lg-9 col-xl-7 mt-2">
+                <div id="firmware_select">
+                    <div class="input-group mb-1">
+                        <div class="custom-file">
+                            <input name="firmware" type="file" class="custom-file-input form-control"
+                                id="firmware_file_select">
+                            <label class="custom-file-label form-control"
+                                for="firmware_file_select" data-browse="" data-i18n="firmware_update.content.browse firmware_update.content.select_file" data-i18n-attr="data-browse innerHTML"></label>
+                        </div>
+                        <div class="input-group-append">
+                            <input id="update_firmware_button" type='submit'  data-i18n="firmware_update.content.update" data-i18n-attr="value" value=""
+                                class="btn btn-primary form-control" disabled>
+                        </div>
                     </div>
-                    <div class="input-group-append">
-                        <input id="update_firmware_button" type='submit'  data-i18n="firmware_update.content.update" data-i18n-attr="value" value=""
-                            class="btn btn-primary form-control" disabled>
+                    <label id="firmware_label" for='firmware_file_select' data-i18n="firmware_update.content.firmware_update"></label>
+                </div>
+                <div id="firmware-progress" hidden>
+                    <div class="form-progress mb-1">
+                        <div id="firmware-progress-bar" class="progress-bar form-control"
+                            role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0"
+                            aria-valuemax="100"></div>
                     </div>
+                    <label for='firmware-progress-bar' data-i18n="firmware_update.content.uploading"></label>
                 </div>
-                <label id="firmware_label" for='firmware_file_select' data-i18n="firmware_update.content.firmware_update"></label>
-            </div>
-            <div class="col-lg-3 mt-2" id="firmware-progress" hidden>
-                <div class="form-progress mb-1">
-                    <div id="firmware-progress-bar" class="progress-bar form-control"
-                        role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0"
-                        aria-valuemax="100"></div>
-                </div>
-                <label for='firmware-progress-bar' data-i18n="firmware_update.content.uploading"></label>
             </div>
         </div>
     </form>
@@ -44,26 +45,28 @@
                 <label for='current_spiffs' data-i18n="firmware_update.content.current_spiffs"></label>
             </div>
 
-            <div class="col-lg-3 mt-2">
-                <button id="spiffs_factory_reset" type="button" class="form-control btn btn-danger mb-1" data-i18n="firmware_update.content.factory_reset"></button>
-                <label id="spiffs_label" for='spiffs_factory_reset' data-i18n="firmware_update.content.factory_reset_desc"></label>
+            <div class="col-lg-5 col-xl-4 mt-2">
+                <button id="reboot" type="button" class="form-control btn btn-primary mb-1" data-i18n="firmware_update.content.reboot"></button>
+                <label id="spiffs_label" for='debug_report' data-i18n="firmware_update.content.reboot_desc"></label>
             </div>
 
-            <div class="col-lg-3 mt-2">
-                <a id="download_debug_report" href="/debug_report" class="form-control btn btn-primary mb-1" data-i18n="firmware_update.content.debug_report" download="debug_report.txt"></a>
-                <label id="spiffs_label" for='debug_report' data-i18n="firmware_update.content.debug_report_desc"></label>
+            <div class="col-lg-4 col-xl-3 mt-2">
+                <button id="spiffs_factory_reset" type="button" class="form-control btn btn-danger mb-1" data-i18n="firmware_update.content.factory_reset"></button>
+                <label id="spiffs_label" for='spiffs_factory_reset' data-i18n="firmware_update.content.factory_reset_desc"></label>
             </div>
         </div>
     </form>
     <hr>
     <div class="form-group row">
-        <div class="col-lg-12 col-xl-3">
+        <div class="col-md-12 col-lg-3">
             <button id="load_event_log" type="button" class="form-control btn btn-primary mb-1" data-i18n="firmware_update.content.load_event_log"></button>
             <label for='load_event_log' data-i18n="firmware_update.content.load_event_log_desc"></label>
             <a id="save_event_log" href="/event_log" class="form-control btn btn-primary mt-2 mb-1" data-i18n="firmware_update.content.save_event_log" download="event_log.txt"></a>
             <label for='save_event_log' data-i18n="firmware_update.content.save_event_log_desc" class="mb-3"></label>
+            <a id="download_debug_report" href="/debug_report" class="form-control btn btn-primary mb-1" data-i18n="firmware_update.content.debug_report" download="debug_report.txt"></a>
+            <label id="spiffs_label" for='debug_report' data-i18n="firmware_update.content.debug_report_desc"></label>
         </div>
-        <div class="col-lg-12 col-xl-6">
+        <div class="col-xl-7 col-lg-9 col-md-12">
             <textarea class="text-monospace mb-1 form-control" placeholder="Event-Log..." readonly id="event_log" rows="10" style="width: 100%; white-space: pre; line-height: 1.2; text-shadow: none; font-size: 0.875rem;" data-i18n="firmware_update.content.event_log_placeholder" data-i18n-attr="placeholder"></textarea>
             <label for='event_log' data-i18n="firmware_update.content.event_log"></label>
         </div>

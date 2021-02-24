@@ -27,9 +27,11 @@ function upload(e: JQuery.SubmitEvent, type: string) {
 
     let file_select = <HTMLInputElement>$(`#${type}_file_select`)[0];
     let progress = $(`#${type}-progress`);
+    let select = $(`#${type}_select`);
     let progress_bar = $(`#${type}-progress-bar`);
 
     progress.prop("hidden", false);
+    select.prop("hidden", true);
     let data = new FormData();
     data.append(type, file_select.files[0]);
 
@@ -52,10 +54,12 @@ function upload(e: JQuery.SubmitEvent, type: string) {
         },
         success: () => {
             progress.prop("hidden", true);
+            select.prop("hidden", false);
             util.postReboot(__("firmware_update.script.flash_success"), __("util.reboot_text"));
         },
         error: (xhr, status, error) => {
             progress.prop("hidden", true);
+            select.prop("hidden", false);
             if (__(xhr.responseText) == null)
                 util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
             else
@@ -95,6 +99,7 @@ export function init() {
 
     $('#spiffs_factory_reset').on("click", factory_reset_modal);
     $('#factory_reset_confirm').on("click", factory_reset);
+    $('#reboot').on("click", util.reboot);
 
     $('#download_debug_report').on("click", () => $('#download_debug_report').attr("download", "debug-report-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".json"));
 
@@ -151,6 +156,8 @@ export function getTranslation(lang: string) {
                     "load_event_log_desc": "Lädt das aktuelle Ereignis-Log",
                     "save_event_log": "Log speichern",
                     "save_event_log_desc": "Speichert das aktuelle Ereignis-Log",
+                    "reboot": "Neu starten",
+                    "reboot_desc": "Startet das Webinterface neu. Eine laufende Ladung wird dabei nicht unterbrochen"
                 },
                 "script": {
                     "flash_success": "Erfolgreich aktualisiert; starte neu...",
