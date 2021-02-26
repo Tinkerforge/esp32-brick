@@ -54,9 +54,8 @@ void Http::addCommand(CommandRegistration reg)
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler(String("/") + reg.path, [reg](AsyncWebServerRequest *request, JsonVariant &json){
         String message = reg.config->update_from_json(json);
 
-        task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);
-
         if (message == "") {
+            task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);
             request->send(200, "text/html", "");
         } else {
             request->send(400, "text/html", message);
