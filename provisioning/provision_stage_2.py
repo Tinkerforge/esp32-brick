@@ -992,5 +992,8 @@ def main():
     with wifi(ssid, passphrase):
         my_input("Pull the USB cable, do the electrical tests and press any key when done")
 
+    # Restart NetworkManager to reconnect to the "default" wifi
+    run(["systemctl", "restart", "NetworkManager.service"])
+
 if __name__ == "__main__":
     main()
