@@ -1,6 +1,7 @@
 import contextlib
 from contextlib import contextmanager
 import datetime
+import getpass
 import io
 import json
 import os
@@ -806,10 +807,10 @@ def main():
     result = {"start": now()}
 
     #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;;
-    qr_code = my_input("Scan the QR-Code")
+    qr_code = my_input("Scan the wallbox QR code")
     match = re.match(r"^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d*\.\d*);S:(5\d{9});B:(\d{4}-\d{2});;;*$", qr_code)
     while not match:
-        qr_code = my_input("Scan the QR-Code")
+        qr_code = my_input("Scan the wallbox QR code")
         match = re.match(r"^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d*\.\d*);S:(\d*);B:(\d{4}-\d{2});;;*$", qr_code)
 
     qr_variant = match.group(1)
@@ -829,16 +830,19 @@ def main():
     print("    Serial: {}".format(qr_serial))
     print("    Build month: {}".format(qr_built))
 
-    # qr_match = input("Is this correct? [y/n]")
-    # while qr_match != "y" and qr_match != "n":
-    #     qr_match = input("Is this correct? [y/n]")
-
-    # if qr_match != "y":
-    #     print("QR-Code data was wrong")
-    #     sys.exit(0)
-
     result["serial"] = qr_serial
     result["qr_code"] = match.group(0)
+
+    qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
+    match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
+    while not match:
+        qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
+        match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
+    print("QR code valid")
+
+    hardware_type = match.group(1)
+    esp_uid_qr = match.group(2)
+    passphrase_qr = match.group(3)
 
     set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
     output = esptool(['--port', PORT, '--after', 'hard_reset', 'flash_id'])
@@ -848,14 +852,13 @@ def main():
     if set_block_3:
         fatal_error("Block 3 fuses not set!")
 
+    if esp_uid_qr != uid:
+        fatal_error("ESP UID written in fuses ({}) does not match the one on the QR code ({})".format(uid, esp_uid_qr))
+
+    if passphrase_qr != passphrase:
+        fatal_error("Wifi passphrase written in fuses does not match the one on the QR code".format(passphrase, passphrase_qr))
+
     result["uid"] = uid
-
-    uid_match = my_input("Detected UID is {}. Does this match the sticker? [y/n]".format(uid))
-    while uid_match != "y" and uid_match != "n":
-        uid_match = my_input("Detected UID is {}. Does this match the sticker? [y/n]".format(uid))
-
-    if uid_match != "y":
-        sys.exit(0)
 
     run(["systemctl", "restart", "NetworkManager.service"])
 
