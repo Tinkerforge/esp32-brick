@@ -97,6 +97,7 @@ void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::func
     String prefix = mqtt_config_in_use.get("global_topic_prefix")->asString();
     String topic = prefix + "/" + topic_suffix;
     this->commands.push_back({topic, max_payload_length, callback});
+    this->mqttClient.unsubscribe(topic.c_str());
     this->mqttClient.subscribe(topic.c_str(), 0);
 }
 
@@ -104,10 +105,12 @@ void Mqtt::addCommand(CommandRegistration reg)
 {
     subscribe(reg.path, reg.config->json_size(), [reg](String payload){
         String error = reg.config->update_from_string(payload);
-        if(error == "")
+        if(error == "") {
             task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);
-        else
-            logger.printfln("%s", error.c_str());
+            return;
+        }
+
+        logger.printfln("Failed to update %s from payload \"%s\": %s", reg.path.c_str(), payload.length() < 1000 ? payload.c_str() : "[omitted, too long]",error.c_str());
     });
 }
 
@@ -205,14 +208,9 @@ void Mqtt::onMqttConnect(bool sessionPresent) {
 
     // Do the publishing in the "main thread". Otherwise this would be a race condition with the publishing in addState.
     task_scheduler.scheduleOnce("onMqttConnect", [this](){
+        this->commands.clear();
         for(auto &reg : api.commands) {
-            subscribe(reg.path, reg.config->json_size(), [reg](String payload){
-                String error = reg.config->update_from_string(payload);
-                if(error == "")
-                    task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);
-                else
-                    logger.printfln("%s", error.c_str());
-            });
+            this->addCommand(reg);
         }
         for(auto &reg : api.states) {
             publish(reg.path, reg.config->to_string_except(reg.keys_to_censor));
