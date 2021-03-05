@@ -60,11 +60,6 @@ void Debug::register_urls()
     api.addState("debug/state", &debug_state, {}, 1000);
 }
 
-void Debug::onEventConnect(AsyncEventSourceClient *client)
-{
-
-}
-
 void Debug::loop()
 {
 

@@ -133,11 +133,6 @@ void Proxy::register_urls()
     }, 5000, 5000);
 }
 
-void Proxy::onEventConnect(AsyncEventSourceClient *client)
-{
-
-}
-
 void Proxy::loop()
 {
 

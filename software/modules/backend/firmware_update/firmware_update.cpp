@@ -159,11 +159,6 @@ void FirmwareUpdate::register_urls()
     server.addHandler(factory_reset_handler);
 }
 
-void FirmwareUpdate::onEventConnect(AsyncEventSourceClient *client)
-{
-
-}
-
 void FirmwareUpdate::loop()
 {
     bool btn0 = digitalRead(0);

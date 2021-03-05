@@ -50,7 +50,6 @@ public:
     TaskScheduler() : tasks(&compare) {}
     void setup();
     void register_urls();
-    void onEventConnect(AsyncEventSourceClient *client);
     void loop();
 
     bool initialized = false;
