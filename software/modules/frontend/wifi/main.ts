@@ -25,6 +25,8 @@ import feather = require("feather-icons");
 
 import * as util from "../util";
 
+declare function __(s: string): string;
+
 interface WifiInfo {
     ssid: string,
     bssid: string,
@@ -33,7 +35,7 @@ interface WifiInfo {
     encryption: number
 }
 
-function wifi_symbol(rssi) {
+function wifi_symbol(rssi: number) {
     if(rssi >= -60)
         return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-wifi"><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>';
     if(rssi >= -70)
@@ -51,7 +53,7 @@ function scan_wifi() {
         data: JSON.stringify(null),
         error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error + ": " + xhr.responseText),
         success: () => {
-            setTimeout(function () {
+            window.setTimeout(function () {
                     $.get("/wifi/scan_results").done(function (data: WifiInfo[]) {
                         $("#wifi_config_scan_spinner").prop('hidden', true);
                         $("#wifi_scan_results").prop('hidden', false);
@@ -295,11 +297,11 @@ function save_wifi_sta_config(continuation = function () { }) {
 
     let payload: WifiSTAConfig = {
         enable_sta: $('#wifi_sta_enable_sta').is(':checked'),
-        hostname: $('#wifi_sta_hostname').val(),
-        ssid: $('#wifi_sta_ssid').val(),
-        bssid: $('#wifi_sta_bssid').val().split(':').map(x => parseInt(x, 16)),
+        hostname: $('#wifi_sta_hostname').val().toString(),
+        ssid: $('#wifi_sta_ssid').val().toString(),
+        bssid: $('#wifi_sta_bssid').val().toString().split(':').map(x => parseInt(x, 16)),
         bssid_lock: $('#wifi_sta_bssid_lock').is(':checked'),
-        passphrase: $('#wifi_sta_passphrase').val().length > 0 ? $('#wifi_sta_passphrase').val().toString() : null,
+        passphrase: $('#wifi_sta_passphrase').val().toString().length > 0 ? $('#wifi_sta_passphrase').val().toString() : null,
         ip: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_sta_ip').val().toString()),
         subnet: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_sta_subnet').val().toString()),
         gateway: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_sta_gateway').val().toString()),
@@ -322,11 +324,11 @@ function save_wifi_ap_config(continuation = function () { }) {
     let payload: WifiAPConfig = {
         enable_ap: $('#wifi_ap_enable_ap').val() != 2,
         ap_fallback_only: $('#wifi_ap_enable_ap').val() == 1,
-        ssid: $('#wifi_ap_ssid').val(),
+        ssid: $('#wifi_ap_ssid').val().toString(),
         hide_ssid: $('#wifi_ap_hide_ssid').is(':checked'),
-        passphrase: $('#wifi_ap_passphrase').val().length > 0 ? $('#wifi_ap_passphrase').val().toString() : null,
-        hostname: $('#wifi_ap_hostname').val(),
-        channel: parseInt($('#wifi_ap_channel').val()),
+        passphrase: $('#wifi_ap_passphrase').val().toString().length > 0 ? $('#wifi_ap_passphrase').val().toString() : null,
+        hostname: $('#wifi_ap_hostname').val().toString(),
+        channel: parseInt($('#wifi_ap_channel').val().toString()),
         ip: parse_ip($('#wifi_ap_ip').val().toString()),
         subnet: parse_ip($('#wifi_ap_subnet').val().toString()),
         gateway: parse_ip($('#wifi_ap_gateway').val().toString()),
@@ -410,13 +412,13 @@ export function init() {
 }
 
 
-export function updateLockState(module_init) {
+export function updateLockState(module_init: any) {
     $('#sidebar-wifi-sta').prop('hidden', !module_init.wifi);
     $('#sidebar-wifi-ap').prop('hidden', !module_init.wifi);
 }
 
 export function getTranslation(lang: string) {
-    return {
+    const translations: {[index: string]:any} = {
         "de": {
             "wifi": {
                 "status": {
@@ -607,5 +609,6 @@ export function getTranslation(lang: string) {
                 }
             }
         }
-    }[lang];
+    };
+    return translations[lang];
 }

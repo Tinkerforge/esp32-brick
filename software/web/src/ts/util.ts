@@ -47,7 +47,7 @@ export function show_alert(cls: string, title: string, text: string) {
           </div>`);
 
     if(cls.indexOf("success") >= 0) {
-        setTimeout(() => $('#alert_placeholder').html(""), 10000);
+        window.setTimeout(() => $('#alert_placeholder').html(""), 10000);
     }
 }
 

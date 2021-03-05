@@ -21,6 +21,8 @@ import $ from "jquery";
 
 import * as util from "../util";
 
+declare function __(s: string): string;
+
 interface MqttConfig {
     enable_mqtt: boolean,
     broker_host: string,
@@ -57,12 +59,12 @@ function update_mqtt_config(config: MqttConfig) {
 function save_mqtt_config() {
     let payload: MqttConfig = {
         enable_mqtt: $('#mqtt_enable').is(':checked'),
-        broker_host: $('#mqtt_broker_host').val(),
-        broker_port: parseInt($('#mqtt_broker_port').val(), 10),
-        broker_username: $('#mqtt_broker_username').val(),
-        broker_password: $('#mqtt_broker_password').val(),
-        global_topic_prefix: $('#mqtt_topic_prefix').val(),
-        client_name: $('#mqtt_client_name').val(),
+        broker_host: $('#mqtt_broker_host').val().toString(),
+        broker_port: parseInt($('#mqtt_broker_port').val().toString(), 10),
+        broker_username: $('#mqtt_broker_username').val().toString(),
+        broker_password: $('#mqtt_broker_password').val().toString(),
+        global_topic_prefix: $('#mqtt_topic_prefix').val().toString(),
+        client_name: $('#mqtt_client_name').val().toString(),
     };
 
     $.ajax({
@@ -70,7 +72,7 @@ function save_mqtt_config() {
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(payload),
-        success: $('#mqtt_reboot').modal('show'),
+        success: () => $('#mqtt_reboot').modal('show'),
         error: (xhr, status, error) => util.show_alert("alert-danger", __("mqtt.script.save_failed"), error + ": " + xhr.responseText)
     });
 }
@@ -93,7 +95,6 @@ export function addEventListeners(source: EventSource) {
 }
 
 export function init() {
-    console.log("init");
     let button = <HTMLButtonElement>document.getElementById("mqtt_show_password");
     button.addEventListener("change", util.toggle_password_fn("#mqtt_broker_password"));
 
@@ -116,12 +117,12 @@ export function init() {
     });
 }
 
-export function updateLockState(module_init) {
+export function updateLockState(module_init: any) {
     $('#sidebar-mqtt').prop('hidden', !module_init.mqtt);
 }
 
 export function getTranslation(lang: string) {
-    return {
+    const translations: {[index: string]:any} = {
         "de": {
             "mqtt": {
                 "status": {
@@ -198,5 +199,6 @@ export function getTranslation(lang: string) {
                 }
             }
         }
-    }[lang];
+    };
+    return translations[lang];
 }

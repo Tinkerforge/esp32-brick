@@ -85,5 +85,5 @@ $(function () {
         }
     }
 
-    setTimeout(() => $('#container').removeAttr("style"), 200);
+    window.setTimeout(() => $('#container').removeAttr("style"), 200);
 });

@@ -21,6 +21,8 @@ import $ from "jquery";
 
 import * as util from "../util";
 
+declare function __(s: string): string;
+
 import bsCustomFileInput from "bs-custom-file-input";
 
 interface Version {
@@ -28,7 +30,7 @@ interface Version {
     spiffs: string
 }
 
-let last_version = null;
+let last_version: string = null;
 
 function update_version(version: Version) {
     if (last_version == null) {
@@ -139,12 +141,12 @@ export function addEventListeners(source: EventSource) {
 }
 
 
-export function updateLockState(module_init) {
+export function updateLockState(module_init: any) {
     $('#sidebar-flash').prop('hidden', !module_init.firmware_update);
 }
 
 export function getTranslation(lang: string) {
-    return {
+    const translations: {[index: string]:any} = {
         "de": {
             "firmware_update": {
                 "status": {
@@ -227,5 +229,6 @@ export function getTranslation(lang: string) {
                 }
             }
         }
-    }[lang];
+    };
+    return translations[lang];
 }

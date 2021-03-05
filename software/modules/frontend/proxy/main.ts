@@ -2,6 +2,8 @@ import $ from "jquery";
 
 import * as util from "../util";
 
+declare function __(s: string): string;
+
 interface Device {
     uid: string,
     port: string,
@@ -76,12 +78,12 @@ export function init() {
 }
 
 
-export function updateLockState(module_init) {
+export function updateLockState(module_init: any) {
     $('#sidebar-bricklets').prop('hidden', !module_init.proxy);
 }
 
 export function getTranslation(lang: string) {
-    return {
+    const translations: {[index: string]:any} = {
         "de": {
             "proxy": {
                 "status": {
@@ -130,5 +132,6 @@ export function getTranslation(lang: string) {
                 }
             }
         }
-    }[lang];
+    };
+    return translations[lang];
 }

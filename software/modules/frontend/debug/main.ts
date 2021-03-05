@@ -43,12 +43,12 @@ export function addEventListeners(source: EventSource) {
     }, false);
 }
 
-export function updateLockState(module_init) {
+export function updateLockState(module_init: any) {
     $('#sidebar-debug').prop('hidden', !module_init.debug);
 }
 
 export function getTranslation(lang: string) {
-    return {
+    const translations: {[index: string]:any} = {
         "de": {
             "debug": {
                 "status": {
@@ -85,5 +85,6 @@ export function getTranslation(lang: string) {
                 }
             }
         }
-    }[lang];
+    };
+    return translations[lang];
 }
