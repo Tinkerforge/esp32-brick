@@ -122,16 +122,7 @@ export function init() {
     $('#factory_reset_confirm').on("click", factory_reset);
     $('#reboot').on("click", util.reboot);
 
-    $('#download_debug_report').on("click", () => $('#download_debug_report').attr("download", "debug-report-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".json"));
-
     bsCustomFileInput.init();
-
-    $('#load_event_log').on("click",
-        () => $.get("/event_log")
-               .done((result) => {$('#event_log').html(result)})
-               .fail((xhr, status, error) => util.show_alert("alert-danger", __("firmware_update.script.load_event_report_error"), error + ": " + xhr.responseText)));
-
-    $('#save_event_log').on("click", () => $('#save_event_log').attr("download", "event-log-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".txt"));
 }
 
 export function addEventListeners(source: EventSource) {
@@ -143,6 +134,7 @@ export function addEventListeners(source: EventSource) {
 
 export function updateLockState(module_init: any) {
     $('#sidebar-flash').prop('hidden', !module_init.firmware_update);
+    $('#sidebar-system').prop('hidden',  $('#sidebar-system').prop('hidden') && !module_init.firmware_update);
 }
 
 export function getTranslation(lang: string) {
@@ -153,7 +145,7 @@ export function getTranslation(lang: string) {
 
                 },
                 "navbar": {
-                    "system": "System"
+                    "flash": "Firmware-Update"
                 },
                 "content": {
                     "system": "System",
@@ -164,19 +156,11 @@ export function getTranslation(lang: string) {
                     "update": "Hochladen",
                     "uploading": "Firmware wird hochgeladen...",
                     "current_spiffs": "Konfigurationsversion",
-                    "factory_reset_desc": "Setzt alle Einstellungen auf den Auslieferungs&shy;zustand zurück",
+                    "factory_reset_desc": "Setzt die gesamte Konfiguration auf den Auslieferungs&shy;zustand zurück",
                     "factory_reset": "Zurücksetzen",
-                    "factory_reset_modal_text": "Hiermit werden alle Einstellungen auf den Auslieferungszustand zurückgesetzt. <b>Diese Aktion kann nicht rückgängig gemacht werden!</b> Die Wallbox öffnet dann wieder einen eigenen WLAN-Access-Point mit dem Netzwerknamen (SSID) und der Passphrase aus dem Handbuch. Fortfahren?",
+                    "factory_reset_modal_text": "Hiermit wird die gesamte Konfiguration auf den Auslieferungszustand zurückgesetzt. <b>Diese Aktion kann nicht rückgängig gemacht werden!</b> Die Wallbox öffnet dann wieder einen eigenen WLAN-Access-Point mit dem Netzwerknamen (SSID) und der Passphrase aus dem Handbuch. Fortfahren?",
                     "abort_reset": "Abbrechen",
                     "confirm_reset": "Zurücksetzen auf Auslieferungszustand",
-                    "debug_report": "Debug-Report",
-                    "debug_report_desc": "Ein kompletter Report aller Statusinformationen des Geräts außer Passwörtern",
-                    "event_log": "Ereignis-Log",
-                    "event_log_placeholder": "Ereignis-Log...",
-                    "load_event_log": "Log laden",
-                    "load_event_log_desc": "Lädt das aktuelle Ereignis-Log",
-                    "save_event_log": "Log speichern",
-                    "save_event_log_desc": "Speichert das aktuelle Ereignis-Log",
                     "reboot": "Neu starten",
                     "reboot_desc": "Startet das Webinterface neu. Eine laufende Ladung wird dabei nicht unterbrochen"
                 },
@@ -195,7 +179,7 @@ export function getTranslation(lang: string) {
 
                 },
                 "navbar": {
-                    "system": "System"
+                    "flash": "Firmware Update"
                 },
                 "content": {
                     "system": "System",
@@ -206,19 +190,11 @@ export function getTranslation(lang: string) {
                     "update": "Upload",
                     "uploading": "Uploading Firmware...",
                     "current_spiffs": "Configuration version",
-                    "factory_reset_desc": "Restores all settings to factory defaults",
+                    "factory_reset_desc": "Restores all configuration to factory defaults",
                     "factory_reset": "Factory Reset",
-                    "factory_reset_modal_text": "A factory reset will reset all settings to their default values. <b>This action cannot be undone!</b> The wallbox will re-open the WiFi access point with the default SSID and passphrase. Are you sure?",
+                    "factory_reset_modal_text": "A factory reset will reset all configuration to their default values. <b>This action cannot be undone!</b> The wallbox will re-open the WiFi access point with the default SSID and passphrase. Are you sure?",
                     "abort_reset": "Abort",
                     "confirm_reset": "Restore",
-                    "debug_report": "Debug report",
-                    "debug_report_desc": "A complete report of all status information of this device except passwords",
-                    "event_log": "Event Log",
-                    "event_log_placeholder": "Event Log...",
-                    "load_event_log": "Load Log",
-                    "load_event_log_desc": "Downloads the current event log",
-                    "save_event_log": "Save Log",
-                    "save_event_log_desc": "Saves the current event log",
                 },
                 "script": {
                     "flash_success": "Successfully updated; restarting...",
