@@ -74,19 +74,6 @@ export function init() {
         $('#authentication_reboot').modal('hide');
         util.reboot();
     });
-
-    $('#authentication_logout_button').on("click", () => {
-        $.ajax({
-            async: false,
-            url: window.location.href,
-            type: 'GET',
-            username: 'logout',
-        });
-
-        window.setTimeout(function () {
-            window.location.href = window.location.href + "logged_out";
-        }, 200);
-    });
 }
 
 export function addEventListeners(source: EventSource) {
@@ -112,8 +99,8 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "authentication": "Zugangsdaten",
-                    "enable_authentication": "Login aktiviert",
-                    "enable_authentication_desc": "Wenn aktiviert, muss beim Aufrufen des Webinterfaces, oder bei Verwendung der HTTP-API ein Login mit den konfigurierten Zugangsdaten durchgeführt werden.",
+                    "enable_authentication": "Anmeldung aktiviert",
+                    "enable_authentication_desc": "Wenn aktiviert, muss beim Aufrufen des Webinterfaces, oder bei Verwendung der HTTP-API eine Anmeldung mit den konfigurierten Zugangsdaten durchgeführt werden.",
                     "username": "Benutzername",
                     "password": "Passwort",
                     "unchanged": "Unverändert",
@@ -122,8 +109,7 @@ export function getTranslation(lang: string) {
                     "reboot_title": "Neu starten um Konfiguration anzuwenden",
                     "reboot_content": "Die geänderten Zugangsdaten werden nur nach einem Neustart angewendet. Jetzt neu starten?",
                     "abort": "Abbrechen",
-                    "reboot": "Neu starten",
-                    "logout": "Ausloggen"
+                    "reboot": "Neu starten"
                 },
                 "script": {
                     "save_failed": "Speichern der Zugangsdaten fehlgeschlagen.",
@@ -136,20 +122,24 @@ export function getTranslation(lang: string) {
 
                 },
                 "navbar": {
-                    "event_log": "Event Log"
+                    "authentication": "Credentials"
                 },
                 "content": {
-                    "event_log": "Event Log",
-                    "debug_report": "Debug report",
-                    "debug_report_desc": "A complete report of all status information of this device except passwords",
-                    "event_log_placeholder": "Event Log...",
-                    "load_event_log": "Load Log",
-                    "load_event_log_desc": "Downloads the current event log",
-                    "save_event_log": "Save Log",
-                    "save_event_log_desc": "Saves the current event log",
+                    "authentication": "Credentials",
+                    "enable_authentication": "Enable authentication",
+                    "enable_authentication_desc": "If activated, the configured credentials must be entered to open the web interface or use the HTTP API.",
+                    "username": "Username",
+                    "password": "Password",
+                    "unchanged": "Unchanged",
+                    "show_password": "Show",
+                    "save": "Save",
+                    "reboot_title": "Reboot to apply configuration",
+                    "reboot_content": "The changed credentials will only be applied after rebooting. Reboot now?",
+                    "abort": "Abort",
+                    "reboot": "Reboot",
                 },
                 "script": {
-
+                    "save_failed": "Failed to save the credentials.",
                 }
             }
         }
