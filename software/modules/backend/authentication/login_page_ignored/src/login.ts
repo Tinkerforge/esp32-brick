@@ -20,7 +20,7 @@ export function login() {
             }
         }
     }
-    xhr.open("GET", "http://" + location.host + "/login_check", false, username, password);
+    xhr.open("GET", "http://" + location.host + "/credential_check", false, username, password);
     xhr.send();
     return result;
 }

@@ -14,8 +14,6 @@ class ChangedDirectory(object):
 
     def __exit__(self, type_, value, traceback):
         os.chdir(self.previous_path)
-    
-print("Building login page")
 
 # Generate web interface
 with ChangedDirectory('login_page_ignored'):
