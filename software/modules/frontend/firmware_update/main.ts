@@ -145,7 +145,7 @@ export function getTranslation(lang: string) {
 
                 },
                 "navbar": {
-                    "flash": "Firmware-Update"
+                    "flash": "Firmware-Aktualisierung"
                 },
                 "content": {
                     "system": "System",
