@@ -100,7 +100,7 @@ export function getTranslation(lang: string) {
                 "content": {
                     "authentication": "Zugangsdaten",
                     "enable_authentication": "Anmeldung aktiviert",
-                    "enable_authentication_desc": "Wenn aktiviert, muss beim Aufrufen des Webinterfaces, oder bei Verwendung der HTTP-API eine Anmeldung mit den konfigurierten Zugangsdaten durchgeführt werden.",
+                    "enable_authentication_desc": "Wenn aktiviert, muss beim Aufrufen des Webinterfaces oder bei Verwendung der HTTP-API eine Anmeldung mit den konfigurierten Zugangsdaten durchgeführt werden.",
                     "username": "Benutzername",
                     "password": "Passwort",
                     "unchanged": "Unverändert",
