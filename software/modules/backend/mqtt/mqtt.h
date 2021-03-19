@@ -38,6 +38,7 @@ struct MqttCommand {
     String topic;
     uint32_t max_len;
     std::function<void(String)> callback;
+    bool forbid_retained;
 };
 
 class Mqtt : public IAPIBackend {
@@ -49,7 +50,7 @@ public:
     void connect();
 
     void publish(String topic_suffix, String payload);
-    void subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback);
+    void subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback, bool forbid_retained);
 
     //IAPIBackend implementation
     void addCommand(CommandRegistration reg);

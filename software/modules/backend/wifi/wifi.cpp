@@ -448,7 +448,7 @@ void Wifi::register_urls()
         if(WiFi.scanComplete() == WIFI_SCAN_FAILED){
             WiFi.scanNetworks(true, true);
         }
-    });
+    }, true);
 
     server.on("/wifi/scan_results", HTTP_GET, [](AsyncWebServerRequest *request) {
         int network_count = WiFi.scanComplete();

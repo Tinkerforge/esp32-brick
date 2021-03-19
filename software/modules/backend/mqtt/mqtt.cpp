@@ -92,11 +92,11 @@ void Mqtt::publish(String topic_suffix, String payload)
     this->mqttClient.publish(topic.c_str(), payload.c_str(), payload.length(), 0, true);
 }
 
-void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback)
+void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback, bool forbid_retained)
 {
     String prefix = mqtt_config_in_use.get("global_topic_prefix")->asString();
     String topic = prefix + "/" + topic_suffix;
-    this->commands.push_back({topic, max_payload_length, callback});
+    this->commands.push_back({topic, max_payload_length, callback, forbid_retained});
     this->mqttClient.unsubscribe(topic.c_str());
     this->mqttClient.subscribe(topic.c_str(), 0);
 }
@@ -111,7 +111,7 @@ void Mqtt::addCommand(CommandRegistration reg)
         }
 
         logger.printfln("Failed to update %s from payload \"%s\": %s", reg.path.c_str(), payload.length() < 1000 ? payload.c_str() : "[omitted, too long]",error.c_str());
-    });
+    }, reg.is_action);
 }
 
 void Mqtt::addState(StateRegistration reg)
@@ -226,8 +226,15 @@ void Mqtt::onMqttMessage(const char* topic, const uint8_t* payload, size_t len,u
         if(c.topic != topic)
             continue;
 
-        if(len > c.max_len)
-            break;
+        if(len > c.max_len) {
+            logger.printfln("Ignoring message with payload length %u for topic %s. Maximum length allowed is %u.", len, topic, c.max_len);
+            return;
+        }
+
+        if (retain && c.forbid_retained) {
+            logger.printfln("Topic %s is an action. Ignoring retained message.", topic);
+            return;
+        }
 
         String s;
         mqttClient.xPayload(payload, len, s);
