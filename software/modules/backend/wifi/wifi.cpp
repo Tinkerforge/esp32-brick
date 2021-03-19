@@ -325,7 +325,7 @@ void Wifi::setup()
             this->was_connected = true;
 
             auto ip = WiFi.localIP();
-            logger.printfln("Got IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
+            logger.printfln("Got IP address: %u.%u.%u.%u. Connected to BSSID %s", ip[0], ip[1], ip[2], ip[3], WiFi.BSSIDstr().c_str());
             wifi_state.get("sta_ip")->get(0)->updateUint(ip[0]);
             wifi_state.get("sta_ip")->get(1)->updateUint(ip[1]);
             wifi_state.get("sta_ip")->get(2)->updateUint(ip[2]);
