@@ -111,7 +111,7 @@ void FirmwareUpdate::register_urls()
         response->addHeader("Connection", "close");
 
         if(!Update.hasError()) {
-            task_scheduler.scheduleOnce("flash_firmware_reboot", [](){ESP.restart();}, 3000);
+            task_scheduler.scheduleOnce("flash_firmware_reboot", [](){ESP.restart();}, 1000);
         }
 
         request->send(response);
@@ -132,7 +132,7 @@ void FirmwareUpdate::register_urls()
         response->addHeader("Connection", "close");
 
         if(!Update.hasError()) {
-            task_scheduler.scheduleOnce("flash_spiffs_reboot", [](){ESP.restart();}, 3000);
+            task_scheduler.scheduleOnce("flash_spiffs_reboot", [](){ESP.restart();}, 1000);
         }
 
         request->send(response);
