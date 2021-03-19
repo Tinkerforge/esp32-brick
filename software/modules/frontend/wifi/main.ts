@@ -65,8 +65,21 @@ function scan_wifi() {
                         }
                         let result = ``;
 
+                        // We want to show the BSSID if this is a hidden AP or we have multiple APs with the same SSID
+                        let tups = $.map(data, (v: WifiInfo, i) => {
+                            if (v.ssid == "")
+                                return [__("wifi.script.hidden_ap") + ` (${v.bssid})`, true];
+
+                            let result = [v.ssid, false];
+                            $.each(data, (i2, v2: WifiInfo) => {
+                                if (i != i2 && v2.ssid == v.ssid)
+                                    result = [v.ssid + ` (${v.bssid})`, v.rssi - v2.rssi > 15];
+                            });
+                            return result;
+                        });
+
                         $.each(data, (i, v: WifiInfo) => {
-                            let line = `<a id="wifi_scan_result_${i}" class="dropdown-item" href="#">${wifi_symbol(v.rssi)}<span data-feather='${v.encryption == 0 ? 'unlock' : 'lock'}'></span><span class="pl-2">${v.ssid == "" ? __("wifi.script.hidden_ap") + ` (${v.bssid})` : v.ssid}</span></a>`;
+                            let line = `<a id="wifi_scan_result_${i}" class="dropdown-item" href="#">${wifi_symbol(v.rssi)}<span class="ml-2" data-feather='${v.encryption == 0 ? 'unlock' : 'lock'}'></span><span class="pl-2">${tups[2*i]}</span></a>`;
                             result += line;
                         });
 
@@ -75,7 +88,7 @@ function scan_wifi() {
 
                         $.each(data, (i, v: WifiInfo) => {
                             let button = document.getElementById(`wifi_scan_result_${i}`);
-                            button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption));
+                            button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption, tups[2*i+1]));
                         });
 
                         feather.replace();
@@ -272,12 +285,12 @@ function wifi_cfg_toggle_static_ip_collapse(value: string) {
     }
 }
 
-function connect_to_ap(ssid: string, bssid: string, encryption: number) {
+function connect_to_ap(ssid: string, bssid: string, encryption: number, enable_bssid_lock: boolean) {
     $('#wifi_sta_ssid').val(ssid);
     $('#wifi_sta_bssid').val(bssid);
     $('#wifi_sta_passphrase').prop("required", encryption != 0);
     $('#wifi_sta_enable_sta').prop("checked", true);
-    $('#wifi_sta_bssid_lock').prop("checked", ssid == "");
+    $('#wifi_sta_bssid_lock').prop("checked", enable_bssid_lock);
     return;
 }
 
@@ -449,7 +462,7 @@ export function getTranslation(lang: string) {
                     "sta_bssid": "BSSID",
                     "sta_bssid_lock": "BSSID-Sperre",
                     "sta_bssid_invalid": "Die BSSID muss aus sechs Gruppen mit jeweils einer zweistelligen Hexadezimalzahl, getrennt durch einen Doppelpunkt, bestehen. Zum Beispiel 01:23:45:67:89:AB",
-                    "sta_bssid_lock_desc": "Verbinde nur zum Netzwerk mit der konfigurierten BSSID. Deaktiviert lassen, falls mehrere Access Points oder Repeater mit dem selben Netzwerknamen verwendet werden.",
+                    "sta_bssid_lock_desc": "Verbinde nur zur konfigurierten BSSID. Bei Einsatz mehrerer Access Points und/oder Repeater mit demselben Netzwerknamen wird so immer derselbe AP oder Repeater verwendet.",
                     "sta_passphrase": "Passphrase",
                     "sta_passphrase_invalid": "Die Passphrase muss zwischen 8 und 63 ASCII-Zeichen lang sein.",
                     "sta_show_passphrase": "Anzeigen",
