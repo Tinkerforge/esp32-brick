@@ -183,7 +183,8 @@ interface WifiState {
     ap_state: number,
     ap_bssid: string,
     sta_ip: number[],
-    sta_rssi: number
+    sta_rssi: number,
+    sta_bssid: string
 }
 
 function update_wifi_state(state: WifiState) {

@@ -185,7 +185,8 @@ Wifi::Wifi() {
                 4,
                 Config::type_id<Config::ConfUint>()
             )},
-        {"sta_rssi", Config::Int8(0)}
+        {"sta_rssi", Config::Int8(0)},
+        {"sta_bssid", Config::Str("", 20)}
     });
 
     wifi_scan_config = Config::Null();
@@ -329,6 +330,7 @@ void Wifi::setup()
             wifi_state.get("sta_ip")->get(1)->updateUint(ip[1]);
             wifi_state.get("sta_ip")->get(2)->updateUint(ip[2]);
             wifi_state.get("sta_ip")->get(3)->updateUint(ip[3]);
+            wifi_state.get("sta_bssid")->updateString(WiFi.BSSIDstr());
 
             api.wifiAvailable();
         },
@@ -346,6 +348,7 @@ void Wifi::setup()
         wifi_state.get("sta_ip")->get(1)->updateUint(0);
         wifi_state.get("sta_ip")->get(2)->updateUint(0);
         wifi_state.get("sta_ip")->get(3)->updateUint(0);
+        wifi_state.get("sta_bssid")->updateString("");
 
         WiFi.disconnect(false, true);
     }, SYSTEM_EVENT_STA_LOST_IP);
