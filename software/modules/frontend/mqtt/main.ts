@@ -62,7 +62,7 @@ function save_mqtt_config() {
         broker_host: $('#mqtt_broker_host').val().toString(),
         broker_port: parseInt($('#mqtt_broker_port').val().toString(), 10),
         broker_username: $('#mqtt_broker_username').val().toString(),
-        broker_password: $('#mqtt_broker_password').val().toString(),
+        broker_password: util.passwordUpdate($('#mqtt_broker_password').val().toString()),
         global_topic_prefix: $('#mqtt_topic_prefix').val().toString(),
         client_name: $('#mqtt_client_name').val().toString(),
     };

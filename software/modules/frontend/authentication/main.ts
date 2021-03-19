@@ -39,7 +39,7 @@ function save_authentication_config() {
     let payload: AuthenticationConfig = {
         enable_auth: $('#authentication_enable').is(':checked'),
         username: $('#authentication_username').val().toString(),
-        password: $('#authentication_password').val().toString(),
+        password: util.passwordUpdate($('#authentication_password').val().toString()),
     };
 
     $.ajax({
