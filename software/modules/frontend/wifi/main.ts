@@ -88,7 +88,7 @@ function scan_wifi() {
 
                         $.each(data, (i, v: WifiInfo) => {
                             let button = document.getElementById(`wifi_scan_result_${i}`);
-                            button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption, tups[2*i+1]));
+                            button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption, <boolean>tups[2*i+1]));
                         });
 
                         feather.replace();
