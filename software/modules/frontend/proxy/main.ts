@@ -38,8 +38,8 @@ interface ErrorCounter {
     TfpUnexpected: number
 }
 
-function update_error_counters(error_counters: Map<String, ErrorCounter>) {
-    if (error_counters.size == 0) {
+function update_error_counters(error_counters: {[index:string]: ErrorCounter}) {
+    if (Object.keys(error_counters).length == 0) {
         $("#bricklets_error_counters").html("");
         return;
     }
@@ -69,7 +69,7 @@ export function addEventListeners(source: EventSource) {
     }, false);
 
     source.addEventListener('proxy/error_counters', function (e: util.SSE) {
-        update_error_counters(<Map<String, ErrorCounter>>(JSON.parse(e.data)));
+        update_error_counters(JSON.parse(e.data));
     }, false);
 }
 
