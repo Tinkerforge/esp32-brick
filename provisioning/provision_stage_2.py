@@ -794,17 +794,122 @@ def now():
 def my_input(s):
     return input(green(s) + " ")
 
+def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
+    enumerations = []
+
+    ipcon.register_callback(ipcon.CALLBACK_ENUMERATE, lambda *args: enumerations.append(args))
+    ipcon.enumerate()
+    time.sleep(3)
+
+    master_uid = next((e for e in enumerations if e[5] == 13), [None])[0]
+    evse_uid = next((e for e in enumerations if e[5] == 2159), [None])[0]
+    rs485_uid = next((e for e in enumerations if e[5] == 277), [None])[0]
+
+    is_basic = master_uid is not None
+    is_pro = rs485_uid is not None
+    is_smart = master_uid is None and rs485_uid is None
+
+    if len(enumerations) not in [1, 2]:
+        fatal_error("Unexpected number of devices! Expected 1 or 2 but got {}.".format(len(enumerations)))
+
+    if evse_uid is None:
+        fatal_error("No EVSE Bricklet found!")
+
+    d = {"P": "Pro", "S": "Smart", "B": "Basic"}
+
+    if is_basic and qr_variant != "B":
+        fatal_error("Scanned QR-Code implies variant {}, but detected was Basic".format(d[qr_variant]))
+
+    if is_smart and qr_variant != "S":
+        fatal_error("Scanned QR-Code implies variant {}}, but detected was Smart".format(d[qr_variant]))
+
+    if is_pro and qr_variant != "P":
+        fatal_error("Scanned QR-Code implies variant {}, but detected was Pro".format(d[qr_variant]))
+
+    result["evse_uid"] = evse_uid
+    print("EVSE UID is {}".format(evse_uid))
+
+    if is_basic:
+        result["master_uid"] = master_uid
+        print("Master UID is {}".format(master_uid))
+
+    if is_pro:
+        result["rs485_uid"] = rs485_uid
+        print("RS485 UID is {}".format(rs485_uid))
+
+    evse = BrickletEVSE(evse_uid, ipcon)
+    jumper_config, has_lock_switch = evse.get_hardware_configuration()
+
+    if qr_power == "11" and jumper_config != 3:
+        fatal_error("Wrong jumper config detected: {} but expected {} as the configured power is {} kW.".format(jumper_config, 3, qr_power))
+
+    if qr_power == "22" and jumper_config != 6:
+        fatal_error("Wrong jumper config detected: {} but expected {} as the configured power is {} kW.".format(jumper_config, 6, qr_power))
+
+    result["jumper_config_checked"] = True
+    if has_lock_switch:
+        fatal_error("Wallbox has lock switch. Is the diode missing?")
+
+    result["diode_checked"] = True
+
+    configured, incoming, outgoing = evse.get_max_charging_current()
+    if qr_power == "11" and outgoing != 20000:
+        fatal_error("Wrong type 2 cable config detected: Allowed current is {} but expected 20 A, as this is a 11 kW box.".format(outgoing / 1000))
+    if qr_power == "22" and outgoing != 32000:
+        fatal_error("Wrong type 2 cable config detected: Allowed current is {} but expected 32 A, as this is a 22 kW box.".format(outgoing / 1000))
+
+    result["resistor_checked"] = True
+
+    if is_pro:
+        meter_str = urllib.request.urlopen('http://10.0.0.1/meter/live', timeout=3).read()
+        print(meter_str)
+        meter_data = json.loads(meter_str)
+        sps = meter_data["samples_per_second"]
+        samples = meter_data["samples"]
+        if not (0.2 < sps < 2.5):
+            fatal_error("Expected between 0.2 and 2.5 energy meter samples per second, but got ".format(sps))
+        if len(samples) < 2:
+            fatal_error("Expected at least 10 samples but got ".format(len(samples)))
+
+        event_str = urllib.request.urlopen('http://10.0.0.1/event_log', timeout=3).read().decode('utf-8')
+        if re.search(r"Request \d+: Exception code \d+", event_str):
+            fatal_error("Found energy meter errors in event log:", event_str)
+
+        if all(s == 0 for s in samples):
+            fatal_error("Expected some samples not equal zero.", samples)
+
+        result["energy_meter_reachable"] = True
+
 def main():
     global uids
 
-    if len(sys.argv) != 2:
-        print("Usage: {} [firmware]")
-        sys.exit(0)
-
-    if not os.path.exists(sys.argv[1]):
-        fatal_error("Firmware {} not found.".format(sys.argv[1]))
-
     result = {"start": now()}
+
+    with urllib.request.urlopen("https://download.tinkerforge.com/latest_versions.txt") as f:
+        latest_versions = f.read().decode("utf-8")
+
+    match = re.search(r"bricklets:evse:(\d)\.(\d)\.(\d)", latest_versions)
+    major = match.group(1)
+    minor = match.group(2)
+    patch = match.group(3)
+
+    if not os.path.exists("firmwares"):
+        os.mkdir("firmwares")
+
+    evse_path = "bricklet_evse_firmware_{}_{}_{}.zbin".format(major, minor, patch)
+    if not os.path.exists(evse_path):
+        urllib.request.urlretrieve('https://download.tinkerforge.com/firmwares/bricklets/evse/{}'.format(evse_path), os.path.join("firmwares", evse_path))
+    evse_path = os.path.join("firmwares", evse_path)
+
+    with urllib.request.urlopen("https://www.warp-charger.com/") as f:
+        warp_charger_page = f.read().decode("utf-8")
+
+    match = re.search(r'<a href="firmwares/(warp_firmware_\d_\d_\d_[0-9a-f]{8}_merged.bin)" class="btn btn-primary btn-lg" id="download_latest_firmware">', warp_charger_page)
+    firmware_path = match.group(1)
+
+    if not os.path.exists(firmware_path):
+        urllib.request.urlretrieve('https://www.warp-charger.com/firmwares/{}'.format(firmware_path), os.path.join("firmwares", firmware_path))
+    firmware_path = os.path.join("firmwares", firmware_path)
 
     #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;;
     qr_code = my_input("Scan the wallbox QR code")
@@ -833,167 +938,97 @@ def main():
     result["serial"] = qr_serial
     result["qr_code"] = match.group(0)
 
-    qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
-    match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
-    while not match:
+    if qr_variant != "B":
         qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
         match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
-    print("QR code valid")
+        while not match:
+            qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
+            match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
+        print("QR code valid")
 
-    hardware_type = match.group(1)
-    esp_uid_qr = match.group(2)
-    passphrase_qr = match.group(3)
+        hardware_type = match.group(1)
+        esp_uid_qr = match.group(2)
+        passphrase_qr = match.group(3)
 
-    set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
-    output = esptool(['--port', PORT, '--after', 'hard_reset', 'flash_id'])
-    if set_voltage_fuses:
-        fatal_error("Voltage fuses not set!")
+        set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
+        output = esptool(['--port', PORT, '--after', 'hard_reset', 'flash_id'])
+        if set_voltage_fuses:
+            fatal_error("Voltage fuses not set!")
 
-    if set_block_3:
-        fatal_error("Block 3 fuses not set!")
+        if set_block_3:
+            fatal_error("Block 3 fuses not set!")
 
-    if esp_uid_qr != uid:
-        fatal_error("ESP UID written in fuses ({}) does not match the one on the QR code ({})".format(uid, esp_uid_qr))
+        if esp_uid_qr != uid:
+            fatal_error("ESP UID written in fuses ({}) does not match the one on the QR code ({})".format(uid, esp_uid_qr))
 
-    if passphrase_qr != passphrase:
-        fatal_error("Wifi passphrase written in fuses does not match the one on the QR code".format(passphrase, passphrase_qr))
+        if passphrase_qr != passphrase:
+            fatal_error("Wifi passphrase written in fuses does not match the one on the QR code".format(passphrase, passphrase_qr))
 
-    result["uid"] = uid
+        result["uid"] = uid
 
-    run(["systemctl", "restart", "NetworkManager.service"])
+        run(["systemctl", "restart", "NetworkManager.service"])
 
-    ssid = "warp-" + uid
+        ssid = "warp-" + uid
 
-    print("Waiting for ESP wifi. Takes about one minute.")
-    if not wait_for_wifi(ssid, 90):
-        fatal_error("ESP wifi not found after 90 seconds")
+        print("Waiting for ESP wifi. Takes about one minute.")
+        if not wait_for_wifi(ssid, 90):
+            fatal_error("ESP wifi not found after 90 seconds")
 
-    enumerations = []
-
-    with wifi(ssid, passphrase):
+        with wifi(ssid, passphrase):
+            ipcon = IPConnection()
+            ipcon.connect("10.0.0.1", 4223)
+            run_bricklet_tests(ipcon, result, qr_variant, qr_power)
+    else:
+        result["uid"] = None
         ipcon = IPConnection()
-        ipcon.connect("10.0.0.1", 4223)
-        ipcon.register_callback(ipcon.CALLBACK_ENUMERATE, lambda *args: enumerations.append(args))
-        ipcon.enumerate()
-        time.sleep(3)
-
-        if len(enumerations) not in [1, 2]:
-            fatal_error("Unexpected number of Bricklets! Expected 1 or 2 but got {}.".format(len(enumerations)))
-
-        is_pro = len(enumerations) == 2
-
-        if len([e for e in enumerations if e[5] == 2159]) == 0:
-            fatal_error("No EVSE Bricklet found!")
-
-        if is_pro and len([e for e in enumerations if e[5] == 277]) == 0:
-            fatal_error("No RS485 Bricklet found!")
-
-        if is_pro and qr_variant == "S":
-            fatal_error("Scanned QR-Code implies Variant Smart, but detected was Pro")
-
-        if not is_pro and qr_variant == "P":
-            fatal_error("Scanned QR-Code implies Variant Pro, but detected was Smart")
-
-        try:
-            evse_uid = [e for e in enumerations if e[5] == 2159][0][0]
-        except Exception as e:
-            fatal_error("Failed to get EVSE UID:", e)
-
-        if is_pro:
-            try:
-                rs485_uid = [e for e in enumerations if e[5] == 277][0][0]
-            except Exception as e:
-                fatal_error("Failed to get RS485 UID:", e)
-
-        print("EVSE UID is {}".format(evse_uid))
-        if is_pro:
-            print("RS485 UID is {}".format(rs485_uid))
-
-        result["evse_uid"] = evse_uid
-
-        evse = BrickletEVSE(evse_uid, ipcon)
-        jumper_config, has_lock_switch = evse.get_hardware_configuration()
-
-        if qr_power == "11" and jumper_config != 3:
-            fatal_error("Wrong jumper config detected: {} but expected {} as the configured power is {} kW.".format(jumper_config, 3, qr_power))
-
-        if qr_power == "22" and jumper_config != 6:
-            fatal_error("Wrong jumper config detected: {} but expected {} as the configured power is {} kW.".format(jumper_config, 6, qr_power))
-
-        result["jumper_config_checked"] = True
-        if has_lock_switch:
-            fatal_error("Wallbox has lock switch. Is the diode missing?")
-
-        result["diode_checked"] = True
-
-        configured, incoming, outgoing = evse.get_max_charging_current()
-        if qr_power == "11" and outgoing != 20000:
-            fatal_error("Wrong type 2 cable config detected: Allowed current is {} but expected 20 A, as this is a 11 kW box.".format(outgoing / 1000))
-        if qr_power == "22" and outgoing != 32000:
-            fatal_error("Wrong type 2 cable config detected: Allowed current is {} but expected 32 A, as this is a 22 kW box.".format(outgoing / 1000))
-
-        result["resistor_checked"] = True
-
-        if is_pro:
-            meter_str = urllib.request.urlopen('http://10.0.0.1/meter/live', timeout=3).read()
-            print(meter_str)
-            meter_data = json.loads(meter_str)
-            sps = meter_data["samples_per_second"]
-            samples = meter_data["samples"]
-            if not (0.2 < sps < 2.5):
-                fatal_error("Expected between 0.2 and 2.5 energy meter samples per second, but got ".format(sps))
-            if len(samples) < 2:
-                fatal_error("Expected at least 10 samples but got ".format(len(samples)))
-
-            event_str = urllib.request.urlopen('http://10.0.0.1/event_log', timeout=3).read().decode('utf-8')
-            if re.search("Request \d+: Exception code \d+", event_str):
-                fatal_error("Found energy meter errors in event log:", event_str)
-                
-            if all(s == 0 for s in samples):
-                fatal_error("Expected some samples not equal zero.", samples)
-                
-            result["energy_meter_reachable"] = True
-
-        result["rs485_uid"] = rs485_uid if is_pro else None
+        ipcon.connect("localhost", 4223)
+        run_bricklet_tests(ipcon, result, qr_variant, qr_power)
+        print("Flashing EVSE")
+        run(["python3", "comcu_flasher.py", result["evse_uid"], evse_path])
+        result["evse_firmware"] = evse_path
 
     print("Checking if EVSE was tested...")
     with open(os.path.join("evse_test_report", "full_test_log.csv"), newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for row in reader:
-            if evse_uid == row[0]:
+            if result["evse_uid"] == row[0]:
                 break
         else:
-            fatal_error("No test report found for EVSE {}.".format(evse_uid))
+            fatal_error("No test report found for EVSE {}.".format(result["evse_uid"]))
 
     print("EVSE test report found")
     result["evse_test_report_found"] = True
 
-    print("Erasing flash")
-    erase_flash()
+    if qr_variant != "B":
+        print("Erasing flash")
+        erase_flash()
 
-    print("Flashing firmware")
-    flash_firmware(sys.argv[1])
-    result["firmware"] = sys.argv[1]
+        print("Flashing firmware")
+        flash_firmware(firmware_path)
+        result["firmware"] = firmware_path
 
-    #input("When LED 0 starts blinking again, press any key.")
-    run(["systemctl", "restart", "NetworkManager.service"])
+        #input("When LED 0 starts blinking again, press any key.")
+        run(["systemctl", "restart", "NetworkManager.service"])
 
-    ssid = "warp-" + uid
+        ssid = "warp-" + uid
 
-    print("Waiting for ESP wifi. Takes about one minute.")
-    if not wait_for_wifi(ssid, 90):
-        fatal_error("ESP wifi not found after 90 seconds")
+        print("Waiting for ESP wifi. Takes about one minute.")
+        if not wait_for_wifi(ssid, 90):
+            fatal_error("ESP wifi not found after 90 seconds")
+    else:
+        ssid = "warp-" + result["evse_uid"]
 
     result["end"] = now()
 
     with open("{}_{}_report_stage_2.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
 
-    with wifi(ssid, passphrase):
-        my_input("Pull the USB cable, do the electrical tests and press any key when done")
+    if qr_variant != "B":
+        with wifi(ssid, passphrase):
+            my_input("Pull the USB cable, do the electrical tests and press any key when done")
 
-    # Restart NetworkManager to reconnect to the "default" wifi
-    run(["systemctl", "restart", "NetworkManager.service"])
+        # Restart NetworkManager to reconnect to the "default" wifi
+        run(["systemctl", "restart", "NetworkManager.service"])
 
 if __name__ == "__main__":
     main()
