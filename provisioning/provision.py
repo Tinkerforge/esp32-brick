@@ -1,3 +1,5 @@
+#!/usr/bin/python3 -u
+
 import contextlib
 from contextlib import contextmanager
 import datetime
