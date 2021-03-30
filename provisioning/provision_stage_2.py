@@ -928,7 +928,7 @@ def main():
     qr_serial = match.group(6)
     qr_built = match.group(7)
 
-    print("QR code data:")
+    print("Wallbox QR code data:")
     print("    WARP Charger {}".format({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant]))
     print("    {} kW".format(qr_power))
     print("    {:1.1f} m".format(int(qr_cable_len) / 10.0))
@@ -946,11 +946,14 @@ def main():
         while not match:
             qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
             match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
-        print("QR code valid")
 
         hardware_type = match.group(1)
         esp_uid_qr = match.group(2)
         passphrase_qr = match.group(3)
+
+        print("ESP Brick QR code data:")
+        print("    Hardware type: {}".format(hardware_type))
+        print("    UID: {}".format(esp_uid_qr))
 
         set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
         output = esptool(['--port', PORT, '--after', 'hard_reset', 'flash_id'])
@@ -964,7 +967,7 @@ def main():
             fatal_error("ESP UID written in fuses ({}) does not match the one on the QR code ({})".format(uid, esp_uid_qr))
 
         if passphrase_qr != passphrase:
-            fatal_error("Wifi passphrase written in fuses does not match the one on the QR code".format(passphrase, passphrase_qr))
+            fatal_error("Wifi passphrase written in fuses does not match the one on the QR code")
 
         result["uid"] = uid
 
