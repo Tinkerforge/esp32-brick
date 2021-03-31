@@ -913,12 +913,46 @@ def main():
         urllib.request.urlretrieve('https://www.warp-charger.com/firmwares/{}'.format(firmware_path), os.path.join("firmwares", firmware_path))
     firmware_path = os.path.join("firmwares", firmware_path)
 
+    #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;O:SO/B2020123;I:1/1;;
+    pattern = r'^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});O:(SO/B?[0-9]+);I:(\d+/\d+);;;*$'
+    qr_code = my_input("Scan the docket QR code")
+    match = re.match(pattern, qr_code)
+    while not match:
+        qr_code = my_input("Scan the docket QR code")
+        match = re.match(pattern, qr_code)
+
+    docket_variant = match.group(1)
+    docket_power = match.group(2)
+    docket_cable_len = match.group(3)
+    docket_has_cee = match.group(4)
+    docket_hw_version = match.group(5)
+    docket_serial = match.group(6)
+    docket_built = match.group(7)
+    docket_order = match.group(8)
+    docket_item = match.group(9)
+
+    print("Docket QR code data:")
+    print("    WARP Charger {}".format({"B": "Basic", "S": "Smart", "P": "Pro"}[docket_variant]))
+    print("    {} kW".format(docket_power))
+    print("    {:1.1f} m".format(int(docket_cable_len) / 10.0))
+    print("    CEE: {}".format("Yes" if docket_has_cee == "-CEE" else "No"))
+    print("    HW Version: {}".format(docket_hw_version))
+    print("    Serial: {}".format(docket_serial))
+    print("    Build month: {}".format(docket_built))
+    print("    Order: {}".format(docket_order))
+    print("    Item: {}".format(docket_item))
+
+    result["order"] = docket_order
+    result["order_item"] = docket_item
+    result["docket_qr_code"] = match.group(0)
+
     #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;;
+    pattern = r'^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});;;*$'
     qr_code = my_input("Scan the wallbox QR code")
-    match = re.match(r"^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d*\.\d*);S:(5\d{9});B:(\d{4}-\d{2});;;*$", qr_code)
+    match = re.match(pattern, qr_code)
     while not match:
         qr_code = my_input("Scan the wallbox QR code")
-        match = re.match(r"^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d*\.\d*);S:(\d*);B:(\d{4}-\d{2});;;*$", qr_code)
+        match = re.match(pattern, qr_code)
 
     qr_variant = match.group(1)
     qr_power = match.group(2)
@@ -927,6 +961,15 @@ def main():
     qr_hw_version = match.group(5)
     qr_serial = match.group(6)
     qr_built = match.group(7)
+
+    if docket_variant != qr_variant or \
+       docket_power != qr_power or \
+       docket_cable_len != qr_cable_len or \
+       docket_has_cee != qr_has_cee or \
+       docket_hw_version != qr_hw_version or \
+       docket_serial != qr_serial or \
+       docket_built != qr_built:
+        fatal_error("Docket and wallbox QR code do not match!")
 
     print("Wallbox QR code data:")
     print("    WARP Charger {}".format({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant]))
@@ -941,11 +984,12 @@ def main():
     result["qr_code"] = match.group(0)
 
     if qr_variant != "B":
+        pattern = r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58)
         qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
-        match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
+        match = re.match(pattern, qr_code)
         while not match:
             qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
-            match = re.match(r"^WIFI:S:(esp32|warp)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58), qr_code)
+            match = re.match(pattern, qr_code)
 
         hardware_type = match.group(1)
         esp_uid_qr = match.group(2)
