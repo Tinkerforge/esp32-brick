@@ -51,8 +51,12 @@
                     <input type="password" id="mqtt_broker_password" class="form-control" value="" placeholder="" data-i18n="mqtt.content.unchanged" data-i18n-attr="placeholder"/>
                     <div class="input-group-append">
                         <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
-                            <input id="mqtt_show_password" type="checkbox" class="custom-control-input" aria-label="Show password" value="test">
-                            <label class="custom-control-label" for="mqtt_show_password" data-i18n="mqtt.content.show_password"></label>
+                            <input id="mqtt_show_password" type="checkbox" class="custom-control-input" aria-label="Show password">
+                            <label class="custom-control-label" for="mqtt_show_password" style="line-height: 20px;"><span data-feather="eye"></span></label>
+                        </div>
+                        <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
+                            <input id="mqtt_clear_password" type="checkbox" class="custom-control-input" aria-label="Clear password">
+                            <label class="custom-control-label" for="mqtt_clear_password" style="line-height: 20px;"><span data-feather="trash-2"></span></label>
                         </div>
                     </div>
                 </div>

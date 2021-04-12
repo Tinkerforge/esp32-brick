@@ -73,8 +73,12 @@
                     <input type="password" id="wifi_sta_passphrase" class="form-control" value="" placeholder="" data-i18n="wifi.content.unchanged" data-i18n-attr="placeholder" minlength="8" maxlength="63"/>
                     <div class="input-group-append">
                         <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
-                            <input id="wifi_sta_show_passphrase" type="checkbox" class="custom-control-input" aria-label="Show password" value="test">
-                            <label class="custom-control-label" for="wifi_sta_show_passphrase" data-i18n="wifi.content.sta_show_passphrase"></label>
+                            <input id="wifi_sta_show_passphrase" type="checkbox" class="custom-control-input" aria-label="Show passphrase">
+                            <label class="custom-control-label" for="wifi_sta_show_passphrase" style="line-height: 20px;"><span data-feather="eye"></span></label>
+                        </div>
+                        <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
+                            <input id="wifi_sta_clear_passphrase" type="checkbox" class="custom-control-input" aria-label="Clear passphrase">
+                            <label class="custom-control-label" for="wifi_sta_clear_passphrase" style="line-height: 20px;"><span data-feather="trash-2"></span></label>
                         </div>
                     </div>
                     <div class="invalid-feedback" data-i18n="wifi.content.sta_passphrase_invalid"></div>
@@ -211,8 +215,12 @@
                     <input type="password" id="wifi_ap_passphrase" class="form-control" value="" placeholder="" data-i18n="wifi.content.unchanged" data-i18n-attr="placeholder" minlength="8" maxlength="63"/>
                     <div class="input-group-append">
                         <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
-                            <input id="wifi_ap_show_passphrase" type="checkbox" class="custom-control-input" aria-label="Show password" value="test">
-                            <label class="custom-control-label" for="wifi_ap_show_passphrase" data-i18n="wifi.content.ap_show_passphrase"></label>
+                            <input id="wifi_ap_show_passphrase" type="checkbox" class="custom-control-input" aria-label="Show passphrase">
+                            <label class="custom-control-label" for="wifi_ap_show_passphrase" style="line-height: 20px;"><span data-feather="eye"></span></label>
+                        </div>
+                        <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
+                            <input id="wifi_ap_clear_passphrase" type="checkbox" class="custom-control-input" aria-label="Clear passphrase">
+                            <label class="custom-control-label" for="wifi_ap_clear_passphrase" style="line-height: 20px;"><span data-feather="trash-2"></span></label>
                         </div>
                     </div>
                 </div>

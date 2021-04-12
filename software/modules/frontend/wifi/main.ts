@@ -315,7 +315,7 @@ function save_wifi_sta_config(continuation = function () { }) {
         ssid: $('#wifi_sta_ssid').val().toString(),
         bssid: $('#wifi_sta_bssid').val().toString().split(':').map(x => parseInt(x, 16)),
         bssid_lock: $('#wifi_sta_bssid_lock').is(':checked'),
-        passphrase: util.passwordUpdate($('#wifi_sta_passphrase').val().toString()),
+        passphrase: util.passwordUpdate('#wifi_sta_passphrase'),
         ip: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_sta_ip').val().toString()),
         subnet: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_sta_subnet').val().toString()),
         gateway: dhcp ? [0, 0, 0, 0] : parse_ip($('#wifi_sta_gateway').val().toString()),
@@ -340,7 +340,7 @@ function save_wifi_ap_config(continuation = function () { }) {
         ap_fallback_only: $('#wifi_ap_enable_ap').val() == 1,
         ssid: $('#wifi_ap_ssid').val().toString(),
         hide_ssid: $('#wifi_ap_hide_ssid').is(':checked'),
-        passphrase: util.passwordUpdate($('#wifi_ap_passphrase').val().toString()),
+        passphrase: util.passwordUpdate('#wifi_ap_passphrase'),
         hostname: $('#wifi_ap_hostname').val().toString(),
         channel: parseInt($('#wifi_ap_channel').val().toString()),
         ip: parse_ip($('#wifi_ap_ip').val().toString()),
@@ -383,11 +383,18 @@ export function init() {
 
     (<HTMLButtonElement>document.getElementById("wifi_reboot_button")).addEventListener("click", wifi_save_reboot);
 
-    let sta_show_pw = <HTMLButtonElement>document.getElementById("wifi_sta_show_passphrase");
-    sta_show_pw.addEventListener("change", util.toggle_password_fn("#wifi_sta_passphrase"));
+    let sta_show_button = <HTMLButtonElement>document.getElementById("wifi_sta_show_passphrase");
+    sta_show_button.addEventListener("change", util.toggle_password_fn("#wifi_sta_passphrase"));
 
-    let ap_show_pw = <HTMLButtonElement>document.getElementById("wifi_ap_show_passphrase");
-    ap_show_pw.addEventListener("change", util.toggle_password_fn("#wifi_ap_passphrase"));
+    let sta_clear_button = <HTMLButtonElement>document.getElementById("wifi_sta_clear_passphrase");
+    sta_clear_button.addEventListener("change", util.clear_password_fn("#wifi_sta_passphrase"));
+
+    let ap_show_button = <HTMLButtonElement>document.getElementById("wifi_ap_show_passphrase");
+    ap_show_button.addEventListener("change", util.toggle_password_fn("#wifi_ap_passphrase"));
+
+    let ap_clear_button = <HTMLButtonElement>document.getElementById("wifi_ap_clear_passphrase");
+    ap_clear_button.addEventListener("change", util.clear_password_fn("#wifi_ap_passphrase"));
+
 
     let ap_ip_config = <HTMLInputElement>document.getElementById("wifi_sta_show_static");
     ap_ip_config.addEventListener("change", () => wifi_cfg_toggle_static_ip_collapse(ap_ip_config.value));

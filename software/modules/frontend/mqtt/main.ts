@@ -62,7 +62,7 @@ function save_mqtt_config() {
         broker_host: $('#mqtt_broker_host').val().toString(),
         broker_port: parseInt($('#mqtt_broker_port').val().toString(), 10),
         broker_username: $('#mqtt_broker_username').val().toString(),
-        broker_password: util.passwordUpdate($('#mqtt_broker_password').val().toString()),
+        broker_password: util.passwordUpdate('#mqtt_broker_password'),
         global_topic_prefix: $('#mqtt_topic_prefix').val().toString(),
         client_name: $('#mqtt_client_name').val().toString(),
     };
@@ -95,8 +95,11 @@ export function addEventListeners(source: EventSource) {
 }
 
 export function init() {
-    let button = <HTMLButtonElement>document.getElementById("mqtt_show_password");
-    button.addEventListener("change", util.toggle_password_fn("#mqtt_broker_password"));
+    let show_button = <HTMLButtonElement>document.getElementById("mqtt_show_password");
+    show_button.addEventListener("change", util.toggle_password_fn("#mqtt_broker_password"));
+
+    let clear_button = <HTMLButtonElement>document.getElementById("mqtt_clear_password");
+    clear_button.addEventListener("change", util.clear_password_fn("#mqtt_broker_password"));
 
     let form = <HTMLFormElement>$('#mqtt_config_form')[0];
     form.addEventListener('submit', function (event: Event) {
@@ -153,7 +156,8 @@ export function getTranslation(lang: string) {
                     "reboot": "Neu starten",
                     "show_password": "Anzeigen",
 
-                    "unchanged": "unverändert"
+                    "unchanged": "unverändert",
+                    "clear_password": "Löschen"
                 },
                 "script": {
                     "save_failed": "Speichern der MQTT-Einstellungen fehlgeschlagen.",
@@ -191,7 +195,8 @@ export function getTranslation(lang: string) {
                     "reboot": "Reboot",
                     "show_password": "Show",
 
-                    "unchanged": "unchanged"
+                    "unchanged": "unchanged",
+                    "clear_password": "Clear"
                 },
                 "script": {
                     "save_failed": "Failed to save the MQTT configuration.",
