@@ -31,6 +31,7 @@
 #include "tools.h"
 #include "api.h"
 #include "event_log.h"
+#include "modules/sse/sse.h"
 
 extern EventLog logger;
 
@@ -40,6 +41,7 @@ extern char uid[7];
 extern char passphrase[20];
 
 extern API api;
+extern Sse sse;
 
 Wifi::Wifi() {
     wifi_ap_config = Config::Object({
@@ -436,11 +438,68 @@ void Wifi::setup()
     initialized = true;
 }
 
+String Wifi::get_scan_results() {
+    int network_count = WiFi.scanComplete();
+
+    if (network_count == WIFI_SCAN_RUNNING) {
+        return "scan in progress";
+    }
+
+    if (network_count < 0) {
+        return "scan failed";
+    }
+
+    if (network_count == 0) {
+        return "[]";
+    }
+
+    //result line: {"ssid": "%s", "bssid": "%s", "rssi": %d, "channel": %d, "encryption": %d}
+    //worst case length ~ 140
+    String result;
+    result.reserve(145 * network_count);
+    logger.printfln("%d networks found", network_count);
+    result += "[";
+
+    for (int i = 0; i < network_count; ++i) {
+        // Print SSID and RSSI for each network found
+        result += "{\"ssid\": \"";
+        result += WiFi.SSID(i);
+        result += "\", \"bssid\": \"";
+        result += WiFi.BSSIDstr(i);
+        result += "\", \"rssi\": ";
+        result += WiFi.RSSI(i);
+        result += ", \"channel\": ";
+        result += WiFi.channel(i);
+        result += ", \"encryption\": ";
+        result += WiFi.encryptionType(i);
+        result += "}";
+        if(i != network_count - 1)
+            result += ",";
+    }
+    result += "]";
+    return result;
+}
+
+void Wifi::check_for_scan_completion() {
+    String result = this->get_scan_results();
+
+    if (result == "scan in progress") {
+        logger.printfln("Scan in progress...");
+        task_scheduler.scheduleOnce("wifi_scan_check_complete", [this]() {
+            this->check_for_scan_completion();
+        }, 500);
+        return;
+    }
+    logger.printfln("Scan done. %d networks.", WiFi.scanComplete());
+
+    sse.pushStateUpdate(this->get_scan_results(), "wifi/scan_results");
+}
+
 void Wifi::register_urls()
 {
     api.addState("wifi/state", &wifi_state, {}, 1000);
 
-    api.addCommand("wifi/scan", &wifi_scan_config, {}, [](){
+    api.addCommand("wifi/scan", &wifi_scan_config, {}, [this](){
         logger.printfln("Scanning for wifis...");
         WiFi.scanDelete();
 
@@ -448,43 +507,22 @@ void Wifi::register_urls()
         if(WiFi.scanComplete() == WIFI_SCAN_FAILED){
             WiFi.scanNetworks(true, true);
         }
+
+        task_scheduler.scheduleOnce("wifi_scan_check_complete", [this]() {
+            this->check_for_scan_completion();
+        }, 500);
     }, true);
 
-    server.on("/wifi/scan_results", HTTP_GET, [](AsyncWebServerRequest *request) {
+    server.on("/wifi/scan_results", HTTP_GET, [this](AsyncWebServerRequest *request) {
         int network_count = WiFi.scanComplete();
+        String result = this->get_scan_results();
+
+        if (network_count < 0) {
+            request->send(200, "text/plain; charset=utf-8", result);
+        }
 
         logger.printfln("scan done");
-
-        //result line: {"ssid": "%s", "bssid": "%s", "rssi": %d, "channel": %d, "encryption": %d}
-        //worst case length ~ 140
-
-        if (network_count == 0) {
-            request->send(200, "application/json; charset=utf-8", "[]");
-        } else {
-            String result;
-            result.reserve(145 * network_count);
-            logger.printfln("%d networks found", network_count);
-            result += "[";
-
-            for (int i = 0; i < network_count; ++i) {
-                // Print SSID and RSSI for each network found
-                result += "{\"ssid\": \"";
-                result += WiFi.SSID(i);
-                result += "\", \"bssid\": \"";
-                result += WiFi.BSSIDstr(i);
-                result += "\", \"rssi\": ";
-                result += WiFi.RSSI(i);
-                result += ", \"channel\": ";
-                result += WiFi.channel(i);
-                result += ", \"encryption\": ";
-                result += WiFi.encryptionType(i);
-                result += "}";
-                if(i != network_count - 1)
-                    result += ",";
-            }
-            result += "]";
-            request->send(200, "application/json; charset=utf-8", result);
-        }
+        request->send(200, "application/json; charset=utf-8", result);
     });
 
     api.addPersistentConfig("wifi/sta_config", &wifi_sta_config, {"passphrase"}, 1000);

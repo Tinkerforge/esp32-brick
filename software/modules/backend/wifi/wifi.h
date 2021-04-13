@@ -52,6 +52,9 @@ private:
 
     int get_ap_state();
 
+    void check_for_scan_completion();
+    String get_scan_results();
+
 
     Config wifi_ap_config;
     Config wifi_sta_config;

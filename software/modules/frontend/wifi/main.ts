@@ -45,6 +45,47 @@ function wifi_symbol(rssi: number) {
     return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-wifi"><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>';
 }
 
+function update_wifi_scan_results(data: WifiInfo[]) {
+    $("#wifi_config_scan_spinner").prop('hidden', true);
+    $("#wifi_scan_results").prop('hidden', false);
+    $("#wifi_scan_title").html(__("wifi.script.select_ap"));
+
+    if (data.length == 0) {
+        $("#wifi_scan_results").html(__("wifi.script.no_ap_found"));
+        return;
+    }
+    let result = ``;
+
+    // We want to show the BSSID if this is a hidden AP or we have multiple APs with the same SSID
+    let tups = $.map(data, (v: WifiInfo, i) => {
+        if (v.ssid == "")
+            return [__("wifi.script.hidden_ap") + ` (${v.bssid})`, true];
+
+        let result = [v.ssid, false];
+        $.each(data, (i2, v2: WifiInfo) => {
+            if (i != i2 && v2.ssid == v.ssid)
+                result = [v.ssid + ` (${v.bssid})`, v.rssi - v2.rssi > 15];
+        });
+        return result;
+    });
+
+    $.each(data, (i, v: WifiInfo) => {
+        let line = `<a id="wifi_scan_result_${i}" class="dropdown-item" href="#">${wifi_symbol(v.rssi)}<span class="ml-2" data-feather='${v.encryption == 0 ? 'unlock' : 'lock'}'></span><span class="pl-2">${tups[2*i]}</span></a>`;
+        result += line;
+    });
+
+    $("#wifi_scan_results").html(result);
+    $("#scan_wifi_button").dropdown('update')
+
+    $.each(data, (i, v: WifiInfo) => {
+        let button = document.getElementById(`wifi_scan_result_${i}`);
+        button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption, <boolean>tups[2*i+1]));
+    });
+
+    feather.replace();
+}
+
+let scan_timeout = null;
 function scan_wifi() {
     $.ajax({
         url: '/wifi/scan',
@@ -53,47 +94,12 @@ function scan_wifi() {
         data: JSON.stringify(null),
         error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error + ": " + xhr.responseText),
         success: () => {
-            window.setTimeout(function () {
+            scan_timeout = window.setTimeout(function () {
+                    scan_timeout = null;
                     $.get("/wifi/scan_results").done(function (data: WifiInfo[]) {
-                        $("#wifi_config_scan_spinner").prop('hidden', true);
-                        $("#wifi_scan_results").prop('hidden', false);
-                        $("#wifi_scan_title").html(__("wifi.script.select_ap"));
-
-                        if (data.length == 0) {
-                            $("#wifi_scan_results").html(__("wifi.script.no_ap_found"));
-                            return;
-                        }
-                        let result = ``;
-
-                        // We want to show the BSSID if this is a hidden AP or we have multiple APs with the same SSID
-                        let tups = $.map(data, (v: WifiInfo, i) => {
-                            if (v.ssid == "")
-                                return [__("wifi.script.hidden_ap") + ` (${v.bssid})`, true];
-
-                            let result = [v.ssid, false];
-                            $.each(data, (i2, v2: WifiInfo) => {
-                                if (i != i2 && v2.ssid == v.ssid)
-                                    result = [v.ssid + ` (${v.bssid})`, v.rssi - v2.rssi > 15];
-                            });
-                            return result;
-                        });
-
-                        $.each(data, (i, v: WifiInfo) => {
-                            let line = `<a id="wifi_scan_result_${i}" class="dropdown-item" href="#">${wifi_symbol(v.rssi)}<span class="ml-2" data-feather='${v.encryption == 0 ? 'unlock' : 'lock'}'></span><span class="pl-2">${tups[2*i]}</span></a>`;
-                            result += line;
-                        });
-
-                        $("#wifi_scan_results").html(result);
-                        $("#scan_wifi_button").dropdown('update')
-
-                        $.each(data, (i, v: WifiInfo) => {
-                            let button = document.getElementById(`wifi_scan_result_${i}`);
-                            button.addEventListener("click", () => connect_to_ap(v.ssid, v.bssid, v.encryption, <boolean>tups[2*i+1]));
-                        });
-
-                        feather.replace();
+                        update_wifi_scan_results(data);
                     });
-                }, 5000);
+                }, 10000);
         }
     });
 }
@@ -376,6 +382,21 @@ export function addEventListeners(source: EventSource) {
         update_wifi_ap_config(<WifiAPConfig>(JSON.parse(e.data)));
     }, false);
 
+    source.addEventListener('wifi/scan_results', function (e: util.SSE) {
+        if (e.data == "scan in progress")
+            return;
+
+        window.clearTimeout(scan_timeout);
+        scan_timeout = null;
+
+        if (e.data == "scan failed") {
+            console.log("scan failed");
+            update_wifi_scan_results(JSON.parse("[]"));
+            return;
+        }
+
+        update_wifi_scan_results(JSON.parse(e.data));
+    }, false);
 }
 
 export function init() {
