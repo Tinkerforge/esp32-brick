@@ -399,6 +399,26 @@ def main():
     handle_voltage_fuses(set_voltage_fuses)
 
     uid, passphrase = handle_block3_fuses(set_block_3, uid, passphrase)
+
+    if handle_voltage_fuses or handle_block3_fuses:
+        print("Verifying eFuses")
+        _set_voltage_fuses, _set_block_3, _passphrase, _uid = get_espefuse_tasks()
+        if _set_voltage_fuses:
+            print("Failed to verify voltage eFuses! Are they burned in yet?")
+            sys.exit(0)
+
+        if _set_block_3:
+            print("Failed to verify block 3 eFuses! Are they burned in yet?")
+            sys.exit(0)
+
+        if _passphrase != passphrase:
+            print("Failed to verify block 3 eFuses! Passphrase is not the expected value")
+            sys.exit(0)
+
+        if _uid != uid:
+            print("Failed to verify block 3 eFuses! UID {} is not the expected value {}".format(_uid, uid))
+            sys.exit(0)
+
     result["uid"] = uid
 
     print("Erasing flash")
