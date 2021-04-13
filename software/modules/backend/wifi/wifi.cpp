@@ -500,6 +500,11 @@ void Wifi::register_urls()
     api.addState("wifi/state", &wifi_state, {}, 1000);
 
     api.addCommand("wifi/scan", &wifi_scan_config, {}, [this](){
+        // Abort if a scan is running. This is save, because
+        // the state will change to SCAN_FAILED if it timed out.
+        if (WiFi.scanComplete() == WIFI_SCAN_RUNNING)
+            return;
+
         logger.printfln("Scanning for wifis...");
         WiFi.scanDelete();
 
