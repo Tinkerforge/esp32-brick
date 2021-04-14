@@ -934,7 +934,7 @@ def main():
 
     if docket_supply_cable_extension == None:
         docket_supply_cable_extension = 0
-    else
+    else:
         docket_supply_cable_extension = int(docket_supply_cable_extension)
 
     print("Docket QR code data:")
