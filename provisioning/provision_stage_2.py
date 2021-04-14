@@ -914,7 +914,7 @@ def main():
     firmware_path = os.path.join("firmwares", firmware_path)
 
     #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;O:SO/B2020123;I:1/1;;
-    pattern = r'^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});O:(SO/B?[0-9]+);I:(\d+/\d+);;;*$'
+    pattern = r'^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});O:(SO/B?[0-9]+);I:(\d+/\d+)(;E:(\d+))?;;;*$'
     qr_code = my_input("Scan the docket QR code")
     match = re.match(pattern, qr_code)
     while not match:
@@ -930,6 +930,12 @@ def main():
     docket_built = match.group(7)
     docket_order = match.group(8)
     docket_item = match.group(9)
+    docket_supply_cable_extension = match.group(10)
+
+    if docket_supply_cable_extension == None:
+        docket_supply_cable_extension = 0
+    else
+        docket_supply_cable_extension = int(docket_supply_cable_extension)
 
     print("Docket QR code data:")
     print("    WARP Charger {}".format({"B": "Basic", "S": "Smart", "P": "Pro"}[docket_variant]))
@@ -941,9 +947,11 @@ def main():
     print("    Build month: {}".format(docket_built))
     print("    Order: {}".format(docket_order))
     print("    Item: {}".format(docket_item))
+    print("    Supply Cable Extension: {}".format(docket_supply_cable_extension))
 
     result["order"] = docket_order
     result["order_item"] = docket_item
+    result["supply_cable_extension"] = docket_supply_cable_extension
     result["docket_qr_code"] = match.group(0)
 
     #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;;
