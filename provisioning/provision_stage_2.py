@@ -793,8 +793,8 @@ def now():
     return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
 
 
-def my_input(s):
-    return input(green(s) + " ")
+def my_input(s, color_fn=green):
+    return input(color_fn(s) + " ")
 
 def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
     enumerations = []
@@ -918,7 +918,7 @@ def main():
     qr_code = my_input("Scan the docket QR code")
     match = re.match(pattern, qr_code)
     while not match:
-        qr_code = my_input("Scan the docket QR code")
+        qr_code = my_input("Scan the docket QR code", red)
         match = re.match(pattern, qr_code)
 
     docket_variant = match.group(1)
@@ -959,7 +959,7 @@ def main():
     qr_code = my_input("Scan the wallbox QR code")
     match = re.match(pattern, qr_code)
     while not match:
-        qr_code = my_input("Scan the wallbox QR code")
+        qr_code = my_input("Scan the wallbox QR code", red)
         match = re.match(pattern, qr_code)
 
     qr_variant = match.group(1)
@@ -996,7 +996,7 @@ def main():
         qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
         match = re.match(pattern, qr_code)
         while not match:
-            qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
+            qr_code = getpass.getpass(red("Scan the ESP Brick QR code"))
             match = re.match(pattern, qr_code)
 
         hardware_type = match.group(1)
