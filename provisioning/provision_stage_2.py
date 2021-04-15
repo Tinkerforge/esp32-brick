@@ -1007,6 +1007,9 @@ def main():
         print("    Hardware type: {}".format(hardware_type))
         print("    UID: {}".format(esp_uid_qr))
 
+        if not os.path.exists(PORT):
+            fatal_error("/dev/ttyUSB0 does not exist. Is the USB cable plugged in?")
+
         set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
         output = esptool(['--port', PORT, '--after', 'hard_reset', 'flash_id'])
         if set_voltage_fuses:
