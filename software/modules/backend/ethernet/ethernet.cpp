@@ -19,11 +19,15 @@
 
 #include "ethernet.h"
 
-#define ETH_ADDR        1
+#define ETH_ADDR        0
 #define ETH_POWER_PIN   5
-#define ETH_TYPE        ETH_PHY_IP101
+#define ETH_TYPE        ETH_PHY_KSZ8081
 
 #include <ETH.h>
+
+#include "task_scheduler.h"
+
+extern TaskScheduler task_scheduler;
 
 Ethernet::Ethernet()
 {
@@ -147,44 +151,35 @@ void WiFiEvent(WiFiEvent_t event)
 void Ethernet::setup()
 {
     ethernet_config_in_use = ethernet_config;
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            Serial.println("ETH Started");
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
+            logger.printfln("ETH Started");
             //set eth hostname here
             ETH.setHostname(ethernet_config_in_use.get("hostname")->asString().c_str());
         },
-        SYSTEM_EVENT_ETH_START);
+        ARDUINO_EVENT_ETH_START);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            Serial.println("ETH Connected");
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
+            logger.printfln("ETH Connected");
         },
-        SYSTEM_EVENT_ETH_CONNECTED);
+        ARDUINO_EVENT_ETH_CONNECTED);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            Serial.print("ETH MAC: ");
-            Serial.print(ETH.macAddress());
-            Serial.print(", IPv4: ");
-            Serial.print(ETH.localIP());
-            if (ETH.fullDuplex()) {
-                Serial.print(", FULL_DUPLEX");
-            }
-            Serial.print(", ");
-            Serial.print(ETH.linkSpeed());
-            Serial.println("Mbps");
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
+            logger.printfln("ETH MAC: %s, IPv4: %s, %s Duplex, %u Mbps", ETH.macAddress().c_str(), ETH.localIP().toString().c_str(), ETH.fullDuplex() ? "Full" : "Half", ETH.linkSpeed());
             //eth_connected = true;
         },
-        SYSTEM_EVENT_ETH_GOT_IP);
+        ARDUINO_EVENT_ETH_GOT_IP);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            Serial.println("ETH Disconnected");
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
+            logger.printfln("ETH Disconnected");
             //eth_connected = false;
         },
-        SYSTEM_EVENT_ETH_DISCONNECTED);
+        ARDUINO_EVENT_ETH_DISCONNECTED);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-           Serial.println("ETH Stopped");
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
+           logger.printfln("ETH Stopped");
             //eth_connected = false;
         },
-        SYSTEM_EVENT_ETH_STOP);
+        ARDUINO_EVENT_ETH_STOP);
 
     //WiFi.onEvent(WiFiEvent);
 
@@ -194,7 +189,9 @@ void Ethernet::setup()
         #define ETH_TYPE        ETH_PHY_IP101
     */
     //bool begin(uint8_t phy_addr=ETH_PHY_ADDR, int power=ETH_PHY_POWER, int mdc=ETH_PHY_MDC, int mdio=ETH_PHY_MDIO, eth_phy_type_t type=ETH_PHY_TYPE, eth_clock_mode_t clk_mode=ETH_CLK_MODE);
-    ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_PHY_MDC, ETH_PHY_MDIO, ETH_TYPE);
+    task_scheduler.scheduleOnce("setup ethernet", [](){
+        ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_PHY_MDC, ETH_PHY_MDIO, ETH_TYPE);
+    }, 10000);
 
     initialized = true;
 }
