@@ -1036,7 +1036,23 @@ def main():
 
         with wifi(ssid, passphrase):
             ipcon = IPConnection()
-            ipcon.connect("10.0.0.1", 4223)
+            try:
+                ipcon.connect("10.0.0.1", 4223)
+            except Exception as e:
+                print("Failed to connect to ESP proxy")
+                print(e)
+                do_flash = my_input("Flash test firmware? [y/n]")
+                while do_flash not in ["y", "n"]:
+                    do_flash = my_input("Flash test firmware? [y/n]", red)
+                if do_flash == "y":
+                    print("Erasing flash")
+                    erase_flash()
+
+                    print("Flashing firmware")
+                    flash_firmware(os.path.join(os.path.expanduser('~'), 'warp_test_firmware_1_1_1_60472b1f_merged.bin'))
+                    print("Firmware flashed. Please re-run the provisioning stage 2 script.")
+                fatal_error("Failed to connect to ESP proxy")
+
             run_bricklet_tests(ipcon, result, qr_variant, qr_power)
     else:
         result["uid"] = None
