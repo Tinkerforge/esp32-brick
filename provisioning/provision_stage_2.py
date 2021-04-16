@@ -1049,7 +1049,7 @@ def main():
                     erase_flash()
 
                     print("Flashing firmware")
-                    flash_firmware(os.path.join(os.path.expanduser('~'), 'warp_test_firmware_1_1_1_60472b1f_merged.bin'))
+                    flash_firmware(os.path.join('..','..','..', 'warp_test_firmware_1_1_1_60472b1f_merged.bin'))
                     print("Firmware flashed. Please re-run the provisioning stage 2 script.")
                 fatal_error("Failed to connect to ESP proxy")
 
