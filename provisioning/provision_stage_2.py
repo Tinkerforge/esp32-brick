@@ -436,6 +436,19 @@ PORT = '/dev/ttyUSB0'
 PRINTER_HOST = 'BP730i'
 PRINTER_PORT = 9100
 
+# use "with ChangedDirectory('/path/to/abc')" instead of "os.chdir('/path/to/abc')"
+class ChangedDirectory(object):
+    def __init__(self, path):
+        self.path = path
+        self.previous_path = None
+
+    def __enter__(self):
+        self.previous_path = os.getcwd()
+        os.chdir(self.path)
+
+    def __exit__(self, type_, value, traceback):
+        os.chdir(self.previous_path)
+
 @contextmanager
 def temp_file():
     fd, name = tempfile.mkstemp()
@@ -882,6 +895,14 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
 
         result["energy_meter_reachable"] = True
 
+def exists_evse_test_report(evse_uid):
+    with open(os.path.join("evse_test_report", "full_test_log.csv"), newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            if row[0] == evse_uid:
+                return True
+    return False
+
 def main():
     global uids
 
@@ -1064,12 +1085,11 @@ def main():
         result["evse_firmware"] = evse_path
 
     print("Checking if EVSE was tested...")
-    with open(os.path.join("evse_test_report", "full_test_log.csv"), newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        for row in reader:
-            if result["evse_uid"] == row[0]:
-                break
-        else:
+    if not exists_evse_test_report(result["evse_uid"]):
+        print("No test report found. Checking for new test reports...")
+        with ChangedDirectory(os.path.join("..", "..", "wallbox"):
+            run(["git", "pull"])
+        if not exists_evse_test_report(result["evse_uid"]):
             fatal_error("No test report found for EVSE {}.".format(result["evse_uid"]))
 
     print("EVSE test report found")
