@@ -1087,7 +1087,7 @@ def main():
     print("Checking if EVSE was tested...")
     if not exists_evse_test_report(result["evse_uid"]):
         print("No test report found. Checking for new test reports...")
-        with ChangedDirectory(os.path.join("..", "..", "wallbox"):
+        with ChangedDirectory(os.path.join("..", "..", "wallbox")):
             run(["git", "pull"])
         if not exists_evse_test_report(result["evse_uid"]):
             fatal_error("No test report found for EVSE {}.".format(result["evse_uid"]))
