@@ -70,7 +70,7 @@ gulp.task("copy-login-html", function () {
 });
 
 gulp.task("sass", function () {
-    const sass = require("gulp-sass");
+    const { sass } = require("@mr-hope/gulp-sass");
     const purgecss = require("gulp-purgecss");
     const postcss = require("gulp-postcss");
     const autoprefixer = require("autoprefixer");
@@ -78,7 +78,7 @@ gulp.task("sass", function () {
 
     return gulp
         .src("src/scss/*.scss")
-        .pipe(sass()) // Compile sass to css
+        .pipe(sass().on("error", sass.logError)) // Compile sass to css
         .pipe(purgecss({ //remove unused css
               content: ["src/*.html"],
               whitelistPatterns: [/shake/]
