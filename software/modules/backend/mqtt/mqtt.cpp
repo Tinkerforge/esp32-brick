@@ -20,7 +20,6 @@
 #include "mqtt.h"
 
 #include <ESPmDNS.h>
-#include <SPIFFS.h>
 
 #include "Arduino.h"
 
@@ -44,6 +43,22 @@ extern Wifi wifi;
 
 Mqtt::Mqtt() {
     api.registerBackend(this);
+
+    // The real UID will be patched in later
+    mqtt_config = Config::Object({
+        {"enable_mqtt", Config::Bool(false)},
+        {"broker_host", Config::Str("", 128)},
+        {"broker_port", Config::Uint16(1883)},
+        {"broker_username", Config::Str("", 64)},
+        {"broker_password", Config::Str("", 64)},
+        {"global_topic_prefix", Config::Str(String(__HOST_PREFIX__) + String("/") + String("ABC"), 64)},
+        {"client_name", Config::Str(String(__HOST_PREFIX__) + String("-") + String("ABC"), 64)}
+    });
+
+    mqtt_state = Config::Object({
+        {"connection_state", Config::Int(0)},
+        {"last_error", Config::Int(-1)}
+    });
 }
 
 void Mqtt::apply_config() {
@@ -320,21 +335,12 @@ void Mqtt::onMqttDisconnect(int8_t reason) {
 
 void Mqtt::setup()
 {
-    // This can't be done in the constructor, as the uid is then still unknown.
-    mqtt_config = Config::Object({
-        {"enable_mqtt", Config::Bool(false)},
-        {"broker_host", Config::Str("", 128)},
-        {"broker_port", Config::Uint16(1883)},
-        {"broker_username", Config::Str("", 64)},
-        {"broker_password", Config::Str("", 64)},
-        {"global_topic_prefix", Config::Str(String(__HOST_PREFIX__) + String("/") + String(uid), 64)},
-        {"client_name", Config::Str(String(__HOST_PREFIX__) + String("-") + String(uid), 64)}
-    });
+    if(!api.restorePersistentConfig("mqtt/config", &mqtt_config)) {
+        mqtt_config.get("global_topic_prefix")->updateString(String(__HOST_PREFIX__) + String("/") + String(uid));
+        mqtt_config.get("client_name")->updateString(String(__HOST_PREFIX__) + String("-") + String(uid));
+    }
 
-    mqtt_state = Config::Object({
-        {"connection_state", Config::Int(0)},
-        {"last_error", Config::Int(-1)}
-    });
+    mqtt_config_in_use = mqtt_config;
 
     mqttClient.onConnect([this](bool session){this->onMqttConnect(session);});
     mqttClient.onDisconnect([this](int8_t reason){this->onMqttDisconnect(reason);});
@@ -344,16 +350,6 @@ void Mqtt::setup()
     mqttClient.setCleanSession(true);
     mqttClient.setKeepAlive(15);
 
-    //TODO read .tmp if real file does not exist
-    if(SPIFFS.exists("/mqtt_config.json")) {
-        File file = SPIFFS.open("/mqtt_config.json");
-        String error = mqtt_config.update_from_file(file);
-        file.close();
-        if(error != "")
-            logger.printfln(error.c_str());
-    }
-
-    mqtt_config_in_use = mqtt_config;
     apply_config();
 
     initialized = true;

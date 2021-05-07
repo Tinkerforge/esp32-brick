@@ -3,7 +3,6 @@
 #include "Arduino.h"
 
 #include "ESPAsyncWebServer.h"
-#include "SPIFFS.h"
 
 #include "api.h"
 #include "event_log.h"
@@ -26,13 +25,7 @@ Authentication::Authentication()
 
 void Authentication::setup()
 {
-    if(SPIFFS.exists("/authentication_config.json")) {
-        File file = SPIFFS.open("/authentication_config.json");
-        String error = authentication_config.update_from_file(file);
-        file.close();
-        if(error != "")
-            logger.printfln(error.c_str());
-    }
+    api.restorePersistentConfig("authentication/config", &authentication_config);
 
     if (authentication_config.get("enable_auth")->asBool()) {
         String user = authentication_config.get("username")->asString();

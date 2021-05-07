@@ -20,7 +20,6 @@
 #include "wifi.h"
 
 #include <ESPmDNS.h>
-#include <SPIFFS.h>
 
 #include <esp_wifi.h>
 
@@ -293,6 +292,19 @@ void Wifi::setup()
     String default_hostname = String(__HOST_PREFIX__) + String("-") + String(uid);
     String default_passphrase = String(passphrase);
 
+    if(!api.restorePersistentConfig("wifi/sta_config", &wifi_sta_config)) {
+        wifi_sta_config.get("hostname")->updateString(default_hostname);
+    }
+
+    if(!api.restorePersistentConfig("wifi/ap_config", &wifi_ap_config)) {
+        wifi_ap_config.get("hostname")->updateString(default_hostname);
+        wifi_ap_config.get("ssid")->updateString(default_hostname);
+        wifi_ap_config.get("passphrase")->updateString(default_passphrase);
+    }
+
+    wifi_ap_config_in_use = wifi_ap_config;
+    wifi_sta_config_in_use = wifi_sta_config;
+
     WiFi.persistent(false);
 
     WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -354,34 +366,6 @@ void Wifi::setup()
 
         WiFi.disconnect(false, true);
     }, SYSTEM_EVENT_STA_LOST_IP);
-
-    if(SPIFFS.exists("/wifi_sta_config.json")) {
-        File file = SPIFFS.open("/wifi_sta_config.json");
-        String error = wifi_sta_config.update_from_file(file);
-        file.close();
-        if(error != "")
-            logger.printfln(error.c_str());
-    } else {
-        wifi_sta_config.get("hostname")->updateString(default_hostname);
-    }
-
-    if(SPIFFS.exists("/wifi_ap_config.json")) {
-        File file = SPIFFS.open("/wifi_ap_config.json");
-        String error = wifi_ap_config.update_from_file(file);
-        file.close();
-        if(error != "")
-            logger.printfln(error.c_str());
-    } else {
-        wifi_ap_config.get("hostname")->updateString(default_hostname);
-        wifi_ap_config.get("ssid")->updateString(default_hostname);
-        wifi_ap_config.get("passphrase")->updateString(default_passphrase);
-        File file = SPIFFS.open("/wifi_ap_config.json", "w");
-        wifi_ap_config.save_to_file(file);
-        file.close();
-    }
-
-    wifi_ap_config_in_use = wifi_ap_config;
-    wifi_sta_config_in_use = wifi_sta_config;
 
     bool enable_ap = wifi_ap_config_in_use.get("enable_ap")->asBool();
     bool enable_sta = wifi_sta_config_in_use.get("enable_sta")->asBool();
