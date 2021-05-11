@@ -370,15 +370,46 @@ def now():
 
 def main():
     global uids
+    global PORT
 
-    if len(sys.argv) != 2:
-        print("Usage: {} [test_firmware]")
+    if len(sys.argv) not in [2, 3, 4]:
+        print("Usage: {} [[--reflash port] test_firmware] [--bootloader port]")
         sys.exit(0)
+
+    if "--bootloader" in sys.argv:
+        port_idx = sys.argv.index("--bootloader") + 1
+        PORT = sys.argv[port_idx]
+        # TODO: use argparse
+        sys.argv = sys.argv[:port_idx - 1] + sys.argv[port_idx + 1:]
+        output = esptool(['--port', PORT, '--after', 'no_reset', 'chip_id'])
+        return
+
+    if "--reflash" in sys.argv:
+        reflash = True
+        port_idx = sys.argv.index("--reflash") + 1
+        PORT = sys.argv[port_idx]
+        # TODO: use argparse
+        sys.argv = sys.argv[:port_idx - 1] + sys.argv[port_idx + 1:]
 
     if not os.path.exists(sys.argv[1]):
         print("Test firmware {} not found.".format(sys.argv[1]))
 
     result = {"start": now()}
+
+    if reflash:
+        set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
+        if set_voltage_fuses or set_block_3:
+            print("This ESP was not provisioned yet!")
+            sys.exit(-1)
+
+        ssid = "warp-" + uid
+        result["uid"] = uid
+        result["test_firmware"] = sys.argv[1]
+        flash_firmware(sys.argv[1])
+        result["end"] = now()
+        with open("{}_{}_report_stage_1_reflash.json".format(ssid, now().replace(":", "-")), "w") as f:
+            json.dump(result, f, indent=4)
+        return
 
     try:
         with socket.create_connection((PRINTER_HOST, PRINTER_PORT)):
