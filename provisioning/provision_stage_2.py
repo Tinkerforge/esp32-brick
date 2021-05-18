@@ -916,7 +916,7 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
 
     result["diode_checked"] = True
 
-    configured, incoming, outgoing = evse.get_max_charging_current()
+    configured, incoming, outgoing, managed = evse.get_max_charging_current()
     if qr_power == "11" and outgoing != 20000:
         fatal_error("Wrong type 2 cable config detected: Allowed current is {} but expected 20 A, as this is a 11 kW box.".format(outgoing / 1000))
     if qr_power == "22" and outgoing != 32000:
