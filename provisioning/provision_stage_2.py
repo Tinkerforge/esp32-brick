@@ -1101,8 +1101,8 @@ def main():
         ssid = "warp-" + uid
 
         print("Waiting for ESP wifi. Takes about one minute.")
-        if not wait_for_wifi(ssid, 90):
-            fatal_error("ESP wifi not found after 90 seconds")
+        if not wait_for_wifi(ssid, 120):
+            fatal_error("ESP wifi not found after 120 seconds")
 
         with wifi(ssid, passphrase):
             ipcon = IPConnection()
@@ -1158,8 +1158,8 @@ def main():
         ssid = "warp-" + uid
 
         print("Waiting for ESP wifi. Takes about one minute.")
-        if not wait_for_wifi(ssid, 90):
-            fatal_error("ESP wifi not found after 90 seconds")
+        if not wait_for_wifi(ssid, 120):
+            fatal_error("ESP wifi not found after 120 seconds")
     else:
         ssid = "warp-" + result["evse_uid"]
 
