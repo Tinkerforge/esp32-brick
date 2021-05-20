@@ -372,55 +372,19 @@ def main():
     global uids
     global PORT
 
-    return
-
-    if len(sys.argv) not in [2, 3, 4]:
-        print("Usage: {} [[--reflash port] test_firmware] [--bootloader port]")
+    if len(sys.argv) != 3:
+        print("Usage: {} test_firmware port")
         sys.exit(0)
-
-    if "--bootloader" in sys.argv:
-        port_idx = sys.argv.index("--bootloader") + 1
-        PORT = sys.argv[port_idx]
-        # TODO: use argparse
-        sys.argv = sys.argv[:port_idx - 1] + sys.argv[port_idx + 1:]
-        output = esptool(['--port', PORT, '--after', 'no_reset', 'chip_id'])
-        return
-
-    reflash = "--reflash" in sys.argv
-
-    if reflash:
-        reflash = True
-        port_idx = sys.argv.index("--reflash") + 1
-        PORT = sys.argv[port_idx]
-        # TODO: use argparse
-        sys.argv = sys.argv[:port_idx - 1] + sys.argv[port_idx + 1:]
 
     if not os.path.exists(sys.argv[1]):
         print("Test firmware {} not found.".format(sys.argv[1]))
-
+    
+    PORT = sys.argv[2]
+    
+    if not os.path.exists(PORT):
+        print("Port {} not found.".format(PORT))
+    
     result = {"start": now()}
-
-    if reflash:
-        set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
-        if set_voltage_fuses or set_block_3:
-            print("This ESP was not provisioned yet!")
-            sys.exit(-1)
-
-        ssid = "warp-" + uid
-        result["uid"] = uid
-        result["test_firmware"] = sys.argv[1]
-        flash_firmware(sys.argv[1])
-        result["end"] = now()
-        with open("{}_{}_report_stage_1_reflash.json".format(ssid, now().replace(":", "-")), "w") as f:
-            json.dump(result, f, indent=4)
-        return
-
-    try:
-        with socket.create_connection((PRINTER_HOST, PRINTER_PORT)):
-            print("Label printer is online")
-    except:
-        if input("Failed to reach label printer. Continue anyway? [y/n]") != "y":
-            sys.exit(0)
 
     print("Checking ESP state")
     mac_address = check_if_esp_is_sane_and_get_mac()
@@ -435,7 +399,7 @@ def main():
 
     uid, passphrase = handle_block3_fuses(set_block_3, uid, passphrase)
 
-    if set_voltage_fuses or set_block_3:
+    if handle_voltage_fuses or handle_block3_fuses:
         print("Verifying eFuses")
         _set_voltage_fuses, _set_block_3, _passphrase, _uid = get_espefuse_tasks()
         if _set_voltage_fuses:
@@ -465,94 +429,9 @@ def main():
 
     ssid = "warp-" + uid
 
-    run(["systemctl", "restart", "NetworkManager.service"])
-
-    print("Waiting for ESP wifi. Takes about one minute.")
-    if not wait_for_wifi(ssid, 90):
-        print("ESP wifi not found after 90 seconds")
-        sys.exit(0)
-
-    print("Testing ESP Wifi.")
-    with wifi(ssid, passphrase):
-        ipcon = IPConnection()
-        ipcon.connect("10.0.0.1", 4223)
-        result["wifi_test_successful"] = True
-        print("Connected. Testing bricklet ports")
-        # Register Enumerate Callback
-        ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, cb_enumerate)
-
-        # Trigger Enumerate
-        ipcon.enumerate()
-        start = time.time()
-        while time.time() - start < 5:
-            if len(uids) == 6:
-                break
-            time.sleep(0.1)
-
-        if len(uids) != 6:
-            print("Expected 6 RGB LED 2.0 bricklets but found {}".format(len(uids)))
-            sys.exit(0)
-
-        uids = sorted(uids, key=lambda x: x[0])
-
-        bricklets = [(uid[0], BrickletRGBLEDV2(uid[1], ipcon)) for uid in uids]
-        error_count = 0
-        for bricklet_port, rgb in bricklets:
-            rgb.set_rgb_value(127, 127, 0)
-            time.sleep(0.5)
-            if rgb.get_rgb_value() == (127, 127, 0):
-                rgb.set_rgb_value(0, 127, 0)
-            else:
-                print("Setting color failed on port {}.".format(bricklet_port))
-                error_count += 1
-
-        if error_count != 0:
-            sys.exit(0)
-
-        result["bricklet_port_test_successful"] = True
-
-        stop_event = threading.Event()
-        blink_thread = threading.Thread(target=blink_thread_fn, args=([x[1] for x in bricklets], stop_event))
-        blink_thread.start()
-        input("Bricklet ports seem to work. Press any key to continue")
-        stop_event.set()
-        blink_thread.join()
-        ipcon.disconnect()
-
-    led0 = input("Does LED 0 blink blue? [y/n]")
-    while led0 != "y" and led0 != "n":
-        led0 = input("Does LED 0 blink blue? [y/n]")
-    result["led0_test_successful"] = led0 == "y"
-    if led0 == "n":
-        print("LED 0 does not work")
-        sys.exit(0)
-
-    led1 = input("Press IO0 button (for max 3 seconds). Does LED 1 glow green? [y/n]")
-    while led1 != "y" and led1 != "n":
-        led1 = input("Press IO0 Button (for max 3 seconds). Does LED 1 glow green? [y/n]")
-    result["led1_io0_test_successful"] = led1 == "y"
-    if led1 == "n":
-        print("LED 1 or IO0 button does not work")
-        sys.exit(0)
-
-    led0_stop = input("Press EN button. Does LED 0 stop blinking for some seconds? [y/n]")
-    while led0_stop != "y" and led0_stop != "n":
-        led0_stop = input("Press EN button. Does LED 0 stop blinking for some seconds? [y/n]")
-    result["enable_test_successful"] = led0_stop == "y"
-    if led0_stop == "n":
-        print("EN button does not work")
-        sys.exit(0)
-
-    result["tests_successful"] = True
-
-    run(["python3", "print-esp32-label.py", ssid, passphrase, "-c", "3"])
-    label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
-    while label_success != "y" and label_success != "n":
-        label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
-    result["labels_printed"] = label_success == "y"
     result["end"] = now()
 
-    with open("{}_{}_report_stage_0+1.json".format(ssid, now().replace(":", "-")), "w") as f:
+    with open("{}_{}_report_stage_0.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
 
 if __name__ == "__main__":

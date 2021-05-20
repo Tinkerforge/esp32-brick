@@ -372,48 +372,11 @@ def main():
     global uids
     global PORT
 
-    return
-
-    if len(sys.argv) not in [2, 3, 4]:
-        print("Usage: {} [[--reflash port] test_firmware] [--bootloader port]")
+    if len(sys.argv) != 1:
+        print("Usage: {}")
         sys.exit(0)
 
-    if "--bootloader" in sys.argv:
-        port_idx = sys.argv.index("--bootloader") + 1
-        PORT = sys.argv[port_idx]
-        # TODO: use argparse
-        sys.argv = sys.argv[:port_idx - 1] + sys.argv[port_idx + 1:]
-        output = esptool(['--port', PORT, '--after', 'no_reset', 'chip_id'])
-        return
-
-    reflash = "--reflash" in sys.argv
-
-    if reflash:
-        reflash = True
-        port_idx = sys.argv.index("--reflash") + 1
-        PORT = sys.argv[port_idx]
-        # TODO: use argparse
-        sys.argv = sys.argv[:port_idx - 1] + sys.argv[port_idx + 1:]
-
-    if not os.path.exists(sys.argv[1]):
-        print("Test firmware {} not found.".format(sys.argv[1]))
-
     result = {"start": now()}
-
-    if reflash:
-        set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
-        if set_voltage_fuses or set_block_3:
-            print("This ESP was not provisioned yet!")
-            sys.exit(-1)
-
-        ssid = "warp-" + uid
-        result["uid"] = uid
-        result["test_firmware"] = sys.argv[1]
-        flash_firmware(sys.argv[1])
-        result["end"] = now()
-        with open("{}_{}_report_stage_1_reflash.json".format(ssid, now().replace(":", "-")), "w") as f:
-            json.dump(result, f, indent=4)
-        return
 
     try:
         with socket.create_connection((PRINTER_HOST, PRINTER_PORT)):
@@ -428,40 +391,12 @@ def main():
     result["mac"] = mac_address
 
     set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
-    result["set_voltage_fuses"] = set_voltage_fuses
-    result["set_block_3"] = set_block_3
-
-    handle_voltage_fuses(set_voltage_fuses)
-
-    uid, passphrase = handle_block3_fuses(set_block_3, uid, passphrase)
-
     if set_voltage_fuses or set_block_3:
-        print("Verifying eFuses")
-        _set_voltage_fuses, _set_block_3, _passphrase, _uid = get_espefuse_tasks()
-        if _set_voltage_fuses:
-            print("Failed to verify voltage eFuses! Are they burned in yet?")
-            sys.exit(0)
+        print("Fuses are not set. Re-run stage 0!")
 
-        if _set_block_3:
-            print("Failed to verify block 3 eFuses! Are they burned in yet?")
-            sys.exit(0)
-
-        if _passphrase != passphrase:
-            print("Failed to verify block 3 eFuses! Passphrase is not the expected value")
-            sys.exit(0)
-
-        if _uid != uid:
-            print("Failed to verify block 3 eFuses! UID {} is not the expected value {}".format(_uid, uid))
-            sys.exit(0)
+    esptool(["--after", "hard_reset", "chip_id"])
 
     result["uid"] = uid
-
-    print("Erasing flash")
-    erase_flash()
-
-    print("Flashing test firmware")
-    flash_firmware(sys.argv[1])
-    result["test_firmware"] = sys.argv[1]
 
     ssid = "warp-" + uid
 
@@ -552,7 +487,7 @@ def main():
     result["labels_printed"] = label_success == "y"
     result["end"] = now()
 
-    with open("{}_{}_report_stage_0+1.json".format(ssid, now().replace(":", "-")), "w") as f:
+    with open("{}_{}_report_stage_1.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
 
 if __name__ == "__main__":
