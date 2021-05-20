@@ -384,7 +384,9 @@ def main():
         output = esptool(['--port', PORT, '--after', 'no_reset', 'chip_id'])
         return
 
-    if "--reflash" in sys.argv:
+    reflash = "--reflash" in sys.argv
+
+    if reflash:
         reflash = True
         port_idx = sys.argv.index("--reflash") + 1
         PORT = sys.argv[port_idx]
