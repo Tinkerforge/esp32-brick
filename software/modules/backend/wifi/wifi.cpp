@@ -307,8 +307,8 @@ void Wifi::setup()
 
     WiFi.persistent(false);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
-            uint8_t reason_code = info.disconnected.reason;
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
+            uint8_t reason_code = info.wifi_sta_disconnected.reason;
             const char *reason = reason2str(reason_code);
             if(!this->was_connected) {
                 logger.printfln("Failed to connect to %s: %s (%u)", wifi_sta_config_in_use.get("ssid")->asString().c_str(), reason, reason_code);
@@ -318,22 +318,22 @@ void Wifi::setup()
             this->was_connected = false;
             api.reconnectDone("wifi disconnected");
         },
-        SYSTEM_EVENT_STA_DISCONNECTED);
+        ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
             if(!this->was_connected)
                 api.reconnectDone("wifi connected");
             this->was_connected = true;
 
             logger.printfln("Connected to %s", WiFi.SSID().c_str());
         },
-        SYSTEM_EVENT_STA_CONNECTED);
+        ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
             if(!this->was_connected)
                 api.reconnectDone("wifi got ip");
-            // Sometimes the SYSTEM_EVENT_STA_CONNECTED is not fired.
-            // Instead we get the SYSTEM_EVENT_STA_GOT_IP twice?
+            // Sometimes the ARDUINO_EVENT_WIFI_STA_CONNECTED is not fired.
+            // Instead we get the ARDUINO_EVENT_WIFI_STA_GOT_IP twice?
             // Make sure that the state is set to connected here,
             // or else MQTT will never attempt to connect.
             this->was_connected = true;
@@ -348,9 +348,9 @@ void Wifi::setup()
 
             api.wifiAvailable();
         },
-        SYSTEM_EVENT_STA_GOT_IP);
+        ARDUINO_EVENT_WIFI_STA_GOT_IP);
 
-    WiFi.onEvent([this](WiFiEvent_t event, WiFiEventInfo_t info) {
+    WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
         if(!this->was_connected)
             return;
 
@@ -365,7 +365,7 @@ void Wifi::setup()
         wifi_state.get("sta_bssid")->updateString("");
 
         WiFi.disconnect(false, true);
-    }, SYSTEM_EVENT_STA_LOST_IP);
+    }, ARDUINO_EVENT_WIFI_STA_LOST_IP);
 
     bool enable_ap = wifi_ap_config_in_use.get("enable_ap")->asBool();
     bool enable_sta = wifi_sta_config_in_use.get("enable_sta")->asBool();
