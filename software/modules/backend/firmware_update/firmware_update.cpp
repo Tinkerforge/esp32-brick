@@ -196,6 +196,7 @@ void FirmwareUpdate::register_urls()
 
 void FirmwareUpdate::loop()
 {
+    /*
     bool btn0 = digitalRead(0);
     if (!factory_reset_running)
         digitalWrite(GREEN_LED, btn0);
@@ -211,4 +212,5 @@ void FirmwareUpdate::loop()
         last_btn_change = millis();
         factory_reset();
     }
+    */
 }
