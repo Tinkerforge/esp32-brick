@@ -25,7 +25,7 @@ rnd = secrets.SystemRandom()
 
 PORT = '/dev/ttyUSB0'
 
-PRINTER_HOST = 'BP730i'
+PRINTER_HOST = '192.168.178.242'
 PRINTER_PORT = 9100
 
 @contextmanager
