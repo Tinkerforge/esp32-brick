@@ -31,15 +31,24 @@ interface AuthenticationConfig {
 
 function update_authentication_config(config: AuthenticationConfig) {
     $('#authentication_enable').prop("checked", config.enable_auth);
+
     $('#authentication_username').val(config.username);
-    // omit password
+    $('#authentication_username').prop("disabled", !config.enable_auth);
+    $('#authentication_username').prop("required", !config.enable_auth);
+
+    $('#authentication_password').prop("disabled", !config.enable_auth);
+    $('#authentication_password').prop("required", !config.enable_auth);
+    $('#authentication_password').prop("placeholder", config.enable_auth ? __("util.unchanged") : "");
+
+    $('#authentication_show_password').prop("disabled", !config.enable_auth);
+    $('#authentication_show_password').val(false);
 }
 
 function save_authentication_config() {
     let payload: AuthenticationConfig = {
         enable_auth: $('#authentication_enable').is(':checked'),
         username: $('#authentication_username').val().toString(),
-        password: util.passwordUpdate($('#authentication_password').val().toString()),
+        password: util.passwordUpdate('#authentication_password'),
     };
 
     $.ajax({
@@ -54,8 +63,31 @@ function save_authentication_config() {
 
 
 export function init() {
-    let button = <HTMLButtonElement>document.getElementById("authentication_show_password");
-    button.addEventListener("change", util.toggle_password_fn("#authentication_password"));
+    let show_button = <HTMLButtonElement>document.getElementById("authentication_show_password");
+    show_button.addEventListener("change", util.toggle_password_fn("#authentication_password"));
+
+    let auth_button = <HTMLButtonElement>document.getElementById("authentication_enable");
+    auth_button.addEventListener("change", (ev: Event) => {
+        let x = <HTMLInputElement>ev.target;
+        $('#authentication_username').prop("disabled", !x.checked);
+        $('#authentication_password').prop("disabled", !x.checked);
+        $('#authentication_show_password').prop("disabled", !x.checked);
+        if (!x.checked) {
+            $('#authentication_show_password').prop("checked", false);
+        }
+
+        $('#authentication_password').val('');
+        let auth_placeholder = "";
+
+        if (!$('#authentication_password').prop("required"))
+            // If the field is not required, a password is currently stored.
+            // if auth is to be enabled, the stored password can be used (-> unchanged if empty)
+            // if auth is to be disabled, the stored password will be cleared
+            auth_placeholder = x.checked ?  __("util.unchanged") : __("util.to_be_cleared");
+
+        $('#authentication_password').attr("placeholder", auth_placeholder);
+    });
+
 
     let form = <HTMLFormElement>$('#authentication_config_form')[0];
     form.addEventListener('submit', function (event: Event) {
@@ -103,13 +135,13 @@ export function getTranslation(lang: string) {
                     "enable_authentication_desc": "Wenn aktiviert, muss beim Aufrufen des Webinterfaces oder bei Verwendung der HTTP-API eine Anmeldung mit den konfigurierten Zugangsdaten durchgeführt werden.",
                     "username": "Benutzername",
                     "password": "Passwort",
-                    "unchanged": "Unverändert",
-                    "show_password": "Anzeigen",
                     "save": "Speichern",
                     "reboot_title": "Neu starten um Konfiguration anzuwenden",
                     "reboot_content": "Die geänderten Zugangsdaten werden nur nach einem Neustart angewendet. Jetzt neu starten?",
                     "abort": "Abbrechen",
-                    "reboot": "Neu starten"
+                    "reboot": "Neu starten",
+                    "username_invalid": "Der Benutzername darf nicht leer sein.",
+                    "password_invalid": "Das Passwort darf nicht leer sein.",
                 },
                 "script": {
                     "save_failed": "Speichern der Zugangsdaten fehlgeschlagen.",
@@ -130,8 +162,6 @@ export function getTranslation(lang: string) {
                     "enable_authentication_desc": "If activated, the configured credentials must be entered to open the web interface or use the HTTP API.",
                     "username": "Username",
                     "password": "Password",
-                    "unchanged": "Unchanged",
-                    "show_password": "Show",
                     "save": "Save",
                     "reboot_title": "Reboot to apply configuration",
                     "reboot_content": "The changed credentials will only be applied after rebooting. Reboot now?",

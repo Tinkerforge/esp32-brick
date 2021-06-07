@@ -20,6 +20,17 @@ Authentication::Authentication()
         {"enable_auth", Config::Bool(false)},
         {"username", Config::Str("", 64)},
         {"password", Config::Str("", 64)},
+    }, [](Config::ConfObject &update) {
+        if (update.get("enable_auth")->asBool() && update.get("password")->asString() == "")
+            return String("Authentication can not be enabled if no password is set.");
+
+        if (update.get("enable_auth")->asBool() && update.get("username")->asString() == "")
+            return String("Authentication can not be enabled if no username is set.");
+
+        if (!update.get("enable_auth")->asBool() && update.get("password")->asString() != "")
+            update.get("password")->updateString("");
+
+        return String("");
     });
 }
 

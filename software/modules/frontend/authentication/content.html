@@ -24,7 +24,8 @@
             <label for="authentication_username"
                 class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="authentication.content.username"></label>
             <div class="col-lg-9 col-xl-6">
-                <input id="authentication_username" class="form-control" type="text">
+                <input id="authentication_username" class="form-control" type="text" maxlength="63">
+                <div class="invalid-feedback" data-i18n="authentication.content.username_invalid"></div>
             </div>
         </div>
 
@@ -32,13 +33,14 @@
             <label for="authentication_password" class="col-lg-3 col-xl-2 col-form-label form-label" data-i18n="authentication.content.password"></label>
             <div class="col-lg-9 col-xl-6">
                 <div class="input-group">
-                    <input type="password" id="authentication_password" class="form-control" value="" placeholder="" data-i18n="authentication.content.unchanged" data-i18n-attr="placeholder"/>
+                    <input type="password" id="authentication_password" class="form-control" value="" placeholder="" data-i18n="authentication.content.unchanged" data-i18n-attr="placeholder" maxlength="63"/>
                     <div class="input-group-append">
                         <div class="input-group-text custom-control custom-switch" style="padding-left: 2.5rem;">
-                            <input id="authentication_show_password" type="checkbox" class="custom-control-input" aria-label="Show password" value="test">
-                            <label class="custom-control-label" for="authentication_show_password" data-i18n="authentication.content.show_password"></label>
+                            <input id="authentication_show_password" type="checkbox" class="custom-control-input" aria-label="Show password">
+                            <label class="custom-control-label" for="authentication_show_password" style="line-height: 20px;"><span data-feather="eye"></span></label>
                         </div>
                     </div>
+                    <div class="invalid-feedback" data-i18n="authentication.content.password_invalid"></div>
                 </div>
             </div>
         </div>
