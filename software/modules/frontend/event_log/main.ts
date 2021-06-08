@@ -26,7 +26,7 @@ declare function __(s: string): string;
 function load_event_log() {
     $.get("/event_log")
                .done((result) => {$('#event_log_content').html(result)})
-               .fail((xhr, status, error) => util.show_alert("alert-danger", __("firmware_update.script.load_event_report_error"), error + ": " + xhr.responseText))
+               .fail((xhr, status, error) => util.show_alert("alert-danger", __("event_log.script.load_event_report_error"), error + ": " + xhr.responseText))
 }
 
 let update_event_log_interval: number = null;
@@ -75,18 +75,16 @@ export function getTranslation(lang: string) {
                     "debug_report": "Debug-Report",
                     "debug_report_desc": "Ein kompletter Report aller Statusinformationen des Geräts außer Passwörtern",
                     "event_log_placeholder": "Ereignis-Log...",
-                    "load_event_log": "Log laden",
-                    "load_event_log_desc": "Lädt das aktuelle Ereignis-Log",
                     "save_event_log": "Log speichern",
                     "save_event_log_desc": "Speichert das aktuelle Ereignis-Log",
                 },
                 "script": {
-
+                    "load_event_report_error": "Konnte Ereignis-Log nicht laden",
                 }
             }
         },
         "en": {
-            "firmware_update": {
+            "event_log": {
                 "status": {
 
                 },
@@ -98,13 +96,11 @@ export function getTranslation(lang: string) {
                     "debug_report": "Debug report",
                     "debug_report_desc": "A complete report of all status information of this device except passwords",
                     "event_log_placeholder": "Event Log...",
-                    "load_event_log": "Load Log",
-                    "load_event_log_desc": "Downloads the current event log",
                     "save_event_log": "Save Log",
                     "save_event_log_desc": "Saves the current event log",
                 },
                 "script": {
-
+                    "load_event_report_error": "Failed to load event log",
                 }
             }
         }

@@ -167,6 +167,8 @@ export function getTranslation(lang: string) {
                     "reboot_content": "The changed credentials will only be applied after rebooting. Reboot now?",
                     "abort": "Abort",
                     "reboot": "Reboot",
+                    "username_invalid": "An empty username is not allowed.",
+                    "password_invalid": "An empty password is not allowed.",
                 },
                 "script": {
                     "save_failed": "Failed to save the credentials.",

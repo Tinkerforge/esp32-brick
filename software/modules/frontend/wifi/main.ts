@@ -481,7 +481,6 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "sta_settings": "WLAN-Verbindungs&shy;einstellungen",
-                    "client_configuration": "Verbindungs&shy;einstellungen",
                     "sta_enable_sta": "Verbindung aktiviert",
                     "sta_enable_sta_desc": "Wenn aktiviert, verbindet sich das Gerät beim Start automatisch zum konfigurierten Netzwerk.",
                     "sta_ssid": "Netzwerkname (SSID)",
@@ -493,7 +492,6 @@ export function getTranslation(lang: string) {
                     "sta_bssid_lock_desc": "Verbinde nur zur konfigurierten BSSID. Bei Einsatz mehrerer Access Points und/oder Repeater mit demselben Netzwerknamen wird so immer derselbe AP oder Repeater verwendet.",
                     "sta_passphrase": "Passphrase",
                     "sta_passphrase_invalid": "Die Passphrase muss zwischen 8 und 63 ASCII-Zeichen lang sein.",
-                    "sta_show_passphrase": "Anzeigen",
                     "sta_hostname": "Hostname",
                     "sta_hostname_invalid": "Der Hostname darf nur aus den Groß- und Kleinbuchstaben A-Z und a-z, sowie den Ziffern 0-9 und Bindestrichen bestehen. Zum Beispiel warp-A1c",
                     "sta_ip_configuration": "IP-Konfiguration",
@@ -506,7 +504,6 @@ export function getTranslation(lang: string) {
                     "abort": "Abbrechen",
                     "reboot": "Neu starten",
 
-                    "static_title": "Statische IP-Konfiguration",
                     "static_ip": "IP-Adresse",
                     "subnet": "Subnetzmaske",
                     "gateway": "Gateway",
@@ -529,7 +526,6 @@ export function getTranslation(lang: string) {
                     "ap_hide_ssid_desc_post": " erreichbar.",
                     "ap_passphrase": "Passphrase",
                     "ap_passphrase_invalid": "Die Passphrase muss zwischen 8 und 63 ASCII-Zeichen lang sein.",
-                    "ap_show_passphrase": "Anzeigen",
                     "ap_hostname": "Hostname",
                     "ap_hostname_invalid": "Der Hostname darf nur aus den Groß- und Kleinbuchstaben A-Z und a-z, sowie den Ziffern 0-9 und Bindestrichen bestehen. Zum Beispiel warp-A1c",
                     "ap_channel": "<span class=\"form-label pr-2\">Kanal</span><span class=\"text-muted\">ignoriert wenn WLAN-Verbindung aktiv ist</span>",
@@ -550,8 +546,6 @@ export function getTranslation(lang: string) {
 
                     "sta_config_failed": "Speichern der Verbindungseinstellungen fehlgeschlagen.",
                     "ap_config_failed": "Speichern der Access Point-Einstellungen fehlgeschlagen.",
-                    "wifi_connection": "WLAN-Verbindung",
-                    "wifi_connection_pre": "WLAN-Verbindung zu",
                     "no_ap_configured": "Keine Verbindung konfiguriert"
                 }
             }
@@ -576,7 +570,6 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "sta_settings": "WiFi Connection Settings",
-                    "client_configuration": "Connection configuration",
                     "sta_enable_sta": "Connection enabled",
                     "sta_enable_sta_desc": "Automatically connects to the configured network on start-up if activated.",
                     "sta_ssid": "Network name (SSID)",
@@ -588,7 +581,6 @@ export function getTranslation(lang: string) {
                     "sta_bssid_lock_desc": "Connect only to the network with the configured BSSID. Leave disabled if you use multiple access points or repeaters with with the same network name.",
                     "sta_passphrase": "Passphrase",
                     "sta_passphrase_invalid": "The passphrase must be 8-63 ASCII characters.",
-                    "sta_show_passphrase": "Show",
                     "sta_hostname": "Hostname",
                     "sta_hostname_invalid": "The hostname must contain only upper and lower case letters A-Z and a-z the digits 0-9 or dashes. For example warp-A1c",
                     "sta_ip_configuration": "IP Configuration",
@@ -601,7 +593,6 @@ export function getTranslation(lang: string) {
                     "abort": "Abort",
                     "reboot": "Reboot",
 
-                    "static_title": "Static IP Configuration",
                     "static_ip": "IP Address",
                     "subnet": "Subnet Mask",
                     "gateway": "Gateway",
@@ -624,7 +615,6 @@ export function getTranslation(lang: string) {
                     "ap_hide_ssid_desc_post": ".",
                     "ap_passphrase": "Passphrase",
                     "ap_passphrase_invalid": "The passphrase must be 8-63 ASCII characters.",
-                    "ap_show_passphrase": "Show",
                     "ap_hostname": "Hostname",
                     "ap_hostname_invalid": "The hostname must contain only upper and lower case letters A-Z and a-z the digits 0-9 or dashes. For example warp-A1c",
                     "ap_channel": "<span class=\"form-label pr-2\">Channel</span><span class=\"text-muted\">ignored if WiFi connection is active</span>",
@@ -645,8 +635,6 @@ export function getTranslation(lang: string) {
 
                     "sta_config_failed": "Failed to save connection configuration.",
                     "ap_config_failed": "Failed to save access point configuration.",
-                    "wifi_connection": "WiFi Connection",
-                    "wifi_connection_pre": "WiFi Connection to",
                     "no_ap_configured": "No connection configured"
                 }
             }

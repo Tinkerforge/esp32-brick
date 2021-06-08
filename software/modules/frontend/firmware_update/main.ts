@@ -81,10 +81,10 @@ function upload(e: JQuery.SubmitEvent, type: string) {
         error: (xhr, status, error) => {
             progress.prop("hidden", true);
             select.prop("hidden", false);
-            if (__(xhr.responseText) == null)
-                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
+            if (xhr.status == 423)
+                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), __("firmware_update.script.vehicle_connected"));
             else
-                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), __(xhr.responseText));
+                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
         }
     });
 }
@@ -148,7 +148,6 @@ export function getTranslation(lang: string) {
                     "flash": "Firmware-Aktualisierung"
                 },
                 "content": {
-                    "system": "System",
                     "current_firmware": "Firmware-Version",
                     "firmware_update": "Firmware-Aktualisierung",
                     "browse": "Durchsuchen",
@@ -182,7 +181,6 @@ export function getTranslation(lang: string) {
                     "flash": "Firmware Update"
                 },
                 "content": {
-                    "system": "System",
                     "current_firmware": "Firmware version",
                     "firmware_update": "Firmware Update",
                     "browse": "Browse",
@@ -195,6 +193,8 @@ export function getTranslation(lang: string) {
                     "factory_reset_modal_text": "A factory reset will reset all configuration to their default values. <b>This action cannot be undone!</b> The wallbox will re-open the WiFi access point with the default SSID and passphrase. Are you sure?",
                     "abort_reset": "Abort",
                     "confirm_reset": "Restore",
+                    "reboot": "Reboot",
+                    "reboot_desc": "Restarts the web interface. Charging will not be interrupted."
                 },
                 "script": {
                     "flash_success": "Successfully updated; restarting...",

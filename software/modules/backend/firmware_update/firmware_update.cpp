@@ -101,7 +101,7 @@ void FirmwareUpdate::register_urls()
 
     server.on("/flash_firmware", HTTP_POST, [this](AsyncWebServerRequest *request){
         if (!firmware_update_allowed) {
-            AsyncWebServerResponse *response = request->beginResponse(400, "text/plain", "firmware_update.script.vehicle_connected");
+            AsyncWebServerResponse *response = request->beginResponse(423, "text/plain", "vehicle connected");
             response->addHeader("Connection", "close");
             request->send(response);
             return;
@@ -118,7 +118,7 @@ void FirmwareUpdate::register_urls()
     },[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
         if (!firmware_update_allowed) {
             if(final) {
-                AsyncWebServerResponse *response = request->beginResponse(413, "text/plain", "firmware_update.script.vehicle_connected");
+                AsyncWebServerResponse *response = request->beginResponse(423, "text/plain", "vehicle connected");
                 response->addHeader("Connection", "close");
                 request->send(response);
             }

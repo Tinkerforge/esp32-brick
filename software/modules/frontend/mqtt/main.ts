@@ -154,14 +154,9 @@ export function getTranslation(lang: string) {
                     "reboot_content": "Die geänderten MQTT-Einstellungen werden nur nach einem Neustart angewendet. Jetzt neu starten?",
                     "abort": "Abbrechen",
                     "reboot": "Neu starten",
-                    "show_password": "Anzeigen",
-
-                    "unchanged": "unverändert",
-                    "clear_password": "Löschen"
                 },
                 "script": {
                     "save_failed": "Speichern der MQTT-Einstellungen fehlgeschlagen.",
-                    "to": "zu"
                 }
             }
         },
@@ -193,14 +188,9 @@ export function getTranslation(lang: string) {
                     "reboot_content": "The changed MQTT configuration will only be applied after rebooting. Reboot now?",
                     "abort": "Abort",
                     "reboot": "Reboot",
-                    "show_password": "Show",
-
-                    "unchanged": "unchanged",
-                    "clear_password": "Clear"
                 },
                 "script": {
                     "save_failed": "Failed to save the MQTT configuration.",
-                    "to": "to"
                 }
             }
         }
