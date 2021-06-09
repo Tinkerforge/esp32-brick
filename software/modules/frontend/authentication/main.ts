@@ -41,7 +41,7 @@ function update_authentication_config(config: AuthenticationConfig) {
     $('#authentication_password').prop("placeholder", config.enable_auth ? __("util.unchanged") : "");
 
     $('#authentication_show_password').prop("disabled", !config.enable_auth);
-    $('#authentication_show_password').val(false);
+    $('#authentication_show_password').prop("checked", false);
 }
 
 function save_authentication_config() {

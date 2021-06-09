@@ -85,7 +85,7 @@ function update_wifi_scan_results(data: WifiInfo[]) {
     feather.replace();
 }
 
-let scan_timeout = null;
+let scan_timeout: number = null;
 function scan_wifi() {
     $.ajax({
         url: '/wifi/scan',
