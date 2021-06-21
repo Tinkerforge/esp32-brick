@@ -973,15 +973,15 @@ def main():
         urllib.request.urlretrieve('https://download.tinkerforge.com/firmwares/bricklets/evse/{}'.format(evse_path), os.path.join("firmwares", evse_path))
     evse_path = os.path.join("firmwares", evse_path)
 
-    with urllib.request.urlopen("https://www.warp-charger.com/") as f:
-        warp_charger_page = f.read().decode("utf-8")
+    #with urllib.request.urlopen("https://www.warp-charger.com/") as f:
+    #    warp_charger_page = f.read().decode("utf-8")
 
-    match = re.search(r'<a href="firmwares/(warp_firmware_\d_\d_\d_[0-9a-f]{8}_merged.bin)" class="btn btn-primary btn-lg" id="download_latest_firmware">', warp_charger_page)
-    firmware_path = match.group(1)
+    #match = re.search(r'<a href="firmwares/(warp_firmware_\d_\d_\d_[0-9a-f]{8}_merged.bin)" class="btn btn-primary btn-lg" id="download_latest_firmware">', #warp_charger_page)
+    #firmware_path = match.group(1)
 
-    if not os.path.exists(firmware_path):
-        urllib.request.urlretrieve('https://www.warp-charger.com/firmwares/{}'.format(firmware_path), os.path.join("firmwares", firmware_path))
-    firmware_path = os.path.join("firmwares", firmware_path)
+    #if not os.path.exists(firmware_path):
+    #    urllib.request.urlretrieve('https://www.warp-charger.com/firmwares/{}'.format(firmware_path), os.path.join("firmwares", firmware_path))
+    #firmware_path = os.path.join("firmwares", firmware_path)
 
     #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;O:SO/B2020123;I:1/1;;
     pattern = r'^T:WARP-C(B|S|P)-(11|22)KW-(50|75)(|-CEE);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});O:(SO/B?[0-9]+);I:(\d+/\d+)(?:;E:(\d+))?;;;*$'
@@ -1105,22 +1105,37 @@ def main():
             fatal_error("ESP wifi not found after 120 seconds")
 
         with wifi(ssid, passphrase):
+            try:
+                with urllib.request.urlopen("http://10.0.0.1/hidden_proxy/enable") as f:
+                    f.read()
+            except Exception as e:
+                print("Failed to enable hidden proxy. Flashing new firmware.")
+                print(e)
+                print("Erasing flash")
+                erase_flash()
+
+                print("Flashing firmware")
+                flash_firmware(os.path.join('..','..','..', 'warp_firmware_1_2_3_60cb5c5b_merged.bin'))
+
+                result["firmware"] = "warp_firmware_1_2_3_60cb5c5b_merged.bin"
+
+                run(["systemctl", "restart", "NetworkManager.service"])
+                print("Waiting for ESP wifi. Takes about one minute.")
+                if not wait_for_wifi(ssid, 120):
+                    fatal_error("ESP wifi not found after 120 seconds")
+
+                output = "\n".join(run(["nmcli", "dev", "wifi", "connect", ssid, "password", passphrase]))
+                if "successfully activated with" not in output:
+                    run(["nmcli", "con", "del", ssid])
+                    fatal_error("Failed to connect to wifi.", "nmcli output was:", output)
+
+                with urllib.request.urlopen("http://10.0.0.1/hidden_proxy/enable") as f:
+                    f.read()
+
             ipcon = IPConnection()
             try:
                 ipcon.connect("10.0.0.1", 4223)
             except Exception as e:
-                print("Failed to connect to ESP proxy")
-                print(e)
-                do_flash = my_input("Flash test firmware? [y/n]")
-                while do_flash not in ["y", "n"]:
-                    do_flash = my_input("Flash test firmware? [y/n]", red)
-                if do_flash == "y":
-                    print("Erasing flash")
-                    erase_flash()
-
-                    print("Flashing firmware")
-                    flash_firmware(os.path.join('..','..','..', 'warp_test_firmware_1_2_2_609a7f47_merged.bin'))
-                    print("Firmware flashed. Please re-run the provisioning stage 2 script.")
                 fatal_error("Failed to connect to ESP proxy")
 
             run_bricklet_tests(ipcon, result, qr_variant, qr_power)
@@ -1144,23 +1159,7 @@ def main():
     print("EVSE test report found")
     result["evse_test_report_found"] = True
 
-    if qr_variant != "B":
-        print("Erasing flash")
-        erase_flash()
-
-        print("Flashing firmware")
-        flash_firmware(firmware_path)
-        result["firmware"] = firmware_path
-
-        #input("When LED 0 starts blinking again, press any key.")
-        run(["systemctl", "restart", "NetworkManager.service"])
-
-        ssid = "warp-" + uid
-
-        print("Waiting for ESP wifi. Takes about one minute.")
-        if not wait_for_wifi(ssid, 120):
-            fatal_error("ESP wifi not found after 120 seconds")
-    else:
+    if qr_variant == "B":
         ssid = "warp-" + result["evse_uid"]
 
     result["end"] = now()
