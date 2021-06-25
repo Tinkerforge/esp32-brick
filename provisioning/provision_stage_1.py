@@ -409,6 +409,8 @@ def main():
 
     print("Testing ESP Wifi.")
     with wifi(ssid, passphrase):
+        with urllib.request.urlopen("http://10.0.0.1/hidden_proxy/enable") as f:
+            f.read()
         ipcon = IPConnection()
         ipcon.connect("10.0.0.1", 4223)
         result["wifi_test_successful"] = True
