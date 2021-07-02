@@ -482,16 +482,17 @@ def main():
         raise Exception("exit 1")
 
     result["tests_successful"] = True
-
-    run(["python3", "print-esp32-label.py", ssid, passphrase, "-c", "3"])
-    label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
-    while label_success != "y" and label_success != "n":
-        label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. [y/n]")
-    result["labels_printed"] = label_success == "y"
     result["end"] = now()
 
     with open("{}_{}_report_stage_1.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
+
+    label_success = "n"
+    while label_success != "y":
+        run(["python3", "print-esp32-label.py", ssid, passphrase, "-c", "3"])
+        label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]")
+        while label_success != "y" and label_success != "n":
+            input("Stick one label on the esp, put esp and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]]")
 
 if __name__ == "__main__":
     try:
