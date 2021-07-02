@@ -16,6 +16,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 import urllib.request
 
 from tinkerforge.ip_connection import IPConnection, base58encode, base58decode, BASE58
@@ -57,7 +58,7 @@ def wifi(ssid, passphrase):
         print("Failed to connect to wifi.")
         print("nmcli output was:")
         print(output)
-        sys.exit(0)
+        raise Exception("exit 1")
 
     try:
         yield
@@ -105,7 +106,7 @@ def check_if_esp_is_sane_and_get_mac():
             print("{} was {}, not the expected {}".format(name, val, expected))
             print("esptool output was:")
             print('\n'.join(output))
-            sys.exit(0)
+            raise Exception("exit 1")
 
     return mac
 
@@ -142,26 +143,26 @@ def get_espefuse_tasks():
             print("could not parse line '{}'".format(line))
             print("espefuse output was")
             print('\n'.join(output))
-            sys.exit(0)
+            raise Exception("exit 1")
 
     if any(b is None for b in blocks):
         print("Failed to read eFuses")
         print("Not all blocks where found")
         print("espefuse output was")
         print('\n'.join(output))
-        sys.exit(0)
+        raise Exception("exit 1")
 
     if any(i != 0 for i in blocks[1]):
         print("eFuse block 1 is not empty.")
         print("espefuse output was")
         print('\n'.join(output))
-        sys.exit(0)
+        raise Exception("exit 1")
 
     if any(i != 0 for i in blocks[2]):
         print("eFuse block 2 is not empty.")
         print("espefuse output was")
         print('\n'.join(output))
-        sys.exit(0)
+        raise Exception("exit 1")
 
     voltage_fuses = blocks[0][4] & 0x0001c000
     if voltage_fuses == 0x0001c000:
@@ -172,7 +173,7 @@ def get_espefuse_tasks():
         print("Flash voltage efuses have unexpected value {}".format(voltage_fuses))
         print("espefuse output was")
         print('\n'.join(output))
-        sys.exit(0)
+        raise Exception("exit 1")
 
     block3_bytes = b''.join([r.to_bytes(4, "little") for r in blocks[3]])
     passphrase, uid = block3_to_payload(block3_bytes)
@@ -187,7 +188,7 @@ def get_espefuse_tasks():
             print("parsed passphrase and uid are {}; {}".format(passphrase, uid))
             print("espefuse output was")
             print('\n'.join(output))
-            sys.exit(0)
+            raise Exception("exit 1")
 
     return have_to_set_voltage_fuses, have_to_set_block_3, passphrase, uid
 
@@ -241,7 +242,7 @@ def handle_block3_fuses(set_block_3, uid, passphrase):
             staging_password = f.read().decode('utf-8').split('\n')[0].strip()
     except:
         print('staging_password.txt missing or malformed')
-        sys.exit(0)
+        raise Exception("exit 1")
 
     print("Installing auth_handler")
     if sys.version_info < (3,5,3):
@@ -308,7 +309,7 @@ def erase_flash():
         print("Failed to erase flash.")
         print("esptool output was")
         print(output)
-        sys.exit(0)
+        raise Exception("exit 1")
 
 def flash_firmware(path, reset=True):
     output = "\n".join(esptool(["--port", PORT,
@@ -325,7 +326,7 @@ def flash_firmware(path, reset=True):
         print("Failed to flash firmware.")
         print("esptool output was")
         print(output)
-        sys.exit(0)
+        raise Exception("exit 1")
 
 def wait_for_wifi(ssid, timeout_s):
     start = time.time()
@@ -374,7 +375,7 @@ def main():
 
     if len(sys.argv) != 1:
         print("Usage: {}")
-        sys.exit(0)
+        raise Exception("exit 1")
 
     result = {"start": now()}
 
@@ -383,7 +384,7 @@ def main():
             print("Label printer is online")
     except:
         if input("Failed to reach label printer. Continue anyway? [y/n]") != "y":
-            sys.exit(0)
+            raise Exception("exit 1")
 
     print("Checking ESP state")
     mac_address = check_if_esp_is_sane_and_get_mac()
@@ -405,7 +406,7 @@ def main():
     print("Waiting for ESP wifi. Takes about one minute.")
     if not wait_for_wifi(ssid, 90):
         print("ESP wifi not found after 90 seconds")
-        sys.exit(0)
+        raise Exception("exit 1")
 
     print("Testing ESP Wifi.")
     with wifi(ssid, passphrase):
@@ -428,7 +429,7 @@ def main():
 
         if len(uids) != 6:
             print("Expected 6 RGB LED 2.0 bricklets but found {}".format(len(uids)))
-            sys.exit(0)
+            raise Exception("exit 1")
 
         uids = sorted(uids, key=lambda x: x[0])
 
@@ -444,7 +445,7 @@ def main():
                 error_count += 1
 
         if error_count != 0:
-            sys.exit(0)
+            raise Exception("exit 1")
 
         result["bricklet_port_test_successful"] = True
 
@@ -462,7 +463,7 @@ def main():
     result["led0_test_successful"] = led0 == "y"
     if led0 == "n":
         print("LED 0 does not work")
-        sys.exit(0)
+        raise Exception("exit 1")
 
     led1 = input("Press IO0 button (for max 3 seconds). Does LED 1 glow green? [y/n]")
     while led1 != "y" and led1 != "n":
@@ -470,7 +471,7 @@ def main():
     result["led1_io0_test_successful"] = led1 == "y"
     if led1 == "n":
         print("LED 1 or IO0 button does not work")
-        sys.exit(0)
+        raise Exception("exit 1")
 
     led0_stop = input("Press EN button. Does LED 0 stop blinking for some seconds? [y/n]")
     while led0_stop != "y" and led0_stop != "n":
@@ -478,7 +479,7 @@ def main():
     result["enable_test_successful"] = led0_stop == "y"
     if led0_stop == "n":
         print("EN button does not work")
-        sys.exit(0)
+        raise Exception("exit 1")
 
     result["tests_successful"] = True
 
@@ -493,4 +494,9 @@ def main():
         json.dump(result, f, indent=4)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        traceback.print_exc()
+        input("Press return to exit. ")
+        sys.exit(1)
