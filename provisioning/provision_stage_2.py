@@ -957,6 +957,10 @@ def main():
 
     result = {"start": now()}
 
+    git_user = None
+    if len(sys.argv) == 2:
+        git_user = sys.argv[1]
+
     with urllib.request.urlopen("https://download.tinkerforge.com/latest_versions.txt") as f:
         latest_versions = f.read().decode("utf-8")
 
@@ -1150,9 +1154,11 @@ def main():
 
     print("Checking if EVSE was tested...")
     if not exists_evse_test_report(result["evse_uid"]):
+        if git_user is None:
+            fatal_error("No test report found for EVSE {} and git username is unknown. Please pull the wallbox git.".format(result["evse_uid"]))
         print("No test report found. Checking for new test reports...")
         with ChangedDirectory(os.path.join("..", "..", "wallbox")):
-            run(["git", "pull"])
+            run(["su", git_user, "-c", "git pull"])
         if not exists_evse_test_report(result["evse_uid"]):
             fatal_error("No test report found for EVSE {}.".format(result["evse_uid"]))
 
