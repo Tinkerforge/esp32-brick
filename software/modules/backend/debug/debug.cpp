@@ -48,8 +48,8 @@ void Debug::setup()
 
     task_scheduler.scheduleWithFixedDelay("update_debug_state", [this](){
         debug_state.get("uptime")->updateUint(millis());
-        debug_state.get("free_heap")->updateUint(ESP.getFreeHeap());
-        debug_state.get("largest_free_heap_block")->updateUint(ESP.getMaxAllocHeap());
+        debug_state.get("free_heap")->updateUint(heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
+        debug_state.get("largest_free_heap_block")->updateUint(heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT));
     }, 1000, 1000);
 
     initialized = true;
