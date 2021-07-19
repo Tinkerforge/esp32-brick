@@ -23,24 +23,24 @@
 
 #include <esp_wifi.h>
 
-#include "ArduinoJson.h"
-#include "AsyncJson.h"
-
 #include "task_scheduler.h"
 #include "tools.h"
 #include "api.h"
 #include "event_log.h"
-#include "modules/sse/sse.h"
+#include "web_server.h"
+#include "WiFi.h"
+
+#include "modules/ws/ws.h"
 
 extern EventLog logger;
 
 extern TaskScheduler task_scheduler;
-extern AsyncWebServer server;
+extern WebServer server;
+extern WS ws;
 extern char uid[7];
 extern char passphrase[20];
 
 extern API api;
-extern Sse sse;
 
 Wifi::Wifi() {
     wifi_ap_config = Config::Object({
@@ -476,7 +476,7 @@ void Wifi::check_for_scan_completion() {
     }
     logger.printfln("Scan done. %d networks.", WiFi.scanComplete());
 
-    sse.pushStateUpdate(this->get_scan_results(), "wifi/scan_results");
+    ws.pushStateUpdate(this->get_scan_results(), "wifi/scan_results");
 }
 
 void Wifi::register_urls()
@@ -502,16 +502,16 @@ void Wifi::register_urls()
         }, 500);
     }, true);
 
-    server.on("/wifi/scan_results", HTTP_GET, [this](AsyncWebServerRequest *request) {
+    server.on("/wifi/scan_results", HTTP_GET, [this](WebServerRequest request) {
         int network_count = WiFi.scanComplete();
         String result = this->get_scan_results();
 
         if (network_count < 0) {
-            request->send(200, "text/plain; charset=utf-8", result);
+            request.send(200, "text/plain; charset=utf-8", result.c_str());
         }
 
         logger.printfln("scan done");
-        request->send(200, "application/json; charset=utf-8", result);
+        request.send(200, "application/json; charset=utf-8", result.c_str());
     });
 
     api.addPersistentConfig("wifi/sta_config", &wifi_sta_config, {"passphrase"}, 1000);

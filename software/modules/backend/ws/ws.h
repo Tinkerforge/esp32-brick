@@ -17,41 +17,25 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include "hidden_proxy.h"
+#pragma once
 
-#include "bindings/hal_common.h"
-#include "web_server.h"
+#include "api.h"
+#include "web_sockets.h"
 
-extern TF_HalContext hal;
-extern WebServer server;
+class WS : public IAPIBackend {
+public:
+    WS();
+    void setup();
+    void register_urls();
+    void loop();
 
-HiddenProxy::HiddenProxy()
-{
+    //IAPIBackend implementation
+    void addCommand(CommandRegistration reg);
+    void addState(StateRegistration reg);
+    void pushStateUpdate(String payload, String path);
+    void wifiAvailable();
 
-}
+    bool initialized = false;
 
-void HiddenProxy::setup()
-{
-
-}
-
-void HiddenProxy::register_urls()
-{
-    server.on("/hidden_proxy/enable", HTTP_GET, [this](WebServerRequest request) {
-        tf_hal_set_net(&hal, NULL);
-        tf_net_create(&net, NULL, 0, NULL);
-        tf_hal_set_net(&hal, &net);
-        request.send(200);
-    });
-
-    server.on("/hidden_proxy/disable", HTTP_GET, [this](WebServerRequest request) {
-        tf_hal_set_net(&hal, NULL);
-        tf_net_destroy(&net);
-        request.send(200);
-    });
-}
-
-void HiddenProxy::loop()
-{
-
-}
+    WebSockets web_sockets;
+};

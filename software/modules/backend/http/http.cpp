@@ -19,15 +19,17 @@
 
 #include "http.h"
 
-#include "ESPAsyncWebServer.h"
-#include "AsyncJson.h"
 
 #include "api.h"
 #include "task_scheduler.h"
+#include "web_server.h"
 
 extern API api;
-extern AsyncWebServer server;
+extern WebServer server;
 extern TaskScheduler task_scheduler;
+
+static char recv_buf[4096] = {0};
+static StaticJsonDocument<4096> json_buf;
 
 Http::Http()
 {
@@ -51,25 +53,42 @@ void Http::loop()
 
 void Http::addCommand(CommandRegistration reg)
 {
-    AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler(String("/") + reg.path, [reg](AsyncWebServerRequest *request, JsonVariant &json){
+    server.on((String("/") + reg.path).c_str(), HTTP_PUT, [reg](WebServerRequest request) {
+        //TODO: Use streamed parsing
+        int bytes_written = request.receive(recv_buf, 4096);
+        if (bytes_written == -1) {
+            //buffer was not large enough
+            request.send(413);
+            return;
+        } else if (bytes_written <= 0) {
+            logger.printfln("Failed to receive command payload: error code %d", bytes_written);
+            request.send(400);
+        }
+
+        //json_buf.clear(); // happens implicitly in deserializeJson
+        DeserializationError error = deserializeJson(json_buf, recv_buf, bytes_written);
+        if(error) {
+            logger.printfln("Failed to parse command payload: %s", error.c_str());
+            request.send(400);
+            return;
+        }
+        JsonVariant json = json_buf.as<JsonVariant>();
         String message = reg.config->update_from_json(json);
 
         if (message == "") {
             task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);
-            request->send(200, "text/html", "");
+            request.send(200, "text/html", "");
         } else {
-            request->send(400, "text/html", message);
+            request.send(400, "text/html", message.c_str());
         }
     });
-    server.addHandler(handler);
 }
 
 void Http::addState(StateRegistration reg)
 {
-    server.on((String("/") + reg.path).c_str(), HTTP_GET, [reg](AsyncWebServerRequest *request) {
-        auto *response = request->beginResponseStream("application/json; charset=utf-8");
-        reg.config->write_to_stream_except(*response, reg.keys_to_censor);
-        request->send(response);
+    server.on((String("/") + reg.path).c_str(), HTTP_GET, [reg](WebServerRequest request) {
+        String response = reg.config->to_string_except(reg.keys_to_censor);
+        request.send(200, "application/json; charset=utf-8", response.c_str());
     });
 }
 

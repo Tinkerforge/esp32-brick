@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "ESPAsyncWebServer.h"
-
 #include "net_arduino_esp32/net_arduino_esp32.h"
 
 class HiddenProxy {

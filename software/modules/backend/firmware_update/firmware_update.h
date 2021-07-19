@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include "ESPAsyncWebServer.h"
+#include <stdint.h>
+#include "web_server.h"
 
 class FirmwareUpdate {
 public:
@@ -30,7 +31,10 @@ public:
 
     bool initialized = false;
 
+    bool firmware_update_running = false;
+
 private:
+    bool handleUpdateChunk(int command, WebServerRequest request, size_t chunk_index, uint8_t *data, size_t chunk_length, bool final, size_t complete_length);
     uint32_t last_btn_change = 0;
     bool last_btn_value = false;
 };

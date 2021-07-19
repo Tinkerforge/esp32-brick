@@ -44,6 +44,7 @@ function update_version(version: Version) {
 }
 
 function upload(e: JQuery.SubmitEvent, type: string) {
+    util.pauseWebSockets();
     e.preventDefault();
 
     let file_select = <HTMLInputElement>$(`#${type}_file_select`)[0];
@@ -53,13 +54,11 @@ function upload(e: JQuery.SubmitEvent, type: string) {
 
     progress.prop("hidden", false);
     select.prop("hidden", true);
-    let data = new FormData();
-    data.append(type, file_select.files[0]);
 
     $.ajax({
         url: `/flash_${type}`,
         type: 'POST',
-        data: data,
+        data: file_select.files[0],
         contentType: false,
         processData: false,
         xhr: function () {
@@ -85,6 +84,7 @@ function upload(e: JQuery.SubmitEvent, type: string) {
                 util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), __("firmware_update.script.vehicle_connected"));
             else
                 util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
+            util.resumeWebSockets();
         }
     });
 }
@@ -96,7 +96,7 @@ function factory_reset_modal() {
 function factory_reset() {
     $.ajax({
         url: `/factory_reset`,
-        type: 'POST',
+        type: 'PUT',
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify({"do_i_know_what_i_am_doing": true}),
         success: () => {
