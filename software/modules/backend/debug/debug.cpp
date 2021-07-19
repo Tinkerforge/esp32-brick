@@ -21,17 +21,11 @@
 
 #include <Arduino.h>
 
-#include "ArduinoJson.h"
-#include "AsyncJson.h"
-
 #include "api.h"
 #include "tools.h"
 #include "task_scheduler.h"
 
 extern TaskScheduler task_scheduler;
-extern AsyncWebServer server;
-extern AsyncEventSource events;
-extern char uid[7];
 extern API api;
 
 Debug::Debug() {
