@@ -23,9 +23,6 @@
 
 #include "Arduino.h"
 
-#include "ArduinoJson.h"
-#include "AsyncJson.h"
-
 #include "../wifi/wifi.h"
 
 #include "task_scheduler.h"

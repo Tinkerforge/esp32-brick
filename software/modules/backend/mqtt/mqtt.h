@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include "ArduinoJson.h"
 #include <PangolinMQTT.h>
 
 #include "api.h"
