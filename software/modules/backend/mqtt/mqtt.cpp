@@ -42,8 +42,6 @@ extern API api;
 extern Wifi wifi;
 
 Mqtt::Mqtt() {
-    api.registerBackend(this);
-
     // The real UID will be patched in later
     mqtt_config = Config::Object({
         {"enable_mqtt", Config::Bool(false)},
@@ -339,6 +337,9 @@ void Mqtt::setup()
         mqtt_config.get("global_topic_prefix")->updateString(String(__HOST_PREFIX__) + String("/") + String(uid));
         mqtt_config.get("client_name")->updateString(String(__HOST_PREFIX__) + String("-") + String(uid));
     }
+
+    if (mqtt_config.get("enable_mqtt")->asBool())
+        api.registerBackend(this);
 
     mqtt_config_in_use = mqtt_config;
 
