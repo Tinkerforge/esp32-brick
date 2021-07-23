@@ -81,9 +81,9 @@ function upload(e: JQuery.SubmitEvent, type: string) {
             progress.prop("hidden", true);
             select.prop("hidden", false);
             if (xhr.status == 423)
-                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), __("firmware_update.script.vehicle_connected"));
+                util.add_alert("firmware_update_failed", "alert-danger", __("firmware_update.script.flash_fail"), __("firmware_update.script.vehicle_connected"));
             else
-                util.show_alert("alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
+                util.add_alert("firmware_update_failed","alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
             util.resumeWebSockets();
         }
     });
@@ -105,7 +105,7 @@ function factory_reset() {
         },
         error: (xhr, status, error) => {
             $('#factory_reset_modal').modal('hide');
-            util.show_alert("alert-danger", __("firmware_update.script.factory_reset_error"), error + ": " + xhr.responseText);
+            util.add_alert("factory_reset_failed", "alert-danger", __("firmware_update.script.factory_reset_error"), error + ": " + xhr.responseText);
         }
     });
 }

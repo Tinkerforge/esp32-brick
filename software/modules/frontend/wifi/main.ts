@@ -92,7 +92,7 @@ function scan_wifi() {
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(null),
-        error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.scan_wifi_failed"), error + ": " + xhr.responseText),
+        error: (xhr, status, error) => util.add_alert("wifi_scan_failed", "alert-danger", __("wifi.script.scan_wifi_failed"), error + ": " + xhr.responseText),
         success: () => {
             scan_timeout = window.setTimeout(function () {
                     scan_timeout = null;
@@ -335,7 +335,7 @@ function save_wifi_sta_config(continuation = function () { }) {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: continuation,
-        error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.sta_config_failed"), error + ": " + xhr.responseText)
+        error: (xhr, status, error) => util.add_alert("wifi_sta_config_failed", "alert-danger", __("wifi.script.sta_config_failed"), error + ": " + xhr.responseText)
     });
 }
 
@@ -360,7 +360,7 @@ function save_wifi_ap_config(continuation = function () { }) {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: continuation,
-        error: (xhr, status, error) => util.show_alert("alert-danger", __("wifi.script.ap_config_failed"), error + ": " + xhr.responseText),
+        error: (xhr, status, error) => util.add_alert("wifi_ap_config_failed", "alert-danger", __("wifi.script.ap_config_failed"), error + ": " + xhr.responseText),
     });
 }
 

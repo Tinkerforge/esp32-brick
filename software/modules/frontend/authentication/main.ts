@@ -57,7 +57,7 @@ function save_authentication_config() {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: () => $('#authentication_reboot').modal('show'),
-        error: (xhr, status, error) => util.show_alert("alert-danger", __("authentication.script.save_failed"), error + ": " + xhr.responseText)
+        error: (xhr, status, error) => util.add_alert("authentication_config_update_failed", "alert-danger", __("authentication.script.save_failed"), error + ": " + xhr.responseText)
     });
 }
 

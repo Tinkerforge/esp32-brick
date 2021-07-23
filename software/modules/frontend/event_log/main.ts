@@ -26,7 +26,7 @@ declare function __(s: string): string;
 function load_event_log() {
     $.get("/event_log")
                .done((result) => {$('#event_log_content').html(result)})
-               .fail((xhr, status, error) => util.show_alert("alert-danger", __("event_log.script.load_event_report_error"), error + ": " + xhr.responseText))
+               .fail((xhr, status, error) => util.add_alert("event_log_load_failed", "alert-danger", __("event_log.script.load_event_report_error"), error + ": " + xhr.responseText))
 }
 
 let update_event_log_interval: number = null;
