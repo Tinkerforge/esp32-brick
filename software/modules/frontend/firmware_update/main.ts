@@ -56,6 +56,7 @@ function upload(e: JQuery.SubmitEvent, type: string) {
     select.prop("hidden", true);
 
     $.ajax({
+        timeout: 0,
         url: `/flash_${type}`,
         type: 'POST',
         data: file_select.files[0],
