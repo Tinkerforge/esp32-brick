@@ -30,13 +30,12 @@
 #include "web_server.h"
 #include "WiFi.h"
 
-#include "modules/ws/ws.h"
+#include "modules.h"
 
 extern EventLog logger;
 
 extern TaskScheduler task_scheduler;
 extern WebServer server;
-extern WS ws;
 extern char uid[7];
 extern char passphrase[20];
 
@@ -476,7 +475,9 @@ void Wifi::check_for_scan_completion() {
     }
     logger.printfln("Scan done. %d networks.", WiFi.scanComplete());
 
+#ifdef MODULE_WS_AVAILABLE
     ws.pushStateUpdate(this->get_scan_results(), "wifi/scan_results");
+#endif
 }
 
 void Wifi::register_urls()
