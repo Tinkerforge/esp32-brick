@@ -38,7 +38,7 @@ def temp_file():
         try:
             os.remove(name)
         except IOError:
-            print('Failed to clean up temp file {}'.format(path))
+            print('Failed to clean up temp file {}'.format(name))
 
 def run(args):
     return subprocess.check_output(args, env=dict(os.environ, LC_ALL="en_US.UTF-8")).decode("utf-8").split("\n")
@@ -79,10 +79,10 @@ def check_if_esp_is_sane_and_get_mac():
     crystal = None
     mac = None
 
-    chip_type_re = re.compile('Chip is (ESP32-[^\s]*) \(revision (\d*)\)')
-    flash_size_re = re.compile('Detected flash size: (\d*[KM]B)')
-    crystal_re = re.compile('Crystal is (\d*MHz)')
-    mac_re = re.compile('MAC: ((?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})')
+    chip_type_re = re.compile(r'Chip is (ESP32-[^\s]*) \(revision (\d*)\)')
+    flash_size_re = re.compile(r'Detected flash size: (\d*[KM]B)')
+    crystal_re = re.compile(r'Crystal is (\d*MHz)')
+    mac_re = re.compile(r'MAC: ((?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})')
 
     for line in output:
         chip_type_match = chip_type_re.match(line)
@@ -120,7 +120,7 @@ def get_espefuse_tasks():
     output = espefuse(['--port', PORT, 'dump'])
 
     def parse_regs(line, regs):
-        match = re.search('([0-9a-f]{8}\s?)' * regs, line)
+        match = re.search(r'([0-9a-f]{8}\s?)' * regs, line)
         if not match:
             return False, []
 
@@ -181,8 +181,8 @@ def get_espefuse_tasks():
     if passphrase == '1-1-1-1' and uid == '1':
         have_to_set_block_3 = True
     else:
-        passphrase_invalid = re.match('[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}'.format(BASE58), passphrase) == None
-        uid_invalid = re.match('[{0}]{{3,6}}'.format(BASE58), uid) == None
+        passphrase_invalid = re.match('[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}'.format(BASE58), passphrase) is None
+        uid_invalid = re.match('[{0}]{{3,6}}'.format(BASE58), uid) is None
         if passphrase_invalid or uid_invalid:
             print("Block 3 efuses have unexpected value {}".format(block3_bytes.hex()))
             print("parsed passphrase and uid are {}; {}".format(passphrase, uid))
@@ -237,12 +237,11 @@ def handle_block3_fuses(set_block_3, uid, passphrase):
 
     print("Reading staging password")
     try:
-        file_directory = os.path.dirname(os.path.realpath(__file__))
         with open('staging_password.txt', 'rb') as f:
             staging_password = f.read().decode('utf-8').split('\n')[0].strip()
-    except:
+    except Exception as e:
         print('staging_password.txt missing or malformed')
-        raise Exception("exit 1")
+        raise Exception("exit 1") from e
 
     print("Installing auth_handler")
     if sys.version_info < (3,5,3):
@@ -382,9 +381,9 @@ def main():
     try:
         with socket.create_connection((PRINTER_HOST, PRINTER_PORT)):
             print("Label printer is online")
-    except:
+    except Exception as e:
         if input("Failed to reach label printer. Continue anyway? [y/n]") != "y":
-            raise Exception("exit 1")
+            raise Exception("exit 1") from e
 
     print("Checking ESP state")
     mac_address = check_if_esp_is_sane_and_get_mac()
@@ -458,7 +457,7 @@ def main():
         ipcon.disconnect()
 
     led0 = input("Does LED 0 blink blue? [y/n]")
-    while led0 != "y" and led0 != "n":
+    while led0 not in ("y", "n"):
         led0 = input("Does LED 0 blink blue? [y/n]")
     result["led0_test_successful"] = led0 == "y"
     if led0 == "n":
@@ -466,7 +465,7 @@ def main():
         raise Exception("exit 1")
 
     led1 = input("Press IO0 button (for max 3 seconds). Does LED 1 glow green? [y/n]")
-    while led1 != "y" and led1 != "n":
+    while led1 not in ("y", "n"):
         led1 = input("Press IO0 Button (for max 3 seconds). Does LED 1 glow green? [y/n]")
     result["led1_io0_test_successful"] = led1 == "y"
     if led1 == "n":
@@ -474,7 +473,7 @@ def main():
         raise Exception("exit 1")
 
     led0_stop = input("Press EN button. Does LED 0 stop blinking for some seconds? [y/n]")
-    while led0_stop != "y" and led0_stop != "n":
+    while led0_stop not in ("y", "n"):
         led0_stop = input("Press EN button. Does LED 0 stop blinking for some seconds? [y/n]")
     result["enable_test_successful"] = led0_stop == "y"
     if led0_stop == "n":
@@ -491,7 +490,7 @@ def main():
     while label_success != "y":
         run(["python3", "print-esp32-label.py", ssid, passphrase, "-c", "3"])
         label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]")
-        while label_success != "y" and label_success != "n":
+        while label_success not in ("y", "n"):
             input("Stick one label on the esp, put esp and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]]")
 
 if __name__ == "__main__":

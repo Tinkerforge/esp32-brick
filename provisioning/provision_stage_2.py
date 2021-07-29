@@ -486,7 +486,7 @@ PRINTER_HOST = 'BP730i'
 PRINTER_PORT = 9100
 
 # use "with ChangedDirectory('/path/to/abc')" instead of "os.chdir('/path/to/abc')"
-class ChangedDirectory(object):
+class ChangedDirectory:
     def __init__(self, path):
         self.path = path
         self.previous_path = None
@@ -507,7 +507,7 @@ def temp_file():
         try:
             os.remove(name)
         except IOError:
-            print('Failed to clean up temp file {}'.format(path))
+            print('Failed to clean up temp file {}'.format(name))
 
 def run(args):
     return subprocess.check_output(args, env=dict(os.environ, LC_ALL="en_US.UTF-8")).decode("utf-8").split("\n")
@@ -584,10 +584,10 @@ def check_if_esp_is_sane_and_get_mac():
     crystal = None
     mac = None
 
-    chip_type_re = re.compile('Chip is (ESP32-[^\s]*) \(revision (\d*)\)')
-    flash_size_re = re.compile('Detected flash size: (\d*[KM]B)')
-    crystal_re = re.compile('Crystal is (\d*MHz)')
-    mac_re = re.compile('MAC: ((?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})')
+    chip_type_re = re.compile(r'Chip is (ESP32-[^\s]*) \(revision (\d*)\)')
+    flash_size_re = re.compile(r'Detected flash size: (\d*[KM]B)')
+    crystal_re = re.compile(r'Crystal is (\d*MHz)')
+    mac_re = re.compile(r'MAC: ((?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})')
 
     for line in output:
         chip_type_match = chip_type_re.match(line)
@@ -622,7 +622,7 @@ def get_espefuse_tasks():
     output = espefuse(['--port', PORT, 'dump'])
 
     def parse_regs(line, regs):
-        match = re.search('([0-9a-f]{8}\s?)' * regs, line)
+        match = re.search(r'([0-9a-f]{8}\s?)' * regs, line)
         if not match:
             return False, []
 
@@ -666,8 +666,8 @@ def get_espefuse_tasks():
     if passphrase == '1-1-1-1' and uid == '1':
         have_to_set_block_3 = True
     else:
-        passphrase_invalid = re.match('[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}'.format(BASE58), passphrase) == None
-        uid_invalid = re.match('[{0}]{{3,6}}'.format(BASE58), uid) == None
+        passphrase_invalid = re.match('[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}-[{0}]{{4}}'.format(BASE58), passphrase) is None
+        uid_invalid = re.match('[{0}]{{3,6}}'.format(BASE58), uid) is None
         if passphrase_invalid or uid_invalid:
             fatal_error("Block 3 efuses have unexpected value {}".format(block3_bytes.hex()),
                         "parsed passphrase and uid are {}; {}".format(passphrase, uid),
@@ -721,7 +721,6 @@ def handle_block3_fuses(set_block_3, uid, passphrase):
 
     print("Reading staging password")
     try:
-        file_directory = os.path.dirname(os.path.realpath(__file__))
         with open('staging_password.txt', 'rb') as f:
             staging_password = f.read().decode('utf-8').split('\n')[0].strip()
     except:
@@ -753,8 +752,6 @@ def handle_block3_fuses(set_block_3, uid, passphrase):
     # Directly selecting chars out of the BASE58 alphabet can result in numbers with leading 1s
     # (those map to 0, so de- and reencoding will produce the same number without the leading 1)
     wifi_passphrase = [base58encode(rnd.randint(base58decode("2111"), base58decode("ZZZZ"))) for i in range(4)]
-    # TODO: get uid from server when merging this script with flash-test
-    #uid = 'ESQ'
     print("Generating UID")
     uid = base58encode(get_new_uid())
 
@@ -882,13 +879,13 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
     d = {"P": "Pro", "S": "Smart", "B": "Basic"}
 
     if is_basic and qr_variant != "B":
-        fatal_error("Scanned QR-Code implies variant {}, but detected was Basic".format(d[qr_variant]))
+        fatal_error("Scanned QR code implies variant {}, but detected was Basic (i.e. an Master Brick was found)".format(d[qr_variant]))
 
     if is_smart and qr_variant != "S":
-        fatal_error("Scanned QR-Code implies variant {}}, but detected was Smart".format(d[qr_variant]))
+        fatal_error("Scanned QR code implies variant {}, but detected was Smart: An ESP32 Brick was found, not no RS485 Bricklet. Is the Bricklet not connected or the status LED not lighting up? Is the QR code correct?".format(d[qr_variant]))
 
     if is_pro and qr_variant != "P":
-        fatal_error("Scanned QR-Code implies variant {}, but detected was Pro".format(d[qr_variant]))
+        fatal_error("Scanned QR code implies variant {}, but detected was Pro: An ESP32 Brick and a RS485 Bricklet was found. Is the QR code correct?".format(d[qr_variant]))
 
     result["evse_uid"] = evse_uid
     print("EVSE UID is {}".format(evse_uid))
@@ -916,7 +913,7 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
 
     result["diode_checked"] = True
 
-    configured, incoming, outgoing, managed = evse.get_max_charging_current()
+    _configured, _incoming, outgoing, _managed = evse.get_max_charging_current()
     if qr_power == "11" and outgoing != 20000:
         fatal_error("Wrong type 2 cable config detected: Allowed current is {} but expected 20 A, as this is a 11 kW box.".format(outgoing / 1000))
     if qr_power == "22" and outgoing != 32000:
@@ -930,10 +927,10 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
         meter_data = json.loads(meter_str)
         sps = meter_data["samples_per_second"]
         samples = meter_data["samples"]
-        if not (0.2 < sps < 2.5):
-            fatal_error("Expected between 0.2 and 2.5 energy meter samples per second, but got ".format(sps))
+        if not 0.2 < sps < 2.5:
+            fatal_error("Expected between 0.2 and 2.5 energy meter samples per second, but got {}".format(sps))
         if len(samples) < 2:
-            fatal_error("Expected at least 10 samples but got ".format(len(samples)))
+            fatal_error("Expected at least 10 samples but got {}".format(len(samples)))
 
         event_str = urllib.request.urlopen('http://10.0.0.1/event_log', timeout=3).read().decode('utf-8')
         if re.search(r"Request \d+: Exception code \d+", event_str):
@@ -1006,7 +1003,7 @@ def main():
     docket_item = match.group(9)
     docket_supply_cable_extension = match.group(10)
 
-    if docket_supply_cable_extension == None:
+    if docket_supply_cable_extension is None:
         docket_supply_cable_extension = 0
     else:
         docket_supply_cable_extension = int(docket_supply_cable_extension)
