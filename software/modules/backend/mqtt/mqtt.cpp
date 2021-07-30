@@ -114,6 +114,12 @@ void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::func
 void Mqtt::addCommand(CommandRegistration reg)
 {
     subscribe(reg.path, reg.config->json_size(), [reg](String payload){
+        String reason = api.getCommandBlockedReason(reg.path);
+        if (reason != "") {
+            logger.printfln(reason.c_str());
+            return;
+        }
+
         String error = reg.config->update_from_string(payload);
         if(error == "") {
             task_scheduler.scheduleOnce((String("notify command update for ") + reg.path).c_str(), [reg](){reg.callback();}, 0);

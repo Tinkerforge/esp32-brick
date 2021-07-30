@@ -54,6 +54,12 @@ void Http::loop()
 void Http::addCommand(CommandRegistration reg)
 {
     server.on((String("/") + reg.path).c_str(), HTTP_PUT, [reg](WebServerRequest request) {
+        String reason = api.getCommandBlockedReason(reg.path);
+        if (reason != "") {
+            request.send(400, "text/plain", reason.c_str());
+            return;
+        }
+
         //TODO: Use streamed parsing
         int bytes_written = request.receive(recv_buf, 4096);
         if (bytes_written == -1) {
