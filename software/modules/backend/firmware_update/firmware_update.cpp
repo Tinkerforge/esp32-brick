@@ -33,6 +33,8 @@ extern WebServer server;
 extern TaskScheduler task_scheduler;
 
 extern bool firmware_update_allowed;
+extern bool factory_reset_requested;
+extern int8_t green_led_pin;
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -41,9 +43,9 @@ TaskHandle_t xTaskBuffer;
 
 void blinky(void *arg) {
     for(;;) {
-        digitalWrite(4, true);
+        digitalWrite(green_led_pin, true);
         delay(200);
-        digitalWrite(4, false);
+        digitalWrite(green_led_pin, false);
         delay(200);
     }
 }
@@ -55,12 +57,14 @@ void factory_reset()
     if(factory_reset_running)
         return;
     factory_reset_running = true;
-    xTaskCreate(blinky,
-        "fctyrst_blink",
-        2048,
-        nullptr,
-        tskIDLE_PRIORITY,
-        &xTaskBuffer);
+
+    if (green_led_pin >= 0)
+        xTaskCreate(blinky,
+            "fctyrst_blink",
+            2048,
+            nullptr,
+            tskIDLE_PRIORITY,
+            &xTaskBuffer);
 
     SPIFFS.end();
     SPIFFS.format();
@@ -196,21 +200,6 @@ void FirmwareUpdate::register_urls()
 
 void FirmwareUpdate::loop()
 {
-    /*
-    bool btn0 = digitalRead(0);
-    if (!factory_reset_running)
-        digitalWrite(GREEN_LED, btn0);
-
-    if(btn0 != last_btn_value) {
-        last_btn_change = millis();
-    }
-
-    last_btn_value = btn0;
-
-    if(!btn0 && deadline_elapsed(last_btn_change + 10000)) {
-        logger.printfln("IO0 button was pressed for 10 seconds. Resetting to factory defaults.");
-        last_btn_change = millis();
+    if (factory_reset_requested)
         factory_reset();
-    }
-    */
 }
