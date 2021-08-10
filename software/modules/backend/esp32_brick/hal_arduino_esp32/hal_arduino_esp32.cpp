@@ -10,8 +10,8 @@
 #include "SPI.h"
 #include <Arduino.h>
 
-#include "../bindings/config.h"
-#include "../bindings/errors.h"
+#include "bindings/config.h"
+#include "bindings/errors.h"
 
 int tf_hal_create(TF_HalContext *hal, TF_Port *ports, uint8_t port_count) {
     int rc = tf_hal_common_create(hal);
@@ -126,7 +126,7 @@ void tf_hal_log_newline() {
 #ifdef TF_IMPLEMENT_STRERROR
 const char *tf_hal_strerror(int e_code) {
     switch(e_code) {
-        #include "../bindings/error_cases.h"
+        #include "bindings/error_cases.h"
         default:
             return "unknown error";
     }

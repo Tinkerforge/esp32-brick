@@ -22,6 +22,9 @@
 
 #include "tools.h"
 #include "hal_arduino_esp32/hal_arduino_esp32.h"
+#include "task_scheduler.h"
+
+extern TaskScheduler task_scheduler;
 
 #define GREEN_LED 4
 #define BLUE_LED 32
@@ -40,27 +43,27 @@ TF_Port ports[6] = {{
         .chip_select_pin = 16,
         .spi = VSPI,
         .port_name = 'A'
-     }, {
+    }, {
         .chip_select_pin = 33,
         .spi = VSPI,
         .port_name = 'B'
-     }, {
+    }, {
         .chip_select_pin = 17,
         .spi = VSPI,
         .port_name = 'C'
-     }, {
+    }, {
         .chip_select_pin = 25,
         .spi = HSPI,
         .port_name = 'D'
-     }, {
+    }, {
         .chip_select_pin = 26,
         .spi = HSPI,
         .port_name = 'E'
-     }, {
+    }, {
         .chip_select_pin = 27,
         .spi = HSPI,
         .port_name = 'F'
-     }
+    }
 };
 
 ESP32Brick::ESP32Brick()
@@ -82,6 +85,12 @@ void ESP32Brick::setup()
     green_led_pin = GREEN_LED;
     blue_led_pin = BLUE_LED;
     button_pin = BUTTON;
+
+    task_scheduler.scheduleWithFixedDelay("led_blink", [](){
+        static bool led_blink_state = false;
+        led_blink_state = !led_blink_state;
+        digitalWrite(BLUE_LED, led_blink_state ? HIGH : LOW);
+    }, 0, 1000);
 }
 
 void ESP32Brick::register_urls()
@@ -91,6 +100,9 @@ void ESP32Brick::register_urls()
 
 void ESP32Brick::loop()
 {
+    static bool last_btn_value = false;
+    static uint32_t last_btn_change = 0;
+
     bool btn = digitalRead(BUTTON);
     if (!factory_reset_requested)
         digitalWrite(GREEN_LED, btn);

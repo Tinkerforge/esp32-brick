@@ -11,8 +11,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "../bindings/hal_common.h"
-#include "../bindings/macros.h"
+#include "bindings/hal_common.h"
+#include "bindings/macros.h"
 
 #include <SPI.h>
 
