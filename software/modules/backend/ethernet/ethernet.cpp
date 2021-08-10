@@ -25,14 +25,17 @@
 
 #include <ETH.h>
 
+#include "api.h"
 #include "task_scheduler.h"
 
+extern API api;
 extern TaskScheduler task_scheduler;
+extern char uid[7];
 
 Ethernet::Ethernet()
 {
     ethernet_config = Config::Object({
-        {"enable_ethernet", Config::Bool(false)},
+        {"enable_ethernet", Config::Bool(true)},
         {"hostname", Config::Str("wallbox", 32)},
         {"ip", Config::Array({
                 Config::Uint8(0),
@@ -92,7 +95,7 @@ Ethernet::Ethernet()
     });
 
     ethernet_state = Config::Object({
-        {"connection_state", Config::Int(0)},
+        {"connection_state", Config::Uint(0)},
         {"ip", Config::Array({
                 Config::Uint8(0),
                 Config::Uint8(0),
@@ -150,55 +153,88 @@ void WiFiEvent(WiFiEvent_t event)
 
 void Ethernet::setup()
 {
+    String default_hostname = String(__HOST_PREFIX__) + String("-") + String(uid);
+
+    if(!api.restorePersistentConfig("ethernet/config", &ethernet_config)) {
+        ethernet_config.get("hostname")->updateString(default_hostname);
+    }
+
     ethernet_config_in_use = ethernet_config;
+
+    ethernet_state.get("connection_state")->updateUint(0);
+
+    if (!ethernet_config_in_use.get("enable_ethernet")->asBool())
+        return;
+
+    ethernet_state.get("connection_state")->updateUint(1);
+
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
-            logger.printfln("ETH Started");
-            //set eth hostname here
+            logger.printfln("Ethernet started");
             ETH.setHostname(ethernet_config_in_use.get("hostname")->asString().c_str());
+            ethernet_state.get("connection_state")->updateUint(1);
         },
         ARDUINO_EVENT_ETH_START);
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
-            logger.printfln("ETH Connected");
+            logger.printfln("Ethernet connected");
+            ethernet_state.get("connection_state")->updateUint(3);
         },
         ARDUINO_EVENT_ETH_CONNECTED);
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
-            logger.printfln("ETH MAC: %s, IPv4: %s, %s Duplex, %u Mbps", ETH.macAddress().c_str(), ETH.localIP().toString().c_str(), ETH.fullDuplex() ? "Full" : "Half", ETH.linkSpeed());
-            //eth_connected = true;
+            logger.printfln("Ethernet MAC: %s, IPv4: %s, %s Duplex, %u Mbps", ETH.macAddress().c_str(), ETH.localIP().toString().c_str(), ETH.fullDuplex() ? "Full" : "Half", ETH.linkSpeed());
+            ethernet_state.get("connection_state")->updateUint(3);
+            ethernet_state.get("full_duplex")->updateBool(ETH.fullDuplex());
+            ethernet_state.get("link_speed")->updateUint(ETH.linkSpeed());
+
+            auto ip = ETH.localIP();
+            logger.printfln("Ethernet got IP address: %u.%u.%u.%u.", ip[0], ip[1], ip[2], ip[3]);
+            ethernet_state.get("ip")->get(0)->updateUint(ip[0]);
+            ethernet_state.get("ip")->get(1)->updateUint(ip[1]);
+            ethernet_state.get("ip")->get(2)->updateUint(ip[2]);
+            ethernet_state.get("ip")->get(3)->updateUint(ip[3]);
         },
         ARDUINO_EVENT_ETH_GOT_IP);
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
-            logger.printfln("ETH Disconnected");
-            //eth_connected = false;
+            logger.printfln("Ethernet disconnected");
+            ethernet_state.get("connection_state")->updateUint(1);
+
+            ethernet_state.get("ip")->get(0)->updateUint(0);
+            ethernet_state.get("ip")->get(1)->updateUint(0);
+            ethernet_state.get("ip")->get(2)->updateUint(0);
+            ethernet_state.get("ip")->get(3)->updateUint(0);
         },
         ARDUINO_EVENT_ETH_DISCONNECTED);
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
-           logger.printfln("ETH Stopped");
-            //eth_connected = false;
+           logger.printfln("Ethernet stopped");
+           ethernet_state.get("connection_state")->updateUint(1);
         },
         ARDUINO_EVENT_ETH_STOP);
 
-    //WiFi.onEvent(WiFiEvent);
+    uint8_t ip[4], subnet[4], gateway[4], dns[4], dns2[4];
+    ethernet_config_in_use.get("ip")->fillUint8Array(ip, 4);
+    ethernet_config_in_use.get("subnet")->fillUint8Array(subnet, 4);
+    ethernet_config_in_use.get("gateway")->fillUint8Array(gateway, 4);
+    ethernet_config_in_use.get("dns")->fillUint8Array(dns, 4);
+    ethernet_config_in_use.get("dns2")->fillUint8Array(dns2, 4);
 
-    /*
-        #define ETH_ADDR        1
-        #define ETH_POWER_PIN   5
-        #define ETH_TYPE        ETH_PHY_IP101
-    */
-    //bool begin(uint8_t phy_addr=ETH_PHY_ADDR, int power=ETH_PHY_POWER, int mdc=ETH_PHY_MDC, int mdio=ETH_PHY_MDIO, eth_phy_type_t type=ETH_PHY_TYPE, eth_clock_mode_t clk_mode=ETH_CLK_MODE);
-    task_scheduler.scheduleOnce("setup ethernet", [](){
-        ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_PHY_MDC, ETH_PHY_MDIO, ETH_TYPE);
-    }, 10000);
+    ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_PHY_MDC, ETH_PHY_MDIO, ETH_TYPE);
+
+    if(ip != 0) {
+        ETH.config(ip, gateway, subnet, dns, dns2);
+    } else {
+        ETH.config((uint32_t)0, (uint32_t)0, (uint32_t)0);
+    }
 
     initialized = true;
 }
 
 void Ethernet::register_urls()
 {
-
+    api.addPersistentConfig("ethernet/config", &ethernet_config, {}, 1000);
+    api.addPersistentConfig("ethernet/state", &ethernet_state, {}, 1000);
 }
 
 void Ethernet::loop()
@@ -208,5 +244,7 @@ void Ethernet::loop()
 
 EthernetState Ethernet::get_connection_state()
 {
-    return EthernetState::NOT_CONFIGURED;
+    if(!initialized)
+        return EthernetState::NOT_CONFIGURED;
+    return (EthernetState) ethernet_state.get("connection_state")->asUint();
 }
