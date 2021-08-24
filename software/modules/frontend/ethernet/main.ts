@@ -186,7 +186,7 @@ export function getTranslation(lang: string) {
                 "content": {
                     "settings": "LAN-Verbindungs&shy;einstellungen",
                     "enable": "Verbindung aktiviert",
-                    "enable_desc": "Wenn aktiviert, verbindet sich das Gerät beim Start automatisch zum konfigurierten Netzwerk.",
+                    "enable_desc": "Wenn aktiviert, verbindet sich das Gerät beim Start oder wenn ein Kabel eingesteckt wird, automatisch.",
 
                     "hostname": "Hostname",
                     "hostname_invalid": "Der Hostname darf nur aus den Groß- und Kleinbuchstaben A-Z und a-z, sowie den Ziffern 0-9 und Bindestrichen bestehen. Zum Beispiel warp-A1c",
