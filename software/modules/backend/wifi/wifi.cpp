@@ -398,7 +398,7 @@ void Wifi::setup()
     if (enable_ap && !ap_fallback_only) {
         apply_soft_ap_config_and_start();
     } else {
-        WiFi.softAPdisconnect(true);
+        WiFi.softAPdisconnect(false);
     }
 
     if (enable_sta) {
@@ -539,7 +539,7 @@ void Wifi::loop()
 
     if (connected && ap_fallback_only && soft_ap_running) {
         logger.printfln("Network connected. Stopping soft AP");
-        WiFi.softAPdisconnect(true);
+        WiFi.softAPdisconnect(false);
         soft_ap_running = false;
     }
 }
