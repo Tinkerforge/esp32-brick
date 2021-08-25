@@ -525,19 +525,20 @@ void Wifi::loop()
     wifi_state.get("connection_state")->updateInt((int)connection_state);
     wifi_state.get("ap_state")->updateInt(get_ap_state());
 
-    if (wifi_sta_config_in_use.get("enable_sta")->asBool() &&
-        wifi_ap_config_in_use.get("enable_ap")->asBool() &&
-        wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
-        connection_state != WifiState::CONNECTED &&
-        !soft_ap_running) {
-            apply_soft_ap_config_and_start();
+    bool ap_fallback_only = wifi_ap_config_in_use.get("enable_ap")->asBool() && wifi_ap_config_in_use.get("ap_fallback_only")->asBool();
+    bool ethernet_connected = false;
+#ifdef MODULE_ETHERNET_AVAILABLE
+    ethernet_connected = ethernet.get_connection_state() == EthernetState::CONNECTED;
+#endif
+    bool connected = (wifi_sta_config_in_use.get("enable_sta")->asBool() && connection_state == WifiState::CONNECTED) || ethernet_connected;
+
+    if (!connected && ap_fallback_only && !soft_ap_running) {
+        logger.printfln("Not connected: eth %d wifi sta %s %d", (int)ethernet.get_connection_state(), wifi_sta_config_in_use.get("enable_sta")->asBool() ? "enabled" : "disabled", (int)connection_state);
+        apply_soft_ap_config_and_start();
     }
 
-    if (wifi_sta_config_in_use.get("enable_sta")->asBool() &&
-        wifi_ap_config_in_use.get("ap_fallback_only")->asBool() &&
-        connection_state == WifiState::CONNECTED &&
-        soft_ap_running) {
-        logger.printfln("Wifi connected. Stopping soft AP");
+    if (connected && ap_fallback_only && soft_ap_running) {
+        logger.printfln("Network connected. Stopping soft AP");
         WiFi.softAPdisconnect(true);
         soft_ap_running = false;
     }
