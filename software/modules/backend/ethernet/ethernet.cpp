@@ -177,7 +177,7 @@ void Ethernet::setup()
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
             logger.printfln("Ethernet connected");
-            ethernet_state.get("connection_state")->updateUint(3);
+            ethernet_state.get("connection_state")->updateUint(2);
         },
         ARDUINO_EVENT_ETH_CONNECTED);
 

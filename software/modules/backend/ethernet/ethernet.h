@@ -24,7 +24,7 @@
 #define MAX_CONNECT_ATTEMPT_INTERVAL_MS 5 * 60 * 1000
 
 enum class EthernetState {
-    NOT_CONFIGURED = -1,
+    NOT_CONFIGURED,
     NOT_CONNECTED,
     CONNECTING,
     CONNECTED
