@@ -29,8 +29,7 @@ def main():
     common_init('/dev/ttyUSB0', None, 9100)
 
     if len(sys.argv) != 1:
-        print("Usage: {}")
-        raise Exception("exit 1")
+        fatal_error("Usage: {}".format(sys.argv[0]))
 
     result = {"start": now()}
 
@@ -43,7 +42,7 @@ def main():
 
     set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
     if set_voltage_fuses or set_block_3:
-        print("Fuses are not set. Re-run stage 0!")
+        fatal_error("Fuses are not set. Re-run stage 0!")
 
     esptool(["--after", "hard_reset", "chip_id"])
 
@@ -55,8 +54,7 @@ def main():
 
     print("Waiting for ESP wifi. Takes about one minute.")
     if not wait_for_wifi(ssid, 90):
-        print("ESP wifi not found after 90 seconds")
-        raise Exception("exit 1")
+        fatal_error("ESP wifi not found after 90 seconds")
 
     print("Testing ESP Wifi.")
     with wifi(ssid, passphrase):
@@ -74,16 +72,14 @@ def main():
             with urllib.request.urlopen(req, timeout=10) as f:
                 f.read()
         except Exception as e:
-            print("Failed to set ethernet config!")
-            raise Exception("exit 1")
+            fatal_error("Failed to set ethernet config!")
 
         req = urllib.request.Request("http://10.0.0.1/reboot", data='null'.format(uid).encode("utf-8"), method='PUT', headers={"Content-Type": "application/json"})
         try:
             with urllib.request.urlopen(req) as f:
                 f.read()
         except Exception as e:
-            print("Failed to initiate reboot!")
-            raise Exception("exit 1")
+            fatal_error("Failed to initiate reboot!")
 
         result["wifi_test_successful"] = True
 
@@ -100,8 +96,7 @@ def main():
         print("Sleep for", t)
         time.sleep(t)
     else:
-        print("Failed to connect via ethernet!")
-        raise Exception("exit 1")
+        fatal_error("Failed to connect via ethernet!")
 
     req = urllib.request.Request("http://192.168.123.123/ethernet/config_update",
                                  data=json.dumps({"enable_ethernet":True,
@@ -117,8 +112,7 @@ def main():
         with urllib.request.urlopen(req, timeout=10) as f:
             f.read()
     except Exception as e:
-        print("Failed to reset ethernet config!")
-        raise Exception("exit 1")
+        fatal_error("Failed to reset ethernet config!")
 
 
     ipcon = IPConnection()
@@ -129,8 +123,7 @@ def main():
     enums = enumerate_devices(ipcon)
 
     if len(enums) != 6 or any(x.device_identifier != BrickletRGBLEDV2.DEVICE_IDENTIFIER for x in enums):
-        print("Expected 6 RGB LED 2.0 bricklets but found {}".format("\n\t".join("Port {}: {}".format(x.position, x.device_identifier) for x in enums)))
-        raise Exception("exit 1")
+        fatal_error("Expected 6 RGB LED 2.0 bricklets but found {}".format("\n\t".join("Port {}: {}".format(x.position, x.device_identifier) for x in enums)))
 
     enums = sorted(enums, key=lambda x: x.position)
 
@@ -142,11 +135,11 @@ def main():
         if rgb.get_rgb_value() == (127, 127, 0):
             rgb.set_rgb_value(0, 127, 0)
         else:
-            print("Setting color failed on port {}.".format(bricklet_port))
+            print(red("Setting color failed on port {}.".format(bricklet_port)))
             error_count += 1
 
     if error_count != 0:
-        raise Exception("exit 1")
+        fatal_error("")
 
     result["bricklet_port_test_successful"] = True
 
@@ -163,24 +156,21 @@ def main():
         led0 = input("Does the status LED blink blue? [y/n]")
     result["status_led_test_successful"] = led0 == "y"
     if led0 == "n":
-        print("Status LED does not work")
-        raise Exception("exit 1")
+        fatal_error("Status LED does not work")
 
     led1 = input("Press IO0 button (for 3 seconds). Does the status LED blink faster? [y/n]")
     while led1 not in ("y", "n"):
         led1 = input("Press IO0 Button (for 3 seconds). Does the status LED blink faster? [y/n]")
     result["io0_test_successful"] = led1 == "y"
     if led1 == "n":
-        print("Status LED or IO0 button does not work")
-        raise Exception("exit 1")
+        fatal_error("Status LED or IO0 button does not work")
 
     led0_stop = input("Press EN button. Does the status LED stop blinking for some seconds? [y/n]")
     while led0_stop not in ("y", "n"):
         led0_stop = input("Press EN button. Does the status LED stop blinking for some seconds? [y/n]")
     result["enable_test_successful"] = led0_stop == "y"
     if led0_stop == "n":
-        print("EN button does not work")
-        raise Exception("exit 1")
+        fatal_error("EN button does not work")
 
     result["tests_successful"] = True
     result["end"] = now()

@@ -25,18 +25,17 @@ from provision_common.provision_common import *
 
 def main():
     if len(sys.argv) != 3:
-        print("Usage: {} test_firmware port")
-        sys.exit(0)
+        fatal_error("Usage: {} test_firmware port")
 
     if not os.path.exists(sys.argv[1]):
-        print("Test firmware {} not found.".format(sys.argv[1]))
+        fatal_error("Test firmware {} not found.".format(sys.argv[1]))
 
     PORT = sys.argv[2]
 
     common_init(PORT, None, None)
 
     if not os.path.exists(PORT):
-        print("Port {} not found.".format(PORT))
+        fatal_error("Port {} not found.".format(PORT))
 
     result = {"start": now()}
 
@@ -56,20 +55,16 @@ def main():
     print("Verifying eFuses")
     _set_voltage_fuses, _set_block_3, _passphrase, _uid = get_espefuse_tasks()
     if _set_voltage_fuses:
-        print("Failed to verify voltage eFuses! Are they burned in yet?")
-        sys.exit(0)
+        fatal_error("Failed to verify voltage eFuses! Are they burned in yet?")
 
     if _set_block_3:
-        print("Failed to verify block 3 eFuses! Are they burned in yet?")
-        sys.exit(0)
+        fatal_error("Failed to verify block 3 eFuses! Are they burned in yet?")
 
     if _passphrase != passphrase:
-        print("Failed to verify block 3 eFuses! Passphrase is not the expected value")
-        sys.exit(0)
+        fatal_error("Failed to verify block 3 eFuses! Passphrase is not the expected value")
 
     if _uid != uid:
-        print("Failed to verify block 3 eFuses! UID {} is not the expected value {}".format(_uid, uid))
-        sys.exit(0)
+        fatal_error("Failed to verify block 3 eFuses! UID {} is not the expected value {}".format(_uid, uid))
 
     result["uid"] = uid
 
@@ -88,9 +83,4 @@ def main():
         json.dump(result, f, indent=4)
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        traceback.print_exc()
-        input("Press return to exit. ")
-        sys.exit(1)
+    main()
