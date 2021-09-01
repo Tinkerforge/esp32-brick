@@ -29,5 +29,8 @@ public:
     void loop();
 
 private:
+    void start_proxy();
+    void stop_proxy();
+
     TF_NetContext net;
 };
