@@ -34,7 +34,20 @@ public:
     bool firmware_update_running = false;
 
 private:
-    bool handleUpdateChunk(int command, WebServerRequest request, size_t chunk_index, uint8_t *data, size_t chunk_length, bool final, size_t complete_length);
-    uint32_t last_btn_change = 0;
-    bool last_btn_value = false;
+    bool handle_update_chunk(int command, WebServerRequest request, size_t chunk_index, uint8_t *data, size_t chunk_length, bool final, size_t complete_length);
+    void reset_fw_info();
+    bool handle_fw_info_chunk(size_t chunk_index, uint8_t *data, size_t chunk_length);
+    struct fw_info_t {
+        uint32_t magic[2] = {0};
+        char firmware_name[61] = {0};
+        uint8_t fw_version[3] = {0};
+        uint32_t fw_build_date = {0};
+    };
+
+    fw_info_t info;
+    uint32_t info_offset = 0;
+    uint32_t calculated_checksum = 0;
+    uint32_t checksum = 0;
+    uint32_t checksum_offset = 0;
+    bool update_aborted = false;
 };

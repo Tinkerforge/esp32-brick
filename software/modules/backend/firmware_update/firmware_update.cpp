@@ -27,6 +27,13 @@
 #include "task_scheduler.h"
 #include "tools.h"
 
+#include "./crc32.h"
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+extern const char* DISPLAY_NAME;
+
 extern EventLog logger;
 
 extern WebServer server;
@@ -36,8 +43,10 @@ extern bool firmware_update_allowed;
 extern bool factory_reset_requested;
 extern int8_t green_led_pin;
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+
+// Newer firmwares contain a firmware info page.
+#define FW_INFO_OFFSET 0xd000 - 0x1000
+#define FW_INFO_LENGTH 0x1000
 
 TaskHandle_t xTaskBuffer;
 
@@ -80,19 +89,111 @@ void FirmwareUpdate::setup()
     initialized = true;
 }
 
-bool FirmwareUpdate::handleUpdateChunk(int command, WebServerRequest request, size_t chunk_index, uint8_t *data, size_t chunk_length, bool final, size_t complete_length) {
-    // The firmware files are merged with the bootloader, partition table and slot configuration bins.
+void FirmwareUpdate::reset_fw_info() {
+    calculated_checksum = 0;
+    info = fw_info_t{};
+    info_offset = 0;
+    checksum_offset = 0;
+    update_aborted = false;
+}
+
+bool FirmwareUpdate::handle_fw_info_chunk(size_t chunk_index, uint8_t *data, size_t chunk_length) {
+    uint8_t *start = data;
+    size_t length = chunk_length;
+
+    if (chunk_index < FW_INFO_OFFSET) {
+        size_t to_skip = FW_INFO_OFFSET - chunk_index;
+        start += to_skip;
+        length -= to_skip;
+    }
+
+    length = MIN(length, (FW_INFO_OFFSET + FW_INFO_LENGTH) - chunk_index - 4); // -4 to not calculate the CRC of itself
+
+    if (info_offset < sizeof(info)) {
+        size_t to_write = MIN(length, sizeof(info) - info_offset);
+        memcpy(&info + info_offset, start, to_write);
+        info_offset += to_write;
+    }
+
+    logger.printfln("chunk index %u data %p len %u", chunk_index, data, chunk_length);
+    crc32_ieee_802_3_recalculate(start, length, &calculated_checksum);
+
+    const size_t checksum_start =  FW_INFO_OFFSET + FW_INFO_LENGTH - 4;
+
+    if (chunk_index + chunk_length < checksum_start)
+        return false;
+
+    if (chunk_index < checksum_start) {
+        size_t to_skip = checksum_start - chunk_index;
+        start = data + to_skip;
+        length = chunk_length - to_skip;
+    }
+
+    length = MIN(length, 4);
+
+    if (checksum_offset < sizeof(checksum)) {
+        size_t to_write = MIN(length, sizeof(checksum) - checksum_offset);
+        memcpy(&checksum + checksum_offset, start, to_write);
+        checksum_offset += to_write;
+    }
+
+    return checksum_offset == sizeof(checksum) && info.magic[0] == 0x12CE2171 && (info.magic[1] & 0x00FFFFFF) == 0x6E12F0;
+}
+
+bool FirmwareUpdate::handle_update_chunk(int command, WebServerRequest request, size_t chunk_index, uint8_t *data, size_t chunk_length, bool final, size_t complete_length) {
+    // The firmware files are merged with the bootloader, partition table, firmware_info and slot configuration bins.
     // The bootloader starts at offset 0x1000, which is the first byte in the firmware file.
     // The first firmware slot (i.e. the one that is flashed over USB) starts at 0x10000.
     // So we have to skip the first 0x10000 - 0x1000 bytes, after them the actual firmware starts.
     // Don't skip anything if we flash the SPIFFS.
     const size_t firmware_offset = command == U_FLASH ? 0x10000 - 0x1000 : 0;
 
+    static bool fw_info_found = false;
+
     if(chunk_index == 0 && !Update.begin(complete_length - firmware_offset, command)) {
         logger.printfln("Failed to start update: %s", Update.errorString());
         request.send(400, "text/plain", Update.errorString());
-        this->firmware_update_running = false;
-        return false;
+        Update.abort();
+        update_aborted = true;
+        return true;
+    }
+    if (chunk_index == 0) {
+        reset_fw_info();
+        fw_info_found = false;
+    }
+
+    if (update_aborted)
+        return true;
+
+    if (chunk_index + chunk_length >= FW_INFO_OFFSET && chunk_index < FW_INFO_OFFSET + FW_INFO_LENGTH) {
+        fw_info_found = handle_fw_info_chunk(chunk_index, data, chunk_length);
+    }
+
+    if (chunk_index + chunk_length >= FW_INFO_OFFSET + FW_INFO_LENGTH) {
+        if (!fw_info_found && __REQUIRE_FW_INFO__) {
+            logger.printfln("Failed to update: Firmware update has no info page!");
+            request.send(400, "text/plain", "firmware_update.script.no_info_page");
+            Update.abort();
+            update_aborted = true;
+            return true;
+        }
+        if (fw_info_found) {
+            if (checksum != calculated_checksum) {
+                logger.printfln("Failed to update: Firmware info page corrupted! Embedded checksum %x calculated checksum %x", checksum, calculated_checksum);
+                request.send(400, "text/plain", "firmware_update.script.info_page_corrupted");
+                Update.abort();
+                update_aborted = true;
+                return true;
+            }
+
+            if (strcmp(DISPLAY_NAME, info.firmware_name) != 0) {
+                logger.printfln("Failed to update: Firmware is for a %s but this is a %s!", info.firmware_name, DISPLAY_NAME);
+                request.send(400, "text/plain", "firmware_update.script.wrong_firmware_type");
+                Update.abort();
+                update_aborted = true;
+                return true;
+            }
+        }
     }
 
     if (chunk_index + chunk_length < firmware_offset) {
@@ -113,6 +214,7 @@ bool FirmwareUpdate::handleUpdateChunk(int command, WebServerRequest request, si
         logger.printfln("Failed to write update chunk with length %d; written %d, error: %s", length, written, Update.errorString());
         request.send(400, "text/plain", (String("Failed to write update: ") + Update.errorString()).c_str());
         this->firmware_update_running = false;
+        Update.abort();
         return false;
     }
 
@@ -120,6 +222,7 @@ bool FirmwareUpdate::handleUpdateChunk(int command, WebServerRequest request, si
         logger.printfln("Failed to apply update: %s", Update.errorString());
         request.send(400, "text/plain", (String("Failed to apply update: ") + Update.errorString()).c_str());
         this->firmware_update_running = false;
+        Update.abort();
         return false;
     }
 
@@ -133,6 +236,9 @@ void FirmwareUpdate::register_urls()
     });
 
     server.on("/flash_firmware", HTTP_POST, [this](WebServerRequest request){
+        if (update_aborted)
+            return;
+
         this->firmware_update_running = false;
         if (!firmware_update_allowed) {
             request.send(423, "text/plain", "vehicle connected");
@@ -151,7 +257,7 @@ void FirmwareUpdate::register_urls()
             return false;
         }
         this->firmware_update_running = true;
-        return handleUpdateChunk(U_FLASH, request, index, data, len, final, request.contentLength());
+        return handle_update_chunk(U_FLASH, request, index, data, len, final, request.contentLength());
     });
 
     server.on("/flash_spiffs", HTTP_POST, [this](WebServerRequest request){
@@ -161,7 +267,7 @@ void FirmwareUpdate::register_urls()
 
         request.send(Update.hasError() ? 400: 200, "text/plain", Update.hasError() ? Update.errorString() : "Update OK");
     },[this](WebServerRequest request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-        return handleUpdateChunk(U_SPIFFS, request, index, data, len, final, request.contentLength());
+        return handle_update_chunk(U_SPIFFS, request, index, data, len, final, request.contentLength());
     });
 
     server.on("/factory_reset", HTTP_PUT, [this](WebServerRequest request) {

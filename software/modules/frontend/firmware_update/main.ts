@@ -83,8 +83,10 @@ function upload(e: JQuery.SubmitEvent, type: string) {
             select.prop("hidden", false);
             if (xhr.status == 423)
                 util.add_alert("firmware_update_failed", "alert-danger", __("firmware_update.script.flash_fail"), __("firmware_update.script.vehicle_connected"));
-            else
-                util.add_alert("firmware_update_failed","alert-danger", __("firmware_update.script.flash_fail"), error + ": " + xhr.responseText);
+            else {
+                let txt = xhr.responseText.startsWith("firmware_update.") ? __(xhr.responseText) : error + ": " + xhr.responseText;
+                util.add_alert("firmware_update_failed","alert-danger", __("firmware_update.script.flash_fail"), txt);
+            }
             util.resumeWebSockets();
         }
     });
@@ -169,7 +171,10 @@ export function getTranslation(lang: string) {
                     "flash_fail": "Aktualisierung fehlgeschlagen",
                     "factory_reset_init": "Formatiere Konfigurationspartition und starte neu...",
                     "factory_reset_error": "Zurücksetzen auf Auslieferungszustand fehlgeschlagen",
-                    "vehicle_connected": "Es kann keine Aktualisierung vorgenommen werden, während ein Fahrzeug verbunden ist."
+                    "vehicle_connected": "Es kann keine Aktualisierung vorgenommen werden, während ein Fahrzeug verbunden ist.",
+                    "no_info_page": "Firmware-Datei ist beschädigt oder für WARP 1 (Firmware-Info-Seite fehlt)",
+                    "info_page_corrupted": "Firmware-Datei ist beschädigt (Checksummenfehler)",
+                    "wrong_firmware_type": "Firmware-Datei ist für anderen Wallbox-Typ",
                 }
             }
         },
@@ -200,7 +205,7 @@ export function getTranslation(lang: string) {
                 "script": {
                     "flash_success": "Successfully updated; restarting...",
                     "flash_fail": "Failed to update",
-                    "factory_reset_init": "Formatting configuration partition and restarting...",
+                    "factory_reset_init": "Formating configuration partition and restarting...",
                     "factory_reset_error": "Initiating factory reset failed",
                     "vehicle_connected": "Can't update the firmware while a vehicle is connected."
                 }
