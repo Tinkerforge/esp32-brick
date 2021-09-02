@@ -535,7 +535,6 @@ void Wifi::loop()
     bool connected = (wifi_sta_config_in_use.get("enable_sta")->asBool() && connection_state == WifiState::CONNECTED) || ethernet_connected;
 
     if (!connected && ap_fallback_only && !soft_ap_running) {
-        logger.printfln("Not connected: eth %d wifi sta %s %d", (int)ethernet.get_connection_state(), wifi_sta_config_in_use.get("enable_sta")->asBool() ? "enabled" : "disabled", (int)connection_state);
         apply_soft_ap_config_and_start();
     }
 
