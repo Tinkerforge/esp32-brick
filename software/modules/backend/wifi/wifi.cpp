@@ -219,6 +219,7 @@ void Wifi::apply_soft_ap_config_and_start() {
                 wifi_ap_config_in_use.get("passphrase")->asString().c_str(),
                 wifi_ap_config_in_use.get("channel")->asUint(),
                 wifi_ap_config_in_use.get("hide_ssid")->asBool());
+    WiFi.setSleep(false);
 
     soft_ap_running = true;
     IPAddress myIP = WiFi.softAPIP();
@@ -268,6 +269,7 @@ void Wifi::apply_sta_config_and_connect() {
     logger.printfln("Connecting to %s", wifi_sta_config_in_use.get("ssid")->asString().c_str());
 
     WiFi.begin(ssid.c_str(), passphrase.c_str(), 0, bssid_lock ? bssid : nullptr, true);
+    WiFi.setSleep(false);
 }
 
 const char *reason2str(uint8_t reason) {
