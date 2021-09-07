@@ -34,7 +34,6 @@ extern char passphrase[20];
 extern int8_t blue_led_pin;
 extern int8_t green_led_pin;
 extern int8_t button_pin;
-extern bool factory_reset_requested;
 
 TF_Port ports[6] = {{
         .port_name = 'A'
@@ -78,22 +77,6 @@ void ESP32EthernetBrick::register_urls()
 
 }
 
-static uint8_t factory_reset_stage = 0;
-static uint32_t last_led_toggle = 0;
-static bool last_led_state = false;
-static uint32_t last_btn_toggle = 0;
-static bool last_btn_state = false;
-static uint32_t last_state_change = 0;
-
-bool wasPressedForXms(uint32_t ms) {
-    return deadline_elapsed(last_btn_toggle + ms) && !last_btn_state;
-}
-
-bool wasToggledInLastXms(uint32_t ms) {
-    return !deadline_elapsed(last_btn_toggle + ms);
-}
-
-
 void ledBlink(int8_t led_pin, int interval, int blinks_per_interval, int off_time_ms) {
     int t_in_second = millis() % interval;
     if (off_time_ms != 0 && (interval - t_in_second <= off_time_ms)) {
@@ -110,79 +93,11 @@ void ledBlink(int8_t led_pin, int interval, int blinks_per_interval, int off_tim
 }
 
 /*
-To trigger a factory reset, the user has to hold
-the button down for three seconds (until the blue led blinks fast),
-then release the button for three seconds (until the led stops blinking)
-and repeat this process two times.
-
-This has to be so complicated, because the ethernet chip
-sends a 50 MHz clock to the ESP over pin 0, but while it is
-disabled, it pulls the pin to ground. The chip is disabled
-while the ESP starts to make sure the 50 MHz clock does not trigger
-the ESP's download mode. (Pin 0 is also a strapping pin for the ESP)
+The ESP Ethernet Brick can not trigger a factory reset itself,
+as the ethernet phy clock disturbs any IO0 button reading.
+For WARP 2 we use the Wallbox button (checked in the EVSE V2 module).
 */
 void ESP32EthernetBrick::loop()
 {
-    if (factory_reset_requested)
-        return;
-
-    bool btn = digitalRead(BUTTON);
-
-    if (last_btn_state != btn) {
-        last_btn_state = btn;
-        last_btn_toggle = millis();
-    }
-
-    switch(factory_reset_stage) {
-        case 0:
-            ledBlink(BLUE_LED, 2000, 1, 0);
-
-            if (wasPressedForXms(3000)) {
-                factory_reset_stage = 1;
-                last_state_change = millis();
-            }
-            break;
-        case 1:
-            ledBlink(BLUE_LED, 1000, 10, 0);
-
-            if (deadline_elapsed(last_state_change + 3000) && wasToggledInLastXms(3000)) {
-                factory_reset_stage = 2;
-                last_state_change = millis();
-            }
-            break;
-        case 2:
-            digitalWrite(BLUE_LED, true);
-
-            if (wasPressedForXms(3000)) {
-                factory_reset_stage = 3;
-                last_state_change = millis();
-            }
-            break;
-        case 3:
-            ledBlink(BLUE_LED, 1000, 10, 0);
-
-            if (deadline_elapsed(last_state_change + 3000) && wasToggledInLastXms(3000)) {
-                factory_reset_stage = 4;
-                last_state_change = millis();
-            }
-            break;
-        case 4:
-            digitalWrite(BLUE_LED, true);
-
-            if (wasPressedForXms(3000)) {
-                digitalWrite(BLUE_LED, false);
-                printf("Factory_reset!");
-                factory_reset_stage = 0;
-                last_state_change = millis();
-                factory_reset_requested = true;
-            }
-            break;
-    }
-
-    if (deadline_elapsed(last_state_change + 10000)) {
-        last_state_change = millis();
-        factory_reset_stage = 0;
-    }
-
-    //digitalWrite(GREEN_LED, digitalRead(4));
+    ledBlink(BLUE_LED, 2000, 1, 0);
 }
