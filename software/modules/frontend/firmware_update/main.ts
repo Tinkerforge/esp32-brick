@@ -207,7 +207,10 @@ export function getTranslation(lang: string) {
                     "flash_fail": "Failed to update",
                     "factory_reset_init": "Formating configuration partition and restarting...",
                     "factory_reset_error": "Initiating factory reset failed",
-                    "vehicle_connected": "Can't update the firmware while a vehicle is connected."
+                    "vehicle_connected": "Can't update the firmware while a vehicle is connected.",
+                    "no_info_page": "Firmware file corrupted or for WARP 1 (info page missing)",
+                    "info_page_corrupted": "Firmware file corrupted (checksum error)",
+                    "wrong_firmware_type": "Firmware file is for another type of wallbox",
                 }
             }
         }

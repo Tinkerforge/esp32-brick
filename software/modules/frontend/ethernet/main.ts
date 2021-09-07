@@ -126,7 +126,7 @@ function save_ethernet_config(continuation = function () { }) {
         contentType: 'application/json',
         data: JSON.stringify(payload),
         success: continuation,
-        error: (xhr, status, error) => util.add_alert("ethernet_config_failed", "alert-danger", __("wifi.script.sta_config_failed"), error + ": " + xhr.responseText)
+        error: (xhr, status, error) => util.add_alert("ethernet_config_failed", "alert-danger", __("ethernet.script.config_failed"), error + ": " + xhr.responseText)
     });
 }
 
@@ -210,8 +210,6 @@ export function getTranslation(lang: string) {
                     "gateway_invalid": "Die IP des Gateways muss aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1",
                     "dns_invalid": "Die IP des DNS-Servers muss entweder leer bleiben, oder aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1.",
                     "dns2_invalid": "Die IP des alternativen DNS-Servers muss entweder leer bleiben, oder aus vier Gruppen mit jeweils einer Zahl zwischen 0 und 255, getrent durch einen Punkt, bestehen. Zum Beispiel 10.0.0.1.",
-
-                    "unchanged": "unverändert"
                 },
                 "script": {
                     "config_failed": "Speichern der Verbindungseinstellungen fehlgeschlagen.",
@@ -256,8 +254,6 @@ export function getTranslation(lang: string) {
                     "gateway_invalid": "The gateway IP must have four groups between 0 and 255 separated with a dot. For example 10.0.0.1",
                     "dns_invalid": "The DNS server IP must have four groups between 0 and 255 separated with a dot. For example 10.0.0.1, or be empty.",
                     "dns2_invalid": "The alternative DNS server IP must have four groups between 0 and 255 separated with a dot. For example 10.0.0.1, or be empty.",
-
-                    "unchanged": "unchanged"
                 },
                 "script": {
                     "config_failed": "Failed to save connection configuration.",
