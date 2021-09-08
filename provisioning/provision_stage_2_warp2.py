@@ -236,27 +236,11 @@ def main():
         print("    Hardware type: {}".format(hardware_type))
         print("    UID: {}".format(esp_uid_qr))
 
-        if not os.path.exists(PORT):
-            fatal_error("/dev/ttyUSB0 does not exist. Is the USB cable plugged in?")
+        result["uid"] = esp_uid_qr
 
-        set_voltage_fuses, set_block_3, passphrase, uid = get_espefuse_tasks()
-        output = esptool(['--port', PORT, '--after', 'hard_reset', 'flash_id'])
-        if set_voltage_fuses:
-            fatal_error("Voltage fuses not set!")
+        ssid = "warp2-" + esp_uid_qr
 
-        if set_block_3:
-            fatal_error("Block 3 fuses not set!")
-
-        if esp_uid_qr != uid:
-            fatal_error("ESP UID written in fuses ({}) does not match the one on the QR code ({})".format(uid, esp_uid_qr))
-
-        if passphrase_qr != passphrase:
-            fatal_error("Wifi passphrase written in fuses does not match the one on the QR code")
-
-        result["uid"] = uid
-
-        ssid = "warp2-" + uid
-
+        print("Connecting via ethernet to {}".format(ssid), end="")
         for i in range(30):
             start = time.time()
             try:
@@ -266,11 +250,12 @@ def main():
             except:
                 pass
             t = max(0, 1 - (time.time() - start))
-            print("Sleep for", t)
             time.sleep(t)
+            print(".", end="")
         else:
             print("Failed to connect via ethernet!")
         raise Exception("exit 1")
+        print(" Connected.")
 
         ipcon = IPConnection()
         try:
