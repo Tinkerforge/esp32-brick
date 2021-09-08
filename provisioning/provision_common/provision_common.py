@@ -103,7 +103,10 @@ def ansi_format(fmt, s):
     result = fmt.format(s)
     return prefix + result + suffix
 
-class FatalError(Exception):
+# inherit from BaseException instead of Exception to avoid being handled by
+# try/except blocks that handle Exception instances. sys.exit() raises a
+# SystemExit exception that inherits from BaseException for the same reason
+class FatalError(BaseException):
     pass
 
 def fatal_error(*args):
