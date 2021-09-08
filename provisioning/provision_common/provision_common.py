@@ -106,7 +106,7 @@ def ansi_format(fmt, s):
 def fatal_error(*args):
     for line in args:
         print(red(str(line)))
-    sys.exit(0)
+    raise Exception("exit 1")
 
 @contextmanager
 def wifi(ssid, passphrase):
