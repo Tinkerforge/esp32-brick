@@ -1,8 +1,10 @@
 #!/usr/bin/python3 -u
 
+import sys
 import queue
 import threading
 import time
+import traceback
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.device_factory import create_device
@@ -280,4 +282,12 @@ def main():
     stage3.teardown()
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except FatalError as e:
+        input('Press return to exit ')
+        sys.exit(1)
+    except Exception as e:
+        traceback.print_exc()
+        input('Press return to exit ')
+        sys.exit(1)

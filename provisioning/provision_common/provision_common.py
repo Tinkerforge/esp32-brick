@@ -103,10 +103,14 @@ def ansi_format(fmt, s):
     result = fmt.format(s)
     return prefix + result + suffix
 
+class FatalError(Exception):
+    pass
+
 def fatal_error(*args):
     for line in args:
         print(red(str(line)))
-    raise Exception("exit 1")
+
+    raise FatalError
 
 @contextmanager
 def wifi(ssid, passphrase):

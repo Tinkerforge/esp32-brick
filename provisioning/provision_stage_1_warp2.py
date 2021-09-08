@@ -190,6 +190,9 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except FatalError as e:
+        input("Press return to exit. ")
+        sys.exit(1)
     except Exception as e:
         traceback.print_exc()
         input("Press return to exit. ")
