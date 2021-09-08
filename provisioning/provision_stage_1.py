@@ -382,8 +382,8 @@ def main():
         with socket.create_connection((PRINTER_HOST, PRINTER_PORT)):
             print("Label printer is online")
     except Exception as e:
-        if input("Failed to reach label printer. Continue anyway? [y/n]") != "y":
-            raise Exception("exit 1") from e
+        if input("Failed to reach label printer. Continue anyway? [y/N] ") != "y":
+            sys.exit(0)
 
     print("Checking ESP state")
     mac_address = check_if_esp_is_sane_and_get_mac()
