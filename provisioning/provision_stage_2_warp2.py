@@ -26,7 +26,7 @@ from tinkerforge.bricklet_rgb_led_v2 import BrickletRGBLEDV2
 from provision_common.provision_common import *
 from provision_common.bricklet_evse_v2 import BrickletEVSEV2
 
-def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
+def run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid):
     enumerations = enumerate_devices(ipcon)
 
     master = next((e for e in enumerations if e.device_identifier == 13), None)
@@ -87,8 +87,7 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
     result["resistor_checked"] = True
 
     if is_pro:
-        meter_str = urllib.request.urlopen('http://10.0.0.1/meter/live', timeout=3).read()
-        print(meter_str)
+        meter_str = urllib.request.urlopen('http://{}/meter/live'.format(ssid), timeout=3).read()
         meter_data = json.loads(meter_str)
         sps = meter_data["samples_per_second"]
         samples = meter_data["samples"]
@@ -98,8 +97,8 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power):
             fatal_error("Expected at least 10 samples but got {}".format(len(samples)))
 
         error_count = evse.get_energy_meter_state().error_count
-        if error_count:
-            fatal_error("Energy meter error count is {}, expected 0!".format(error_count))
+        if any(x != 0 for x in error_count):
+            fatal_error("Energy meter error count is {}, expected only zeros!".format(error_count))
 
         result["energy_meter_reachable"] = True
 
@@ -144,8 +143,7 @@ def main():
     #    urllib.request.urlretrieve('https://www.warp-charger.com/firmwares/{}'.format(firmware_path), os.path.join("firmwares", firmware_path))
     #firmware_path = os.path.join("firmwares", firmware_path)
 
-    #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;O:SO/B2020123;I:1/1;;
-    #T:WARP2-CS-22KW-75;V:2.1;S:5000000001;B:2021-08;O:SO/2020000;I:17/42;E:1;C:1;;;;;;;;;
+    #T:WARP2-CP-22KW-50;V:2.1;S:5000000001;B:2021-09;O:SO/2020123;I:17/42;E:1;C:0;;;;;;
     pattern = r'^T:WARP2-C(B|S|P)-(11|22)KW-(50|75);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});O:(SO/B?[0-9]+);I:(\d+/\d+);E:(\d+);C:([01]);;;*$'
     qr_code = my_input("Scan the docket QR code")
     match = re.match(pattern, qr_code)
@@ -156,13 +154,13 @@ def main():
     docket_variant = match.group(1)
     docket_power = match.group(2)
     docket_cable_len = match.group(3)
-    docket_hw_version = match.group(5)
-    docket_serial = match.group(6)
-    docket_built = match.group(7)
-    docket_order = match.group(8)
-    docket_item = match.group(9)
-    docket_supply_cable_extension = match.group(10)
-    docket_has_cee = match.group(11)
+    docket_hw_version = match.group(4)
+    docket_serial = match.group(5)
+    docket_built = match.group(6)
+    docket_order = match.group(7)
+    docket_item = match.group(8)
+    docket_supply_cable_extension = match.group(9)
+    docket_has_cee = match.group(10)
 
     if docket_supply_cable_extension is None:
         docket_supply_cable_extension = 0
@@ -186,7 +184,7 @@ def main():
     result["supply_cable_extension"] = docket_supply_cable_extension
     result["docket_qr_code"] = match.group(0)
 
-    #T:WARP-CS-11KW-50-CEE;V:2.17;S:5000000001;B:2021-01;;
+    #T:WARP2-CP-22KW-50;V:2.1;S:5000000001;B:2021-09;;
     pattern = r'^T:WARP2-C(B|S|P)-(11|22)KW-(50|75);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});;;*$'
     qr_code = my_input("Scan the wallbox QR code")
     match = re.match(pattern, qr_code)
@@ -197,9 +195,9 @@ def main():
     qr_variant = match.group(1)
     qr_power = match.group(2)
     qr_cable_len = match.group(3)
-    qr_hw_version = match.group(5)
-    qr_serial = match.group(6)
-    qr_built = match.group(7)
+    qr_hw_version = match.group(4)
+    qr_serial = match.group(5)
+    qr_built = match.group(6)
 
     if docket_variant != qr_variant or \
        docket_power != qr_power or \
@@ -254,7 +252,7 @@ def main():
             print(".", end="")
         else:
             print("Failed to connect via ethernet!")
-        raise Exception("exit 1")
+            raise Exception("exit 1")
         print(" Connected.")
 
         ipcon = IPConnection()
@@ -263,14 +261,14 @@ def main():
         except Exception as e:
             fatal_error("Failed to connect to ESP proxy")
 
-        run_bricklet_tests(ipcon, result, qr_variant, qr_power)
+        run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid)
 
         print("Waiting for NFC tags", end="")
         seen_tags = []
         while len(seen_tags) < 3:
             with urllib.request.urlopen("http://{}/nfc/seen_tags".format(ssid), timeout=1) as f:
                 seen_tags = [x for x in json.loads(f.read()) if any(y != 0 for y in x["tag_id"])]
-            print("\rWaiting for NFC tags. {} seen".format(len(seen_tags)))
+            print("\rWaiting for NFC tags. {} seen".format(len(seen_tags)), end="")
 
         print("\r3 NFC tags seen. Configuring tags      ")
         req = urllib.request.Request("http://{}/nfc/config_update".format(ssid),
@@ -328,13 +326,6 @@ def main():
 
     with open("{}_{}_report_stage_2.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
-
-    if qr_variant != "B":
-        with wifi(ssid, passphrase):
-            my_input("Pull the USB cable, do the electrical tests and press any key when done")
-
-        # Restart NetworkManager to reconnect to the "default" wifi
-        run(["systemctl", "restart", "NetworkManager.service"])
 
 if __name__ == "__main__":
     main()
