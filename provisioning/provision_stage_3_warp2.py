@@ -15,7 +15,7 @@ from tinkerforge.bricklet_industrial_dual_ac_relay import BrickletIndustrialDual
 from tinkerforge.bricklet_energy_monitor import BrickletEnergyMonitor
 
 from provision_common.inventory import Inventory
-from provision_common.provision_common import fatal_error
+from provision_common.provision_common import FatalError, fatal_error
 
 STACK_0_MASTER_UID = '61SMKP'
 ACTION_INTERVAL = 0.1 # seconds
