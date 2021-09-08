@@ -58,6 +58,9 @@ class Inventory:
             except:
                 pass # FIXME
 
+    def clear(self):
+        self._entires = {}
+
     def update(self, timeout=None):
         try:
             self._ipcon.enumerate()
