@@ -271,13 +271,7 @@ def main():
     stage3.setup()
     stage3.power('Smart')
 
-    print('Press Ctrl+C to exit')
-
-    while True:
-        try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            break
+    input('Press return to exit ')
 
     stage3.teardown()
 
