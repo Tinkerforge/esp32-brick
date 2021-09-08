@@ -278,7 +278,7 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except FatalError as e:
+    except FatalError:
         input('Press return to exit ')
         sys.exit(1)
     except Exception as e:
