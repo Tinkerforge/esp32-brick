@@ -489,9 +489,9 @@ def main():
     label_success = "n"
     while label_success != "y":
         run(["python3", "print-esp32-label.py", ssid, passphrase, "-c", "3"])
-        label_success = input("Stick one label on the esp, put esp and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]")
+        label_success = input("Stick one label on the ESP, put ESP and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]")
         while label_success not in ("y", "n"):
-            input("Stick one label on the esp, put esp and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]]")
+            label_success = input("Stick one label on the ESP, put ESP and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]")
 
     print('Done!')
 
