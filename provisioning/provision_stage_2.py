@@ -1177,5 +1177,7 @@ def main():
         # Restart NetworkManager to reconnect to the "default" wifi
         run(["systemctl", "restart", "NetworkManager.service"])
 
+    print('Done!')
+
 if __name__ == "__main__":
     main()

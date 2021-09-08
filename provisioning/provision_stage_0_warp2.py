@@ -82,5 +82,7 @@ def main():
     with open("{}_{}_report_stage_0.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
 
+    print('Done!')
+
 if __name__ == "__main__":
     main()

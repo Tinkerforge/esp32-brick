@@ -493,6 +493,8 @@ def main():
         while label_success not in ("y", "n"):
             input("Stick one label on the esp, put esp and the other two labels in the ESD bag. Press n to retry printing the labels. [y/n]]")
 
+    print('Done!')
+
 if __name__ == "__main__":
     try:
         main()
