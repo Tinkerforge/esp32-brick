@@ -40,7 +40,7 @@ def main():
     result = {"start": now()}
 
     print("Checking ESP state")
-    mac_address = check_if_esp_is_sane_and_get_mac()
+    mac_address = check_if_esp_is_sane_and_get_mac(ignore_flash_errors=True)
     print("MAC Address is {}".format(mac_address))
     result["mac"] = mac_address
 

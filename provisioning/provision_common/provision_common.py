@@ -156,8 +156,11 @@ def check_if_esp_is_sane_and_get_mac(ignore_flash_errors=False):
         if mac_match:
             mac = mac_match.group(1)
 
-    for name, val, expected in [("chip type", chip_type, "ESP32-D0WD-V3"), ("chip revision", chip_revision, "3"), ("crystal", crystal, "40MHz"), ("flash_size", flash_size, "16MB")]:
-        if val != expected:
+    for name, val, expected in [("chip type", chip_type, "ESP32-D0WD-V3"),
+                                ("chip revision", chip_revision, "3"),
+                                ("crystal", crystal, "40MHz"),
+                                ("flash_size", flash_size, "16MB" if not ignore_flash_errors else None)]:
+        if expected is not None and val != expected:
             fatal_error("{} was {}, not the expected {}".format(name, val, expected), "esptool output was:", '\n'.join(output))
 
     return mac

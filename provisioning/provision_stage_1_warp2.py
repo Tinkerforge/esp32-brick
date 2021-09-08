@@ -26,7 +26,7 @@ from provision_common.provision_common import *
 
 def main():
     #common_init('/dev/ttyUSB0', '192.168.178.242', 9100)
-    common_init('/dev/ttyUSB0', None, 9100)
+    common_init('/dev/ttyUSB0', '192.168.178.242', 9100)
 
     if len(sys.argv) != 1:
         fatal_error("Usage: {}".format(sys.argv[0]))
