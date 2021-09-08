@@ -19,6 +19,7 @@ import threading
 import time
 import urllib.request
 import csv
+import traceback
 
 from tinkerforge.ip_connection import IPConnection, base58encode, base58decode, BASE58
 from tinkerforge.bricklet_rgb_led_v2 import BrickletRGBLEDV2
