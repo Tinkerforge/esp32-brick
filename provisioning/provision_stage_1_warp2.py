@@ -160,12 +160,8 @@ def main():
     if led0 == "n":
         fatal_error("Status LED does not work")
 
-    led1 = input("Press IO0 button (for 3 seconds). Does the status LED blink faster? [y/n]")
-    while led1 not in ("y", "n"):
-        led1 = input("Press IO0 Button (for 3 seconds). Does the status LED blink faster? [y/n]")
-    result["io0_test_successful"] = led1 == "y"
-    if led1 == "n":
-        fatal_error("Status LED or IO0 button does not work")
+    # We don't test the IO0 button anymore
+    result["io0_test_successful"] = None
 
     led0_stop = input("Press EN button. Does the status LED stop blinking for some seconds? [y/n]")
     while led0_stop not in ("y", "n"):
