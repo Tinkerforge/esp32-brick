@@ -6,6 +6,8 @@ import threading
 import time
 import traceback
 
+import cv2
+
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.device_factory import create_device
 from tinkerforge.brick_master import BrickMaster
@@ -13,14 +15,23 @@ from tinkerforge.bricklet_industrial_dual_relay import BrickletIndustrialDualRel
 from tinkerforge.bricklet_industrial_quad_relay_v2 import BrickletIndustrialQuadRelayV2
 from tinkerforge.bricklet_industrial_dual_ac_relay import BrickletIndustrialDualACRelay
 from tinkerforge.bricklet_energy_monitor import BrickletEnergyMonitor
+from tinkerforge.bricklet_servo_v2 import BrickletServoV2
 
 from provision_common.inventory import Inventory
 from provision_common.provision_common import FatalError, fatal_error
 
-STACK_0_MASTER_UID = '61SMKP'
+IPCON_HOST = 'localhost'
+
 ACTION_INTERVAL = 0.1 # seconds
+
 MONOFLOP_DURATION = 1000 # milliseconds
+
 SETTLE_DURATION = 0.25 # seconds
+
+STACK_MASTER_UIDS = {
+    '0': '61SMKP',
+    '1': '6jEhrp',
+}
 
 EXPECTED_DEVICE_IDENTIFIERS = {
     '00': BrickMaster.DEVICE_IDENTIFIER,
@@ -38,6 +49,8 @@ EXPECTED_DEVICE_IDENTIFIERS = {
     '02B': BrickletEnergyMonitor.DEVICE_IDENTIFIER,
     '02C': BrickletEnergyMonitor.DEVICE_IDENTIFIER,
     '02D': BrickletEnergyMonitor.DEVICE_IDENTIFIER,
+    '10': BrickMaster.DEVICE_IDENTIFIER,
+    '10A': BrickletServoV2.DEVICE_IDENTIFIER,
 }
 
 class Stage3:
@@ -50,7 +63,7 @@ class Stage3:
         self.action_enabled_ref = None
         self.action_thread = None
 
-        self.ipcon.set_timeout(0.25)
+        self.ipcon.set_timeout(0.5)
 
     def action_loop(self, stop_queue, enabled_ref):
         timestamp = -ACTION_INTERVAL
@@ -152,13 +165,75 @@ class Stage3:
         self.action_stop_queue.put(('00B', lambda device: device.set_value(*value[1])))
         self.action_stop_queue.put(('00C', lambda device: device.set_value(*value[2])))
 
+    def set_servo_position(self, servo, channel, position):
+        servo.set_position(channel, position)
+
+        current_position = servo.get_current_position(channel)
+
+        # FIXME: add timeout?
+        while current_position != position:
+            time.sleep(0.1)
+
+            current_position = servo.get_current_position(channel)
+
+    def trigger_meter_run(self):
+        servo = self.devices['10A']
+
+        try:
+            if not servo.get_enabled(0):
+                servo.set_enable(0, True)
+
+            self.set_servo_position(servo, 0, 4000)
+            self.set_servo_position(servo, 0, 6800)
+            time.sleep(0.1)
+            self.set_servo_position(servo, 0, 4000)
+        except Exception as e:
+            fatal_error('Could not press meter run button: {0}'.format(e))
+
+    def trigger_meter_back(self):
+        servo = self.devices['10A']
+
+        try:
+            if not servo.get_enabled(1):
+                servo.set_enable(1, True)
+
+            self.set_servo_position(servo, 1, 3000)
+            self.set_servo_position(servo, 1, 5500)
+            time.sleep(0.1)
+            self.set_servo_position(servo, 1, 3000)
+        except Exception as e:
+            fatal_error('Could not press meter back button: {0}'.format(e))
+
+    def read_meter_qr_code(self, timeout=None):
+        text = ''
+        timestamp = time.monotonic()
+
+        try:
+            capture = cv2.VideoCapture(0)
+            decoder = cv2.QRCodeDetector()
+
+            while len(text) == 0:
+                _, frame = capture.read()
+                text, _, _ = decoder.detectAndDecode(frame)
+
+                if timeout == None or timestamp + timeout < time.monotonic():
+                    break
+
+                time.sleep(0.1)
+
+            capture.release()
+        except Exception as e:
+            fatal_error('Could not read QR code: {0}'.format(e))
+
+        return text
+
     def setup(self):
         assert not self.prepared
 
         print('Connecting to brickd')
 
         try:
-            self.ipcon.connect('tim2', 4223)
+            self.ipcon.connect(IPCON_HOST, 4223)
         except Exception as e:
             fatal_error('Could not connect to brickd: {0}'.format(e))
 
@@ -169,39 +244,41 @@ class Stage3:
 
         self.devices = {}
 
-        for brick_position in ['0', '1', '2']:
-            full_position = '0' + brick_position
+        for stack_position, positions in [('0', {'0': ['A', 'B', 'C', 'D'], '1': ['A', 'B', 'C', 'D'], '2': ['A', 'B', 'C', 'D']}),
+                                          ('1', {'0': ['A']})]:
+            for brick_position, bricklet_positions in positions.items():
+                full_position = stack_position + brick_position
 
-            if brick_position == '0':
-                brick_entry = self.inventory.get_one(uid=STACK_0_MASTER_UID, connected_uid='0', position=brick_position)
-            else:
-                brick_entry = self.inventory.get_one(connected_uid=STACK_0_MASTER_UID, position=brick_position)
+                if brick_position == '0':
+                    brick_entry = self.inventory.get_one(uid=STACK_MASTER_UIDS[stack_position], connected_uid='0', position=brick_position)
+                else:
+                    brick_entry = self.inventory.get_one(connected_uid=stack_master_uid, position=brick_position)
 
-            if brick_entry == None:
-                fatal_error('Missing Brick at postion {0}'.format(full_position))
+                if brick_entry == None:
+                    fatal_error('Missing Brick at postion {0}'.format(full_position))
 
-            if EXPECTED_DEVICE_IDENTIFIERS[full_position] != brick_entry.device_identifier:
-                fatal_error('Wrong Brick at postion {0}'.format(full_position))
+                if EXPECTED_DEVICE_IDENTIFIERS[full_position] != brick_entry.device_identifier:
+                    fatal_error('Wrong Brick at postion {0}'.format(full_position))
 
-            device = create_device(brick_entry.device_identifier, brick_entry.uid, self.ipcon)
-            device.set_response_expected_all(True)
-
-            self.devices[full_position] = device
-
-            for bricklet_position in ['A', 'B', 'C', 'D']:
-                full_position = '0' + brick_position + bricklet_position
-                bricklet_entry = self.inventory.get_one(connected_uid=brick_entry.uid, position=bricklet_position)
-
-                if bricklet_entry == None:
-                    fatal_error('Missing Bricklet at postion {0}'.format(full_position))
-
-                if EXPECTED_DEVICE_IDENTIFIERS[full_position] != bricklet_entry.device_identifier:
-                    fatal_error('Wrong Bricklet at postion {0}'.format(full_position))
-
-                device = create_device(bricklet_entry.device_identifier, bricklet_entry.uid, self.ipcon)
+                device = create_device(brick_entry.device_identifier, brick_entry.uid, self.ipcon)
                 device.set_response_expected_all(True)
 
                 self.devices[full_position] = device
+
+                for bricklet_position in bricklet_positions:
+                    full_position = stack_position + brick_position + bricklet_position
+                    bricklet_entry = self.inventory.get_one(connected_uid=brick_entry.uid, position=bricklet_position)
+
+                    if bricklet_entry == None:
+                        fatal_error('Missing Bricklet at postion {0}'.format(full_position))
+
+                    if EXPECTED_DEVICE_IDENTIFIERS[full_position] != bricklet_entry.device_identifier:
+                        fatal_error('Wrong Bricklet at postion {0}'.format(full_position))
+
+                    device = create_device(bricklet_entry.device_identifier, bricklet_entry.uid, self.ipcon)
+                    device.set_response_expected_all(True)
+
+                    self.devices[full_position] = device
 
         self.action_stop_queue = queue.Queue()
         self.action_enabled_ref = [True]
@@ -223,10 +300,10 @@ class Stage3:
         self.action_enabled_ref = None
         self.action_thread = None
 
-    def idle(self):
+    def power_off(self):
         assert self.prepared
 
-        print('Switching to idle target')
+        print('Switching power off')
 
         self.connect_warp_power([])
 
@@ -239,14 +316,14 @@ class Stage3:
 
         time.sleep(SETTLE_DURATION)
 
-    def power(self, outlet=None):
+    def power_on(self, outlet=None):
         assert self.prepared
         assert outlet in [None, 'Smart', 'Pro']
 
         if outlet == None:
-            print('Switching to power target')
+            print('Switching power on')
         else:
-            print('Switching to power target for {} outlet'.format(outlet))
+            print('Switching power on for {} outlet'.format(outlet))
 
         self.connect_warp_power([])
 
@@ -264,12 +341,14 @@ class Stage3:
         time.sleep(SETTLE_DURATION)
 
 def main():
-    # FIXME: targets: idle, power, test
-
     stage3 = Stage3()
 
     stage3.setup()
-    stage3.power('Smart')
+
+    #stage3.power_on('Smart')
+    #stage3.trigger_meter_run()
+    #stage3.trigger_meter_back()
+    print(stage3.read_meter_qr_code(20))
 
     input('Press return to exit ')
 
