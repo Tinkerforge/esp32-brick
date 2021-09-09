@@ -83,7 +83,7 @@ def main():
 
         result["wifi_test_successful"] = True
 
-    time.sleep(5)
+    print("Connecting via ethernet to 192.168.123.123", end="")
     for i in range(30):
         start = time.time()
         try:
@@ -93,10 +93,12 @@ def main():
         except:
             pass
         t = max(0, 1 - (time.time() - start))
-        print("Sleep for", t)
         time.sleep(t)
+        print(".", end="")
     else:
-        fatal_error("Failed to connect via ethernet!")
+        print("Failed to connect via ethernet!")
+        raise Exception("exit 1")
+    print(" Connected.")
 
     req = urllib.request.Request("http://192.168.123.123/ethernet/config_update",
                                  data=json.dumps({"enable_ethernet":True,
