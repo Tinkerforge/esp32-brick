@@ -464,19 +464,19 @@ class Stage3:
                 servo.set_enable(channel, True)
 
             self.set_servo_position(servo, channel, 2100)
-            time.sleep(0.1)
+            time.sleep(0.5) # wait for Color Bricklet 2.0 integration time
 
             button_pressed = self.is_front_panel_button_pressed_function()
             led_pressed = self.is_front_panel_led_on()
 
-            if not button_before:
-                fatal_error('Front panel button is not pressed during test')
-
-            if led_before:
-                fatal_error('Front panel LED is still on during test')
-
             self.set_servo_position(servo, channel, -3000)
             time.sleep(0.1)
+
+            if not button_pressed:
+                fatal_error('Front panel button is not pressed during test')
+
+            if led_pressed:
+                fatal_error('Front panel LED is still on during test')
 
             button_after = self.is_front_panel_button_pressed_function()
             led_after = self.is_front_panel_led_on()
