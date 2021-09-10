@@ -573,6 +573,21 @@ class Stage3:
         if voltages[2] > VOLTAGE_OFF_THRESHOLD:
             fatal_error('Unexpected voltage on L3')
 
+        self.connect_warp_power(['L1', 'L3'])
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        voltages = self.read_voltage_monitors()
+
+        if voltages[0] < VOLTAGE_ON_THRESHOLD:
+            fatal_error('Missing voltage on L1')
+
+        if voltages[1] > VOLTAGE_OFF_THRESHOLD:
+            fatal_error('Unexpected voltage on L2')
+
+        if voltages[2] < VOLTAGE_ON_THRESHOLD:
+            fatal_error('Missing voltage on L3')
+
         self.connect_warp_power(['L1', 'L2', 'L3'])
         self.connect_voltage_monitors(False)
 
