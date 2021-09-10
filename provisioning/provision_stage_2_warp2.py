@@ -374,7 +374,7 @@ def main(stage3):
     with open("{}_{}_report_stage_2.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
 
-    print(green("Performing the electrical tests"))
+    print("Performing the electrical tests")
 
     if qr_variant != "B":
         run(["su", git_user, "-c", "firefox --new-tab --url http://{}".format(ssid)])
