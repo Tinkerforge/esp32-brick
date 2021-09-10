@@ -6,7 +6,7 @@ import threading
 import time
 import traceback
 
-import cv2
+import cv2 # sudo pip3 install openvc-python
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.device_factory import create_device
@@ -482,6 +482,9 @@ class Stage3:
     def get_nfc_tag_id(self, index):
         return self.devices['20B'].simple_get_tag_id(index)
 
+    def test_wallbox(self):
+        pass
+
 def main():
     stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False, get_iec_state_function=lambda: 'A', reset_dc_fault_function=lambda: None)
 
@@ -495,7 +498,8 @@ def main():
     #stage3.connect_type2_pe(False)
     #print(stage3.read_voltage_monitor('L3'))
     #stage3.test_front_panel_button()
-    print(stage3.get_nfc_tag_id(0))
+    #print(stage3.get_nfc_tag_id(0))
+    #print(stage3.test_wallbox())
 
     input('Press return to exit ')
 
