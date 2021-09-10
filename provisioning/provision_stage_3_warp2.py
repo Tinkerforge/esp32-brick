@@ -73,9 +73,9 @@ EXPECTED_DEVICE_IDENTIFIERS = {
 }
 
 class Stage3:
-    def __init__(self, is_front_panel_button_pressed_function, has_evse_error, get_iec_state_function, reset_dc_fault_function):
+    def __init__(self, is_front_panel_button_pressed_function, has_evse_error_function, get_iec_state_function, reset_dc_fault_function):
         self.is_front_panel_button_pressed_function = is_front_panel_button_pressed_function
-        self.has_evse_error = has_evse_error
+        self.has_evse_error_function = has_evse_error_function
         self.get_iec_state_function = get_iec_state_function
         self.reset_dc_fault_function = reset_dc_fault_function
         self.ipcon = IPConnection()
@@ -495,7 +495,7 @@ class Stage3:
 
     # requires power_on
     def test_wallbox(self):
-        assert self.has_evse_error != None
+        assert self.has_evse_error_function != None
         assert self.get_iec_state_function != None
         assert self.reset_dc_fault_function != None
 
@@ -519,7 +519,7 @@ class Stage3:
             if self.get_iec_state_function() != state:
                 fatal_error('Wallbox not in IEC state {0}'.format(state))
 
-            if self.has_evse_error():
+            if self.has_evse_error_function():
                 if state != 'D':
                     fatal_error('Unexpected EVSE error')
             else:
@@ -581,7 +581,7 @@ class Stage3:
 
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
-        if not self.has_evse_error():
+        if not self.has_evse_error_function():
             fatal_error('Missing EVSE error for PE disconnect')
 
         self.connect_type2_pe(True)
@@ -753,7 +753,7 @@ class Stage3:
         self.click_meter_run_button() # skip QR code
 
 def main():
-    stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False, has_evse_error=lambda: False, get_iec_state_function=lambda: 'A', reset_dc_fault_function=lambda: None)
+    stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False, has_evse_error_function=lambda: False, get_iec_state_function=lambda: 'A', reset_dc_fault_function=lambda: None)
 
     stage3.setup()
 
