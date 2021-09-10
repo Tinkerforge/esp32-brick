@@ -256,8 +256,6 @@ def main(stage3):
     result["serial"] = qr_serial
     result["qr_code"] = match.group(0)
 
-    stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
-
     if qr_variant != "B":
         pattern = r"^WIFI:S:(esp32|warp|warp2)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58)
         qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
@@ -265,6 +263,8 @@ def main(stage3):
         while not match:
             qr_code = getpass.getpass(red("Scan the ESP Brick QR code"))
             match = re.match(pattern, qr_code)
+
+        stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
 
         hardware_type = match.group(1)
         esp_uid_qr = match.group(2)
@@ -339,6 +339,8 @@ def main(stage3):
         result["nfc_tags_configured"] = True
 
     else:
+        stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
+
         result["uid"] = None
 
         ipcon = IPConnection()
