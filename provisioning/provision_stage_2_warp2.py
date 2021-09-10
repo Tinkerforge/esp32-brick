@@ -137,7 +137,7 @@ def has_evse_error():
     return evse.get_state().error_state != 0
 
 def led_wrap():
-    stage3 = Stage3(is_front_panel_button_pressed_function=is_front_panel_button_pressed, get_iec_state_function=get_iec_state, reset_dc_fault_function=reset_dc_fault, has_evse_error=has_evse_error)
+    stage3 = Stage3(is_front_panel_button_pressed_function=is_front_panel_button_pressed, get_iec_state_function=get_iec_state, reset_dc_fault_function=reset_dc_fault, has_evse_error_function=has_evse_error)
     stage3.setup()
     stage3.set_led_strip_color(0, 0, 255)
     try:
