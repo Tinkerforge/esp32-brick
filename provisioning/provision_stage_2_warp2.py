@@ -332,7 +332,7 @@ def main():
     print(green("Perform the electrical tests now"))
 
     if qr_variant != "B":
-        run("firefox --new-tab --url http://{}".format(ssid))
+        run(["su", git_user, "-c", "firefox --new-tab --url http://{}".format(ssid)])
 
 if __name__ == "__main__":
     try:
