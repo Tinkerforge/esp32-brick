@@ -143,9 +143,11 @@ def led_wrap():
     try:
         main(stage3)
     except BaseException:
+        stage3.power_off()
         stage3.set_led_strip_color(255, 0, 0)
         raise
     else:
+        stage3.power_off()
         stage3.set_led_strip_color(0, 255, 0)
 
 def main(stage3):
@@ -385,9 +387,7 @@ if __name__ == "__main__":
     try:
         led_wrap()
     except FatalError:
-        input("Press return to exit. ")
         sys.exit(1)
     except Exception as e:
         traceback.print_exc()
-        input("Press return to exit. ")
         sys.exit(1)
