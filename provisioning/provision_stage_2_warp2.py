@@ -26,8 +26,12 @@ from tinkerforge.bricklet_rgb_led_v2 import BrickletRGBLEDV2
 
 from provision_common.provision_common import *
 from provision_common.bricklet_evse_v2 import BrickletEVSEV2
+from provision_stage_3_warp2 import Stage3
 
-def run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid):
+evse = None
+
+def run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid, stage3):
+    global evse
     enumerations = enumerate_devices(ipcon)
 
     master = next((e for e in enumerations if e.device_identifier == 13), None)
@@ -103,6 +107,10 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid):
 
         result["energy_meter_reachable"] = True
 
+    stage3.test_front_panel_button()
+    result["front_panel_button_tested"] = True
+
+
 def exists_evse_test_report(evse_uid):
     with open(os.path.join("evse_v2_test_report", "full_test_log.csv"), newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
@@ -111,7 +119,36 @@ def exists_evse_test_report(evse_uid):
                 return True
     return False
 
-def main():
+
+def is_front_panel_button_pressed():
+    global evse
+    return evse.get_low_level_state().gpio[6]
+
+def get_iec_state():
+    global evse
+    return evse.get_state().iec61851_state
+
+def reset_dc_fault():
+    global evse
+    return evse.reset_dc_fault_current(0xDC42FA23)
+
+def has_evse_error():
+    global evse
+    return evse.get_state().error_state != 0
+
+def led_wrap():
+    stage3 = Stage3(is_front_panel_button_pressed_function=is_front_panel_button_pressed, get_iec_state_function=get_iec_state, reset_dc_fault_function=reset_dc_fault, has_evse_error=has_evse_error)
+    stage3.setup()
+    stage3.set_led_strip_color(0, 0, 255)
+    try:
+        main(stage3)
+    except BaseException:
+        stage3.set_led_strip_color(255, 0, 0)
+        raise
+    else:
+        stage3.set_led_strip_color(0, 255, 0)
+
+def main(stage3):
     result = {"start": now()}
 
     git_user = None
@@ -219,6 +256,8 @@ def main():
     result["serial"] = qr_serial
     result["qr_code"] = match.group(0)
 
+    stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
+
     if qr_variant != "B":
         pattern = r"^WIFI:S:(esp32|warp|warp2)-([{BASE58}]{{3,6}});T:WPA;P:([{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}}-[{BASE58}]{{4}});;$".format(BASE58=BASE58)
         qr_code = getpass.getpass(green("Scan the ESP Brick QR code"))
@@ -262,13 +301,13 @@ def main():
         except Exception as e:
             fatal_error("Failed to connect to ESP proxy")
 
-        run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid)
+        run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid, stage3)
 
         print("Waiting for NFC tags", end="")
         seen_tags = []
         while len(seen_tags) < 3:
             with urllib.request.urlopen("http://{}/nfc/seen_tags".format(ssid), timeout=1) as f:
-                seen_tags = [x for x in json.loads(f.read()) if any(y != 0 for y in x["tag_id"])]
+                seen_tags = [x for x in stage3.get_nfc_tag_id() if any(y != 0 for y in x)]
             print("\rWaiting for NFC tags. {} seen".format(len(seen_tags)), end="")
 
         print("\r3 NFC tags seen. Configuring tags      ")
@@ -300,9 +339,11 @@ def main():
 
     else:
         result["uid"] = None
+
         ipcon = IPConnection()
         ipcon.connect("localhost", 4223)
-        run_bricklet_tests(ipcon, result, qr_variant, qr_power)
+
+        run_bricklet_tests(ipcon, result, qr_variant, qr_power, None, stage3)
         print("Flashing EVSE")
         run(["python3", "comcu_flasher.py", result["evse_uid"], evse_path])
         result["evse_firmware"] = evse_path
@@ -328,15 +369,18 @@ def main():
     with open("{}_{}_report_stage_2.json".format(ssid, now().replace(":", "-")), "w") as f:
         json.dump(result, f, indent=4)
 
-    print('Done!')
-    print(green("Perform the electrical tests now"))
+    print(green("Performing the electrical tests"))
 
     if qr_variant != "B":
         run(["su", git_user, "-c", "firefox --new-tab --url http://{}".format(ssid)])
 
+    stage3.test_wallbox()
+
+    print('Done!')
+
 if __name__ == "__main__":
     try:
-        main()
+        led_wrap()
     except FatalError:
         input("Press return to exit. ")
         sys.exit(1)
