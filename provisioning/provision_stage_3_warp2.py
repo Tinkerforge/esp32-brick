@@ -298,7 +298,7 @@ class Stage3:
         except Exception as e:
             fatal_error('Could not read front panel LED color: {0}'.format(e))
 
-        return color[2] - color[0] > 1000 # FIXME: adjust threshold
+        return color[2] - color[0] > 1000
 
     def setup(self):
         assert not self.prepared
@@ -374,6 +374,8 @@ class Stage3:
                             fatal_error('Could not set chip type and channel mapping for LED Strip Bricklet 2.0 at postion {0}: {1}'.format(full_position, e))
 
                     self.devices[full_position] = device
+
+        self.devices['20B'].simple_get_tag_id(255) # clear tags from last test run
 
         self.action_stop_queue = queue.Queue()
         self.action_enabled_ref = [True]
