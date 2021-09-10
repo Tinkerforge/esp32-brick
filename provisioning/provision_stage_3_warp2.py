@@ -30,7 +30,14 @@ ACTION_INTERVAL = 0.2 # seconds
 
 MONOFLOP_DURATION = 2000 # milliseconds
 
-SETTLE_DURATION = 0.25 # seconds
+RELAY_SETTLE_DURATION = 0.25 # seconds
+
+EVSE_SETTLE_DURATION = 2.0 # seconds
+
+METER_SETTLE_DURATION = 5.0 # seconds
+
+VOLTAGE_OFF_THRESHOLD = 1.0 # Volt
+VOLTAGE_ON_THRESHOLD = 220.0 # Volt
 
 STACK_MASTER_UIDS = {
     '0': '61SMKP',
@@ -66,8 +73,9 @@ EXPECTED_DEVICE_IDENTIFIERS = {
 }
 
 class Stage3:
-    def __init__(self, is_front_panel_button_pressed_function, get_iec_state_function, reset_dc_fault_function):
+    def __init__(self, is_front_panel_button_pressed_function, has_evse_error, get_iec_state_function, reset_dc_fault_function):
         self.is_front_panel_button_pressed_function = is_front_panel_button_pressed_function
+        self.has_evse_error = has_evse_error
         self.get_iec_state_function = get_iec_state_function
         self.reset_dc_fault_function = reset_dc_fault_function
         self.ipcon = IPConnection()
@@ -130,11 +138,11 @@ class Stage3:
 
     # internal
     def connect_outlet(self, outlet):
-        assert outlet in [None, 'Smart', 'Pro']
+        assert outlet in [None, 'Basic', 'Smart', 'Pro']
 
         if outlet == None:
             self.action_stop_queue.put((('02A', 0), lambda device: device.set_value(False, False)))
-        elif outlet == 'Smart':
+        elif outlet in ['Basic', 'Smart']:
             self.action_stop_queue.put((('02A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_selected_value(1, False)]))
         elif outlet == 'Pro':
             self.action_stop_queue.put((('02A', 0), lambda device: [device.set_selected_value(0, False), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
@@ -142,7 +150,7 @@ class Stage3:
             assert False, outlet
 
     # internal
-    def connect_voltage_monitor(self, connect):
+    def connect_voltage_monitors(self, connect):
         if connect:
             self.action_stop_queue.put((('01B', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
             self.action_stop_queue.put((('01C', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
@@ -201,22 +209,15 @@ class Stage3:
         self.action_stop_queue.put((('00C', 0), lambda device: device.set_value(*value[2])))
 
     # internal
-    def read_voltage_monitor(self, phase):
-        if phase == 'L1':
-            position = '02B'
-        elif phase == 'L2':
-            position = '02C'
-        elif phase == 'L3':
-            position = '02D'
-        else:
-            assert False, phase
-
+    def read_voltage_monitors(self):
         try:
-            data = self.devices[position].get_energy_data()
+            return [
+                self.devices['02B'].get_energy_data()[0] / 100,
+                self.devices['02C'].get_energy_data()[0] / 100,
+                self.devices['02D'].get_energy_data()[0] / 100,
+            ]
         except Exception as e:
-            fatal_error('Could not read voltage monitor: {0}'.format(e))
-
-        return data[0] / 100
+            fatal_error('Could not read voltage monitors: {0}'.format(e))
 
     # internal
     def set_servo_position(self, servo, channel, position):
@@ -267,7 +268,7 @@ class Stage3:
             fatal_error('Could not click meter back button: {0}'.format(e))
 
     # internal
-    def read_meter_qr_code(self, timeout=None):
+    def read_meter_qr_code(self, timeout=5):
         text = ''
         timestamp = time.monotonic()
 
@@ -365,6 +366,12 @@ class Stage3:
                             device.set_mode(BrickletNFC.MODE_SIMPLE)
                         except Exception as e:
                             fatal_error('Could not set simple mode for NFC Bricklet at postion {0}: {1}'.format(full_position, e))
+                    elif bricklet_entry.device_identifier == BrickletLEDStripV2.DEVICE_IDENTIFIER:
+                        try:
+                            device.set_chip_type(BrickletLEDStripV2.CHIP_TYPE_WS2812)
+                            device.set_channel_mapping(BrickletLEDStripV2.CHANNEL_MAPPING_GRB)
+                        except Exception as e:
+                            fatal_error('Could not set chip type and channel mapping for LED Strip Bricklet 2.0 at postion {0}: {1}'.format(full_position, e))
 
                     self.devices[full_position] = device
 
@@ -395,20 +402,20 @@ class Stage3:
 
         self.connect_warp_power([])
 
-        time.sleep(SETTLE_DURATION)
+        time.sleep(RELAY_SETTLE_DURATION)
 
         self.connect_outlet(None)
-        self.connect_voltage_monitor(False)
+        self.connect_voltage_monitors(False)
         self.connect_front_panel(False)
         self.connect_type2_pe(True)
         self.change_cp_pe_state('A')
         self.change_meter_state('Type2-L1')
 
-        time.sleep(SETTLE_DURATION)
+        time.sleep(RELAY_SETTLE_DURATION)
 
     def power_on(self, outlet=None):
         assert self.prepared
-        assert outlet in [None, 'Smart', 'Pro']
+        assert outlet in [None, 'Basic', 'Smart', 'Pro']
 
         if outlet == None:
             print('Switching power on')
@@ -417,21 +424,22 @@ class Stage3:
 
         self.connect_warp_power([])
 
-        time.sleep(SETTLE_DURATION)
+        time.sleep(RELAY_SETTLE_DURATION)
 
         self.connect_outlet(outlet)
-        self.connect_voltage_monitor(False)
+        self.connect_voltage_monitors(False)
         self.connect_front_panel(False)
         self.connect_type2_pe(True)
         self.change_cp_pe_state('A')
         self.change_meter_state('Type2-L1')
 
-        time.sleep(SETTLE_DURATION)
+        time.sleep(RELAY_SETTLE_DURATION)
 
         self.connect_warp_power(['L1'])
 
-        time.sleep(SETTLE_DURATION)
+        time.sleep(RELAY_SETTLE_DURATION)
 
+    # requires power_on
     def test_front_panel_button(self):
         assert self.is_front_panel_button_pressed_function != None
 
@@ -482,11 +490,270 @@ class Stage3:
     def get_nfc_tag_id(self, index):
         return self.devices['20B'].simple_get_tag_id(index)
 
+    def set_led_strip_color(self, r, g, b):
+        self.devices['20A'].set_led_values(0, [r, g, b] * 11)
+
+    # requires power_on
     def test_wallbox(self):
-        pass
+        assert self.has_evse_error != None
+        assert self.get_iec_state_function != None
+        assert self.reset_dc_fault_function != None
+
+        # step 01
+        if self.read_meter_qr_code() != '01':
+            fatal_error('Meter in wrong step')
+
+        self.click_meter_run_button() # skip QR code
+
+        self.connect_warp_power(['L1', 'L2', 'L3'])
+        self.connect_voltage_monitors(True)
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        # step 01: test IEC states
+        for state in ['A', 'B', 'C', 'D']:
+            self.change_cp_pe_state(state)
+
+            time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
+
+            if self.get_iec_state_function() != state:
+                fatal_error('Wallbox not in IEC state {0}'.format(state))
+
+            if self.has_evse_error():
+                if state != 'D':
+                    fatal_error('Unexpected EVSE error')
+            else:
+                if state == 'D':
+                    fatal_error('Missing EVSE error for IEC state D')
+
+            voltages = self.read_voltage_monitors()
+
+            for i, phase in enumerate(['L1', 'L2', 'L3']):
+                if state == 'C':
+                    if voltages[i] < VOLTAGE_ON_THRESHOLD:
+                        fatal_error('Missing voltage on {0}'.format(phase))
+                else:
+                    if voltages[i] > VOLTAGE_OFF_THRESHOLD:
+                        fatal_error('Unexpected voltage on {0}'.format(phase))
+
+        # step 01: test phase separation
+        self.connect_warp_power(['L1', 'L2'])
+        self.change_cp_pe_state('C')
+
+        time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
+
+        if self.get_iec_state_function() != 'C':
+            fatal_error('Wallbox not in IEC state C')
+
+        voltages = self.read_voltage_monitors()
+
+        if voltages[0] < VOLTAGE_ON_THRESHOLD:
+            fatal_error('Missing voltage on L1')
+
+        if voltages[1] < VOLTAGE_ON_THRESHOLD:
+            fatal_error('Missing voltage on L2')
+
+        if voltages[2] > VOLTAGE_OFF_THRESHOLD:
+            fatal_error('Unexpected voltage on L3')
+
+        self.connect_warp_power(['L1'])
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        voltages = self.read_voltage_monitors()
+
+        if voltages[0] < VOLTAGE_ON_THRESHOLD:
+            fatal_error('Missing voltage on L1')
+
+        if voltages[1] > VOLTAGE_OFF_THRESHOLD:
+            fatal_error('Unexpected voltage on L2')
+
+        if voltages[2] > VOLTAGE_OFF_THRESHOLD:
+            fatal_error('Unexpected voltage on L3')
+
+        self.connect_warp_power(['L1', 'L2', 'L3'])
+        self.connect_voltage_monitors(False)
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        # step 01: test PE disconnect
+        self.connect_type2_pe(False)
+
+        time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
+
+        if not self.has_evse_error():
+            fatal_error('Missing EVSE error for PE disconnect')
+
+        self.connect_type2_pe(True)
+
+        time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
+
+        # step 01: mark test as passed
+        self.click_meter_run_button()
+        self.click_meter_run_button()
+        self.click_meter_back_button()
+
+        # step 02: test voltage L1
+        if self.read_meter_qr_code() != '02':
+            fatal_error('Meter in wrong step')
+
+        self.change_cp_pe_state('C')
+
+        time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
+
+        if self.get_iec_state_function() != 'C':
+            fatal_error('Wallbox not in IEC state C')
+
+        self.change_meter_state('Type2-L1')
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+
+        self.click_meter_run_button() # start test
+
+        if self.read_meter_qr_code(timeout=15) != '03':
+            fatal_error('Step 02 timeouted')
+
+        # step 03: test Z auto L1
+        self.click_meter_run_button() # skip QR code
+
+        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+
+        self.click_meter_run_button() # start test
+
+        if self.read_meter_qr_code(timeout=30) != '04':
+            fatal_error('Step 03 timeouted')
+
+        # step 04: test voltage L2
+        self.change_meter_state('Type2-L2')
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=15) != '05':
+            fatal_error('Step 04 timeouted')
+
+        # step 05: test Z auto L2
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=30) != '06':
+            fatal_error('Step 05 timeouted')
+
+        # step 06: test voltage L3
+        self.change_meter_state('Type2-L3')
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=15) != '07':
+            fatal_error('Step 06 timeouted')
+
+        # step 07: test Z auto L3
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=30) != '08':
+            fatal_error('Step 07 timeouted')
+
+        # step 08: test RCD positive
+        self.change_meter_state('Type2-L1')
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+
+        self.click_meter_run_button() # start test
+
+        if self.read_meter_qr_code(timeout=30) != '09':
+            fatal_error('Step 08 timeouted')
+
+        # step 09: test RCD negative
+        self.reset_dc_fault_function()
+
+        time.sleep(EVSE_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+
+        self.click_meter_run_button() # start test
+
+        if self.read_meter_qr_code(timeout=30) != '10':
+            fatal_error('Step 09 timeouted')
+
+        # step 10: test R iso L1
+        self.reset_dc_fault_function()
+
+        time.sleep(EVSE_SETTLE_DURATION)
+
+        self.change_cp_pe_state('A')
+
+        time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
+
+        if self.get_iec_state_function() != 'A':
+            fatal_error('Wallbox not in IEC state A')
+
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=15) != '11':
+            fatal_error('Step 10 timeouted')
+
+        # step 11: test R iso L2
+        self.change_meter_state('Type2-L2')
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=15) != '12':
+            fatal_error('Step 11 timeouted')
+
+        # step 12: test R iso L3
+        self.change_meter_state('Type2-L3')
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=15) != '13':
+            fatal_error('Step 12 timeouted')
+
+        # step 13: test R iso N
+        self.change_meter_state('Type2-L1')
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=15) != '14':
+            fatal_error('Step 13 timeouted')
+
+        # step 14: test R low front panel
+        self.connect_front_panel(True)
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
+
+        if self.read_meter_qr_code(timeout=15) != '15':
+            fatal_error('Step 14 timeouted')
+
+        # step 15: result
+        self.connect_front_panel(False)
+        self.connect_warp_power(['L1'])
+
+        time.sleep(RELAY_SETTLE_DURATION)
+
+        self.click_meter_run_button() # skip QR code
 
 def main():
-    stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False, get_iec_state_function=lambda: 'A', reset_dc_fault_function=lambda: None)
+    stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False, has_evse_error=lambda: False, get_iec_state_function=lambda: 'A', reset_dc_fault_function=lambda: None)
 
     stage3.setup()
 
@@ -496,10 +763,11 @@ def main():
     #print(stage3.read_meter_qr_code(20))
     #stage3.connect_front_panel(True)
     #stage3.connect_type2_pe(False)
-    #print(stage3.read_voltage_monitor('L3'))
+    #print(stage3.read_voltage_monitors())
     #stage3.test_front_panel_button()
     #print(stage3.get_nfc_tag_id(0))
-    #print(stage3.test_wallbox())
+    #stage3.test_wallbox()
+    #stage3.set_led_strip_color(0, 0, 128)
 
     input('Press return to exit ')
 
