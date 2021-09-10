@@ -319,16 +319,16 @@ def main(stage3):
                                                   "require_tag_to_stop":False,
                                                   "authorized_tags": [{
                                                     "tag_name": "Tag 1",
-                                                    "tag_type": seen_tags[0]["tag_type"],
-                                                    "tag_id": seen_tags[0]["tag_id"]
+                                                    "tag_type": seen_tags[0].tag_type,
+                                                    "tag_id": seen_tags[0].tag_id
                                                     }, {
                                                     "tag_name": "Tag 2",
-                                                    "tag_type": seen_tags[1]["tag_type"],
-                                                    "tag_id": seen_tags[1]["tag_id"]
+                                                    "tag_type": seen_tags[1].tag_type,
+                                                    "tag_id": seen_tags[1].tag_id
                                                     }, {
                                                     "tag_name": "Tag 3",
-                                                    "tag_type": seen_tags[2]["tag_type"],
-                                                    "tag_id": seen_tags[2]["tag_id"]
+                                                    "tag_type": seen_tags[2].tag_type,
+                                                    "tag_id": seen_tags[2].tag_id
                                                     }
                                                   ]}).encode("utf-8"),
                                  method='PUT',
