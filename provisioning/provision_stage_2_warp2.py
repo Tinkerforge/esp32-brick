@@ -126,7 +126,7 @@ def is_front_panel_button_pressed():
 
 def get_iec_state():
     global evse
-    return evse.get_state().iec61851_state
+    return chr(ord('A') + evse.get_state().iec61851_state)
 
 def reset_dc_fault():
     global evse
