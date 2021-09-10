@@ -274,6 +274,14 @@ def main(stage3):
         print("    Hardware type: {}".format(hardware_type))
         print("    UID: {}".format(esp_uid_qr))
 
+        print(green("Waiting for NFC tags"), end="")
+        seen_tags = []
+        while len(seen_tags) < 3:
+            seen_tags = [x for x in stage3.get_nfc_tag_ids() if any(y != 0 for y in x.tag_id)]
+            print(green("\rWaiting for NFC tags. {} seen".format(len(seen_tags))), end="")
+            time.sleep(0.1)
+        print("\r3 NFC tags seen." + " " * 20)
+
         result["uid"] = esp_uid_qr
 
         ssid = "warp2-" + esp_uid_qr
@@ -303,14 +311,7 @@ def main(stage3):
 
         run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid, stage3)
 
-        print("Waiting for NFC tags", end="")
-        seen_tags = []
-        while len(seen_tags) < 3:
-            with urllib.request.urlopen("http://{}/nfc/seen_tags".format(ssid), timeout=1) as f:
-                seen_tags = [x for x in stage3.get_nfc_tag_id() if any(y != 0 for y in x)]
-            print("\rWaiting for NFC tags. {} seen".format(len(seen_tags)), end="")
-
-        print("\r3 NFC tags seen. Configuring tags      ")
+        print("Configuring tags      ")
         req = urllib.request.Request("http://{}/nfc/config_update".format(ssid),
                                  data=json.dumps({"require_tag_to_start":False,
                                                   "require_tag_to_stop":False,

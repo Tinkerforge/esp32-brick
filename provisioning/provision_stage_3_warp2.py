@@ -487,7 +487,7 @@ class Stage3:
         except Exception as e:
             fatal_error('Could not test front panel button: {0}'.format(e))
 
-    def get_nfc_tag_id(self):
+    def get_nfc_tag_ids(self):
         return [self.devices['20B'].simple_get_tag_id(i) for i in range(8)]
 
     def set_led_strip_color(self, r, g, b):
