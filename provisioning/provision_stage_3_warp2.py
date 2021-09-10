@@ -500,6 +500,8 @@ class Stage3:
         assert self.reset_dc_fault_function != None
 
         # step 01
+        print('Testing wallbox, step 01/15')
+
         if self.read_meter_qr_code() != '01':
             fatal_error('Meter in wrong step')
 
@@ -594,6 +596,8 @@ class Stage3:
         self.click_meter_back_button()
 
         # step 02: test voltage L1
+        print('Testing wallbox, step 02/15')
+
         if self.read_meter_qr_code() != '02':
             fatal_error('Meter in wrong step')
 
@@ -618,6 +622,8 @@ class Stage3:
             fatal_error('Step 02 timeouted')
 
         # step 03: test Z auto L1
+        print('Testing wallbox, step 03/15')
+
         self.click_meter_run_button() # skip QR code
 
         time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
@@ -628,6 +634,8 @@ class Stage3:
             fatal_error('Step 03 timeouted')
 
         # step 04: test voltage L2
+        print('Testing wallbox, step 04/15')
+
         self.change_meter_state('Type2-L2')
 
         time.sleep(RELAY_SETTLE_DURATION)
@@ -638,12 +646,16 @@ class Stage3:
             fatal_error('Step 04 timeouted')
 
         # step 05: test Z auto L2
+        print('Testing wallbox, step 05/15')
+
         self.click_meter_run_button() # skip QR code
 
         if self.read_meter_qr_code(timeout=30) != '06':
             fatal_error('Step 05 timeouted')
 
         # step 06: test voltage L3
+        print('Testing wallbox, step 06/15')
+
         self.change_meter_state('Type2-L3')
 
         time.sleep(RELAY_SETTLE_DURATION)
@@ -654,12 +666,16 @@ class Stage3:
             fatal_error('Step 06 timeouted')
 
         # step 07: test Z auto L3
+        print('Testing wallbox, step 07/15')
+
         self.click_meter_run_button() # skip QR code
 
         if self.read_meter_qr_code(timeout=30) != '08':
             fatal_error('Step 07 timeouted')
 
         # step 08: test RCD positive
+        print('Testing wallbox, step 08/15')
+
         self.change_meter_state('Type2-L1')
 
         time.sleep(RELAY_SETTLE_DURATION)
@@ -674,6 +690,8 @@ class Stage3:
             fatal_error('Step 08 timeouted')
 
         # step 09: test RCD negative
+        print('Testing wallbox, step 09/15')
+
         self.reset_dc_fault_function()
 
         time.sleep(EVSE_SETTLE_DURATION)
@@ -688,6 +706,8 @@ class Stage3:
             fatal_error('Step 09 timeouted')
 
         # step 10: test R iso L1
+        print('Testing wallbox, step 10/15')
+
         self.reset_dc_fault_function()
 
         time.sleep(EVSE_SETTLE_DURATION)
@@ -705,6 +725,8 @@ class Stage3:
             fatal_error('Step 10 timeouted')
 
         # step 11: test R iso L2
+        print('Testing wallbox, step 11/15')
+
         self.change_meter_state('Type2-L2')
 
         time.sleep(RELAY_SETTLE_DURATION)
@@ -715,6 +737,8 @@ class Stage3:
             fatal_error('Step 11 timeouted')
 
         # step 12: test R iso L3
+        print('Testing wallbox, step 12/15')
+
         self.change_meter_state('Type2-L3')
 
         time.sleep(RELAY_SETTLE_DURATION)
@@ -725,6 +749,8 @@ class Stage3:
             fatal_error('Step 12 timeouted')
 
         # step 13: test R iso N
+        print('Testing wallbox, step 13/15')
+
         self.change_meter_state('Type2-L1')
 
         time.sleep(RELAY_SETTLE_DURATION)
@@ -735,6 +761,8 @@ class Stage3:
             fatal_error('Step 13 timeouted')
 
         # step 14: test R low front panel
+        print('Testing wallbox, step 14/15')
+
         self.connect_front_panel(True)
 
         time.sleep(RELAY_SETTLE_DURATION)
@@ -745,12 +773,16 @@ class Stage3:
             fatal_error('Step 14 timeouted')
 
         # step 15: result
+        print('Testing wallbox, step 15/15')
+
         self.connect_front_panel(False)
         self.connect_warp_power(['L1'])
 
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
+
+        print('Testing wallbox, done')
 
 def main():
     stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False, has_evse_error_function=lambda: False, get_iec_state_function=lambda: 'A', reset_dc_fault_function=lambda: None)
