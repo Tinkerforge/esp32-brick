@@ -115,7 +115,7 @@ class Stage3:
                 try:
                     function(self.devices[position[0]])
                 except Exception as e:
-                    fatal_error('Could not execute function {0} for device at position {1}: {2}'.format(position[1], position[0], e))
+                    fatal_error('Could not execute function {0} for device at position {1}: {2}'.format(position[1], position[0], e), force_os_exit=1)
 
     # internal
     def connect_warp_power(self, phases):

@@ -109,9 +109,12 @@ def ansi_format(fmt, s):
 class FatalError(BaseException):
     pass
 
-def fatal_error(*args):
+def fatal_error(*args, force_os_exit=None):
     for line in args:
         print(red(str(line)))
+
+    if force_os_exit != None:
+        os._exit(force_os_exit)
 
     raise FatalError
 
