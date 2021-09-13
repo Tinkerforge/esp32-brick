@@ -509,6 +509,8 @@ class Stage3:
 
         self.click_meter_run_button() # skip QR code
 
+        print('Connecting power to L1, L2 and L3')
+
         self.connect_warp_power(['L1', 'L2', 'L3'])
         self.connect_voltage_monitors(True)
 
@@ -516,6 +518,8 @@ class Stage3:
 
         # step 01: test IEC states
         for state in ['A', 'B', 'C', 'D']:
+            print('Changing CP-PE state to {0}'.format(state))
+
             self.change_cp_pe_state(state)
 
             time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
@@ -532,6 +536,8 @@ class Stage3:
 
             voltages = self.read_voltage_monitors()
 
+            print('Reading voltages as {0}'.format(voltages))
+
             for i, phase in enumerate(['L1', 'L2', 'L3']):
                 if state == 'C':
                     if voltages[i] < VOLTAGE_ON_THRESHOLD:
@@ -541,7 +547,12 @@ class Stage3:
                         fatal_error('Unexpected voltage on {0}'.format(phase))
 
         # step 01: test phase separation
+        print('Connecting power to L1 and L2')
+
         self.connect_warp_power(['L1', 'L2'])
+
+        print('Changing CP-PE state to C')
+
         self.change_cp_pe_state('C')
 
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
@@ -550,6 +561,8 @@ class Stage3:
             fatal_error('Wallbox not in IEC state C')
 
         voltages = self.read_voltage_monitors()
+
+        print('Reading voltages as {0}'.format(voltages))
 
         if voltages[0] < VOLTAGE_ON_THRESHOLD:
             fatal_error('Missing voltage on L1')
@@ -560,11 +573,15 @@ class Stage3:
         if voltages[2] > VOLTAGE_OFF_THRESHOLD:
             fatal_error('Unexpected voltage on L3')
 
+        print('Connecting power to L1')
+
         self.connect_warp_power(['L1'])
 
         time.sleep(RELAY_SETTLE_DURATION)
 
         voltages = self.read_voltage_monitors()
+
+        print('Reading voltages as {0}'.format(voltages))
 
         if voltages[0] < VOLTAGE_ON_THRESHOLD:
             fatal_error('Missing voltage on L1')
@@ -575,11 +592,15 @@ class Stage3:
         if voltages[2] > VOLTAGE_OFF_THRESHOLD:
             fatal_error('Unexpected voltage on L3')
 
+        print('Connecting power to L1 and L3')
+
         self.connect_warp_power(['L1', 'L3'])
 
         time.sleep(RELAY_SETTLE_DURATION)
 
         voltages = self.read_voltage_monitors()
+
+        print('Reading voltages as {0}'.format(voltages))
 
         if voltages[0] < VOLTAGE_ON_THRESHOLD:
             fatal_error('Missing voltage on L1')
@@ -590,18 +611,23 @@ class Stage3:
         if voltages[2] < VOLTAGE_ON_THRESHOLD:
             fatal_error('Missing voltage on L3')
 
+        print('Connecting power to L1, L2 and L3')
+
         self.connect_warp_power(['L1', 'L2', 'L3'])
         self.connect_voltage_monitors(False)
 
         time.sleep(RELAY_SETTLE_DURATION)
 
         # step 01: test PE disconnect
+        print('Disconnecting PE')
+
         self.connect_type2_pe(False)
 
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
         if not self.has_evse_error_function():
             fatal_error('Missing EVSE error for PE disconnect')
+        print('Reconnecting PE')
 
         self.connect_type2_pe(True)
 
@@ -613,10 +639,12 @@ class Stage3:
         self.click_meter_back_button()
 
         # step 02: test voltage L1
-        print('Testing wallbox, step 02/15')
+        print('Testing wallbox, step 02/15, test voltage L1')
 
         if self.read_meter_qr_code() != '02':
             fatal_error('Meter in wrong step')
+
+        print('Changing CP-PE state to C')
 
         self.change_cp_pe_state('C')
 
@@ -625,33 +653,44 @@ class Stage3:
         if self.get_iec_state_function() != 'C':
             fatal_error('Wallbox not in IEC state C')
 
+        print('Changing meter state to Type2-L1')
+
         self.change_meter_state('Type2-L1')
 
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
 
-        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+        print('Waiting for test to become ready')
 
-        self.click_meter_run_button() # start test
+        time.sleep(METER_SETTLE_DURATION)
+
+        print('Starting test')
+
+        self.click_meter_run_button()
 
         if self.read_meter_qr_code(timeout=15) != '03':
             fatal_error('Step 02 timeouted')
 
         # step 03: test Z auto L1
-        print('Testing wallbox, step 03/15')
+        print('Testing wallbox, step 03/15, test Z auto L1')
 
         self.click_meter_run_button() # skip QR code
 
-        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+        print('Waiting for test to become ready')
 
-        self.click_meter_run_button() # start test
+        time.sleep(METER_SETTLE_DURATION)
+
+        print('Starting test')
+
+        self.click_meter_run_button()
 
         if self.read_meter_qr_code(timeout=30) != '04':
             fatal_error('Step 03 timeouted')
 
         # step 04: test voltage L2
-        print('Testing wallbox, step 04/15')
+        print('Testing wallbox, step 04/15, test voltage L2')
+        print('Changing meter state to Type2-L2')
 
         self.change_meter_state('Type2-L2')
 
@@ -659,19 +698,24 @@ class Stage3:
 
         self.click_meter_run_button() # skip QR code
 
+        print('Test autostarts')
+
         if self.read_meter_qr_code(timeout=15) != '05':
             fatal_error('Step 04 timeouted')
 
         # step 05: test Z auto L2
-        print('Testing wallbox, step 05/15')
+        print('Testing wallbox, step 05/15, test Z auto L2')
 
         self.click_meter_run_button() # skip QR code
+
+        print('Test autostarts')
 
         if self.read_meter_qr_code(timeout=30) != '06':
             fatal_error('Step 05 timeouted')
 
         # step 06: test voltage L3
-        print('Testing wallbox, step 06/15')
+        print('Testing wallbox, step 06/15, test voltage L3')
+        print('Changing meter state to Type2-L3')
 
         self.change_meter_state('Type2-L3')
 
@@ -679,19 +723,24 @@ class Stage3:
 
         self.click_meter_run_button() # skip QR code
 
+        print('Test autostarts')
+
         if self.read_meter_qr_code(timeout=15) != '07':
             fatal_error('Step 06 timeouted')
 
         # step 07: test Z auto L3
-        print('Testing wallbox, step 07/15')
+        print('Testing wallbox, step 07/15, test Z auto L3')
 
         self.click_meter_run_button() # skip QR code
+
+        print('Test autostarts')
 
         if self.read_meter_qr_code(timeout=30) != '08':
             fatal_error('Step 07 timeouted')
 
         # step 08: test RCD positive
-        print('Testing wallbox, step 08/15')
+        print('Testing wallbox, step 08/15, test RCD positive')
+        print('Changing meter state to Type2-L1')
 
         self.change_meter_state('Type2-L1')
 
@@ -699,15 +748,20 @@ class Stage3:
 
         self.click_meter_run_button() # skip QR code
 
-        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+        print('Waiting for test to become ready')
 
-        self.click_meter_run_button() # start test
+        time.sleep(METER_SETTLE_DURATION)
+
+        self.click_meter_run_button()
+
+        print('Starting test')
 
         if self.read_meter_qr_code(timeout=30) != '09':
             fatal_error('Step 08 timeouted')
 
         # step 09: test RCD negative
-        print('Testing wallbox, step 09/15')
+        print('Testing wallbox, step 09/15, test RCD negative')
+        print('Resetting DC fault')
 
         self.reset_dc_fault_function()
 
@@ -715,15 +769,20 @@ class Stage3:
 
         self.click_meter_run_button() # skip QR code
 
-        time.sleep(METER_SETTLE_DURATION) # wait for test to become ready
+        print('Waiting for test to become ready')
 
-        self.click_meter_run_button() # start test
+        time.sleep(METER_SETTLE_DURATION)
+
+        print('Starting test')
+
+        self.click_meter_run_button()
 
         if self.read_meter_qr_code(timeout=30) != '10':
             fatal_error('Step 09 timeouted')
 
         # step 10: test R iso L1
-        print('Testing wallbox, step 10/15')
+        print('Testing wallbox, step 10/15, test R iso L1')
+        print('Resetting DC fault')
 
         self.reset_dc_fault_function()
 
@@ -742,7 +801,7 @@ class Stage3:
             fatal_error('Step 10 timeouted')
 
         # step 11: test R iso L2
-        print('Testing wallbox, step 11/15')
+        print('Testing wallbox, step 11/15, test R iso L2')
 
         self.change_meter_state('Type2-L2')
 
@@ -754,7 +813,7 @@ class Stage3:
             fatal_error('Step 11 timeouted')
 
         # step 12: test R iso L3
-        print('Testing wallbox, step 12/15')
+        print('Testing wallbox, step 12/15, test R iso L3')
 
         self.change_meter_state('Type2-L3')
 
@@ -766,7 +825,7 @@ class Stage3:
             fatal_error('Step 12 timeouted')
 
         # step 13: test R iso N
-        print('Testing wallbox, step 13/15')
+        print('Testing wallbox, step 13/15, test R iso N')
 
         self.change_meter_state('Type2-L1')
 
@@ -778,7 +837,7 @@ class Stage3:
             fatal_error('Step 13 timeouted')
 
         # step 14: test R low front panel
-        print('Testing wallbox, step 14/15')
+        print('Testing wallbox, step 14/15, test R low front panel')
 
         self.connect_front_panel(True)
 
