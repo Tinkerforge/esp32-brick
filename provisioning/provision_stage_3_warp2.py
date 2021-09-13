@@ -632,8 +632,9 @@ class Stage3:
 
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
-        if not self.has_evse_error_function():
-            fatal_error('Missing EVSE error for PE disconnect')
+        if self.get_iec_state_function() != 'A':
+            fatal_error('Wallbox not in IEC state A')
+
         print('Reconnecting PE')
 
         self.connect_type2_pe(True)
