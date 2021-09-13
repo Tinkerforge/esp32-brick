@@ -21,6 +21,11 @@ import urllib.request
 import csv
 import traceback
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from tinkerforge.ip_connection import IPConnection, base58encode, base58decode, BASE58
 from tinkerforge.bricklet_rgb_led_v2 import BrickletRGBLEDV2
 
@@ -408,10 +413,20 @@ def main(stage3):
 
     print("Performing the electrical tests")
 
+    browser = None
     if qr_variant != "B":
-        run(["su", git_user, "-c", "firefox --new-tab --url http://{}".format(ssid)])
+        browser = webdriver.Firefox()
+        browser.get("http://{}".format(ssid))
+
+        element = WebDriverWait(browser, 10).until(
+            EC.element_to_be_clickable((By.LINK_TEXT, "Ladecontroller"))
+        )
+        element.click()
 
     stage3.test_wallbox()
+
+    if browser is not None:
+        browser.quit()
 
     print('Done!')
 
