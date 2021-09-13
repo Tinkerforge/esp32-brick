@@ -36,8 +36,9 @@ EVSE_SETTLE_DURATION = 2.0 # seconds
 
 METER_SETTLE_DURATION = 5.0 # seconds
 
-VOLTAGE_OFF_THRESHOLD = 1.0 # Volt
-VOLTAGE_ON_THRESHOLD = 220.0 # Volt
+VOLTAGE_SETTLE_DURATION = 1.0 # seconds
+VOLTAGE_OFF_THRESHOLD = 2.0 # Volt
+VOLTAGE_ON_THRESHOLD = 200.0 # Volt
 
 STACK_MASTER_UIDS = {
     '0': '61SMKP',
@@ -536,6 +537,8 @@ class Stage3:
                 if state == 'D':
                     fatal_error('Missing EVSE error for IEC state D')
 
+            time.sleep(VOLTAGE_SETTLE_DURATION)
+
             voltages = self.read_voltage_monitors()
 
             print('Reading voltages as {0}'.format(voltages))
@@ -562,6 +565,8 @@ class Stage3:
         if self.get_iec_state_function() != 'C':
             fatal_error('Wallbox not in IEC state C')
 
+        time.sleep(VOLTAGE_SETTLE_DURATION)
+
         voltages = self.read_voltage_monitors()
 
         print('Reading voltages as {0}'.format(voltages))
@@ -579,7 +584,7 @@ class Stage3:
 
         self.connect_warp_power(['L1'])
 
-        time.sleep(RELAY_SETTLE_DURATION)
+        time.sleep(RELAY_SETTLE_DURATION + VOLTAGE_SETTLE_DURATION)
 
         voltages = self.read_voltage_monitors()
 
@@ -598,7 +603,7 @@ class Stage3:
 
         self.connect_warp_power(['L1', 'L3'])
 
-        time.sleep(RELAY_SETTLE_DURATION)
+        time.sleep(RELAY_SETTLE_DURATION + VOLTAGE_SETTLE_DURATION)
 
         voltages = self.read_voltage_monitors()
 
