@@ -315,10 +315,11 @@ def main(stage3):
                     start_blink(255, 127, 0)
                 elif len(seen_tags) == 2:
                     start_blink(255, 255, 0)
+                last_len = len(seen_tags)
             print(green("\rWaiting for NFC tags. {} seen".format(len(seen_tags))), end="")
             blink_tick(stage3)
             time.sleep(0.1)
-        stop_blink()
+        stop_blink(stage3)
         print("\r3 NFC tags seen." + " " * 20)
 
         result["uid"] = esp_uid_qr
