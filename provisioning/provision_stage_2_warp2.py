@@ -159,11 +159,11 @@ blink_start = None
 blink_color = (0,0,0)
 def start_blink(r, g, b):
     global blink_start, blink_color
-    blink_start = time.time()
+    blink_start = time.monotonic()
     blink_color = (r, g, b)
 
 def blink_tick(stage3):
-    t = time.time()
+    t = time.monotonic()
     diff = (t - blink_start)
     diff -= int(diff)
     blink_on = diff <= 0.5
@@ -327,14 +327,14 @@ def main(stage3):
 
         print("Connecting via ethernet to {}".format(ssid), end="")
         for i in range(30):
-            start = time.time()
+            start = time.monotonic()
             try:
                 with urllib.request.urlopen("http://{}/hidden_proxy/enable".format(ssid), timeout=1) as f:
                     f.read()
                     break
             except:
                 pass
-            t = max(0, 1 - (time.time() - start))
+            t = max(0, 1 - (time.monotonic() - start))
             time.sleep(t)
             print(".", end="")
         else:
