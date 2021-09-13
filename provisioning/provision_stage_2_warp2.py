@@ -144,39 +144,43 @@ def has_evse_error():
 def led_wrap():
     stage3 = Stage3(is_front_panel_button_pressed_function=is_front_panel_button_pressed, get_iec_state_function=get_iec_state, reset_dc_fault_function=reset_dc_fault, has_evse_error_function=has_evse_error)
     stage3.setup()
-    stage3.set_led_strip_color(0, 0, 255)
+    stage3.set_led_strip_color((0, 0, 255))
     try:
         main(stage3)
     except BaseException:
         stage3.power_off()
-        stage3.set_led_strip_color(255, 0, 0)
+        stage3.set_led_strip_color((255, 0, 0))
         raise
     else:
         stage3.power_off()
-        stage3.set_led_strip_color(0, 255, 0)
+        stage3.set_led_strip_color((0, 255, 0))
 
 blink_start = None
-blink_color = (0,0,0)
-def start_blink(r, g, b):
-    global blink_start, blink_color
+blink_count = 0
+def start_blink(count):
+    global blink_start, blink_count
+    assert count in [3, 2, 1], count
     blink_start = time.monotonic()
-    blink_color = (r, g, b)
+    blink_count = count
 
 def blink_tick(stage3):
-    t = time.monotonic()
-    diff = (t - blink_start)
+    diff = (time.monotonic() - blink_start)
     diff -= int(diff)
-    blink_on = diff <= 0.5
-    if blink_on:
-        stage3.set_led_strip_color(*blink_color)
+    color = (255, 127, 0) if diff <= 0.5 else (0, 0, 0)
+    if blink_count >= 3:
+        stage3.set_led_strip_color(color)
+    elif blink_count == 2:
+        stage3.set_led_strip_color((0, 0, 255), color)
+    elif blink_count == 1:
+        stage3.set_led_strip_color((0, 0, 255), (0, 0, 255), color)
     else:
-        stage3.set_led_strip_color(0, 0, 0)
+        stage3.set_led_strip_color((0, 0, 255))
 
 def stop_blink(stage3):
-    global blink_start, blink_color
+    global blink_start, blink_count
     blink_start = None
-    blink_color = (0,0,0)
-    stage3.set_led_strip_color(0, 0, 255)
+    blink_count = 0
+    stage3.set_led_strip_color((0, 0, 255))
 
 def main(stage3):
     result = {"start": now()}
@@ -307,14 +311,18 @@ def main(stage3):
         print(green("Waiting for NFC tags"), end="")
         seen_tags = []
         last_len = 0
-        start_blink(0, 0, 255)
+        start_blink(3)
         while len(seen_tags) < 3:
             seen_tags = [x for x in stage3.get_nfc_tag_ids() if any(y != 0 for y in x.tag_id)]
             if len(seen_tags) != last_len:
-                if len(seen_tags) == 1:
-                    start_blink(255, 127, 0)
+                if len(seen_tags) == 0:
+                    start_blink(3)
+                elif len(seen_tags) == 1:
+                    start_blink(2)
                 elif len(seen_tags) == 2:
-                    start_blink(255, 255, 0)
+                    start_blink(1)
+                else:
+                    start_blink(0)
                 last_len = len(seen_tags)
             print(green("\rWaiting for NFC tags. {} seen".format(len(seen_tags))), end="")
             blink_tick(stage3)

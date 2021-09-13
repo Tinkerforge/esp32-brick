@@ -495,8 +495,14 @@ class Stage3:
     def get_nfc_tag_ids(self):
         return [self.devices['20B'].simple_get_tag_id(i) for i in range(8)]
 
-    def set_led_strip_color(self, r, g, b):
-        self.devices['20A'].set_led_values(0, [r, g, b] * 11)
+    def set_led_strip_color(self, left, middle=None, right=None):
+        if middle == None:
+            middle = left
+
+        if right == None:
+            right = middle
+
+        self.devices['20A'].set_led_values(0, right * 3 + middle * 5 + left * 3)
 
     # requires power_on
     def test_wallbox(self):
@@ -882,7 +888,7 @@ def main():
     #stage3.test_front_panel_button()
     #print(stage3.get_nfc_tag_id(0))
     #stage3.test_wallbox()
-    #stage3.set_led_strip_color(0, 0, 128)
+    #stage3.set_led_strip_color((0, 0, 128))
 
     input('Press return to exit ')
 
