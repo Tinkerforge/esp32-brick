@@ -150,6 +150,29 @@ def led_wrap():
         stage3.power_off()
         stage3.set_led_strip_color(0, 255, 0)
 
+blink_start = None
+blink_color = (0,0,0)
+def start_blink(r, g, b):
+    global blink_start, blink_color
+    blink_start = time.time()
+    blink_color = (r, g, b)
+
+def blink_tick(stage3):
+    t = time.time()
+    diff = (t - blink_start)
+    diff -= int(diff)
+    blink_on = diff <= 0.5
+    if blink_on:
+        stage3.set_led_strip_color(*blink_color)
+    else:
+        stage3.set_led_strip_color(0, 0, 0)
+
+def stop_blink(stage3):
+    global blink_start, blink_color
+    blink_start = None
+    blink_color = (0,0,0)
+    stage3.set_led_strip_color(0, 0, 255)
+
 def main(stage3):
     result = {"start": now()}
 
@@ -278,10 +301,19 @@ def main(stage3):
 
         print(green("Waiting for NFC tags"), end="")
         seen_tags = []
+        last_len = 0
+        start_blink(0, 0, 255)
         while len(seen_tags) < 3:
             seen_tags = [x for x in stage3.get_nfc_tag_ids() if any(y != 0 for y in x.tag_id)]
+            if len(seen_tags) != last_len:
+                if len(seen_tags) == 1:
+                    start_blink(255, 127, 0)
+                elif len(seen_tags) == 2:
+                    start_blink(255, 255, 0)
             print(green("\rWaiting for NFC tags. {} seen".format(len(seen_tags))), end="")
+            blink_tick(stage3)
             time.sleep(0.1)
+        stop_blink()
         print("\r3 NFC tags seen." + " " * 20)
 
         result["uid"] = esp_uid_qr
