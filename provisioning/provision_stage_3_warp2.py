@@ -135,6 +135,8 @@ class Stage3:
                 self.action_stop_queue.put((('01A', 0), lambda device: [device.set_selected_value(0, False), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
             elif 'L3' in phases:
                 self.action_stop_queue.put((('01A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_selected_value(1, False)]))
+            else:
+                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_value(False, False)]))
 
     # internal
     def connect_outlet(self, outlet):
