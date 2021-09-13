@@ -504,11 +504,11 @@ class Stage3:
         assert self.get_iec_state_function != None
         assert self.reset_dc_fault_function != None
 
-        # step 01
-        print('Testing wallbox, step 01/15')
-
         if self.read_meter_qr_code() != '01':
             fatal_error('Meter in wrong step')
+
+        # step 01
+        print('Testing wallbox, step 01/15, test IEC states')
 
         self.click_meter_run_button() # skip QR code
 
@@ -646,12 +646,11 @@ class Stage3:
         self.click_meter_run_button()
         self.click_meter_back_button()
 
-        # step 02: test voltage L1
-        print('Testing wallbox, step 02/15, test voltage L1')
-
         if self.read_meter_qr_code() != '02':
             fatal_error('Meter in wrong step')
 
+        # step 02: test voltage L1
+        print('Testing wallbox, step 02/15, test voltage L1')
         print('Changing CP-PE state to C')
 
         self.change_cp_pe_state('C')
