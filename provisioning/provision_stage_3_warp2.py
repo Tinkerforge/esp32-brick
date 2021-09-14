@@ -24,11 +24,13 @@ from provision_common.inventory import Inventory
 from provision_common.provision_common import FatalError, fatal_error
 
 IPCON_HOST = 'localhost'
-IPCON_TIMEOUT = 1.5 # seconds
+IPCON_TIMEOUT = 1.0 # seconds
 
-ACTION_INTERVAL = 0.2 # seconds
+ACTION_INTERVAL = 0.5 # seconds
+ACTION_COMPLETION_TIMEOUT = 30.0 # seconds
+ACTION_TRY_COUNT = 3
 
-MONOFLOP_DURATION = 2000 # milliseconds
+MONOFLOP_DURATION = (IPCON_TIMEOUT * ACTION_TRY_COUNT + ACTION_INTERVAL) * 1000 # milliseconds
 
 RELAY_SETTLE_DURATION = 0.25 # seconds
 
@@ -90,9 +92,28 @@ class Stage3:
         self.ipcon.set_timeout(IPCON_TIMEOUT)
 
     # internal
+    def try_action(self, position, function):
+        tries = ACTION_TRY_COUNT
+
+        while tries > 0:
+            try:
+                return function(self.devices[position])
+            except Exception as e:
+                tries -= 1
+
+                if tries == 1:
+                    print('WARNING: Could not complete action for device at position {0}, 1 try left: {1}'.format(position, e))
+                elif tries > 1:
+                    print('WARNING: Could not complete action for device at position {0}, {1} tries left: {2}'.format(position, tries, e))
+                else:
+                    fatal_error('Could not complete action for device at position {0}: {1}'.format(position, e), force_os_exit=1)
+
+    # internal
     def action_loop(self, stop_queue, enabled_ref):
         timestamp = -ACTION_INTERVAL
         actions = {} # by position path
+        events = {} # by position path
+        tries = {} # by position path
 
         while enabled_ref[0]:
             elapsed = time.monotonic() - timestamp
@@ -109,71 +130,132 @@ class Stage3:
             timestamp = time.monotonic()
 
             if action != False:
-                position, function = action
+                position, function, event = action
                 actions[position] = function
+                events[position] = event
+                tries[position] = ACTION_TRY_COUNT
 
             for position, function in actions.items():
                 try:
                     function(self.devices[position[0]])
                 except Exception as e:
-                    fatal_error('Could not execute function {0} for device at position {1}: {2}'.format(position[1], position[0], e), force_os_exit=1)
+                    tries[position] -= 1
+
+                    if tries[position] == 1:
+                        print('WARNING: Could not complete action {0} for device at position {1}, 1 try left: {2}'.format(position[1], position[0], e))
+                    elif tries[position] > 1:
+                        print('WARNING: Could not complete action {0} for device at position {1}, {2} tries left: {3}'.format(position[1], position[0], tries[position], e))
+                    else:
+                        fatal_error('Could not complete action {0} for device at position {1}: {2}'.format(position[1], position[0], e), force_os_exit=1)
+                else:
+                    event = events.pop(position, None)
+
+                    if event != None:
+                        event.set()
+
+                    tries[position] = ACTION_TRY_COUNT
 
     # internal
     def connect_warp_power(self, phases):
         assert set(phases).issubset({'L1', 'L2', 'L3'}), phases
 
+        events = [
+            threading.Event(),
+            threading.Event(),
+        ]
+
         if len(phases) == 0:
-            self.action_stop_queue.put((('00D', 0), lambda device: device.set_value(False, False)))
-            self.action_stop_queue.put((('01A', 0), lambda device: device.set_value(False, False)))
+            self.action_stop_queue.put((('00D', 0), lambda device: device.set_value(False, False), events[0]))
+            self.action_stop_queue.put((('01A', 0), lambda device: device.set_value(False, False), events[1]))
         else:
             assert 'L1' in phases, phases
 
-            self.action_stop_queue.put((('00D', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
+            self.action_stop_queue.put((('00D', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)], events[0]))
 
             if 'L2' in phases and 'L3' in phases:
-                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
+                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)], events[1]))
             elif 'L2' in phases:
-                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_selected_value(0, False), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
+                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_selected_value(0, False), device.set_monoflop(1, True, MONOFLOP_DURATION)], events[1]))
             elif 'L3' in phases:
-                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_selected_value(1, False)]))
+                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_selected_value(1, False)], events[1]))
             else:
-                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_value(False, False)]))
+                self.action_stop_queue.put((('01A', 0), lambda device: [device.set_value(False, False)], events[1]))
+
+        timeout_remaining = ACTION_COMPLETION_TIMEOUT
+
+        for event in events:
+            start = time.monotonic()
+
+            if not event.wait(timeout=timeout_remaining):
+                fatal_error('Action did not complete in time')
+
+            timeout_remaining -= time.monotonic() - start
 
     # internal
     def connect_outlet(self, outlet):
         assert outlet in [None, 'Basic', 'Smart', 'Pro']
 
+        event = threading.Event()
+
         if outlet == None:
-            self.action_stop_queue.put((('02A', 0), lambda device: device.set_value(False, False)))
+            self.action_stop_queue.put((('02A', 0), lambda device: device.set_value(False, False), event))
         elif outlet in ['Basic', 'Smart']:
-            self.action_stop_queue.put((('02A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_selected_value(1, False)]))
+            self.action_stop_queue.put((('02A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_selected_value(1, False)], event))
         elif outlet == 'Pro':
-            self.action_stop_queue.put((('02A', 0), lambda device: [device.set_selected_value(0, False), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
+            self.action_stop_queue.put((('02A', 0), lambda device: [device.set_selected_value(0, False), device.set_monoflop(1, True, MONOFLOP_DURATION)], event))
         else:
             assert False, outlet
 
+        if not event.wait(timeout=ACTION_COMPLETION_TIMEOUT):
+            fatal_error('Action did not complete in time')
+
     # internal
     def connect_voltage_monitors(self, connect):
+        events = [
+            threading.Event(),
+            threading.Event(),
+        ]
+
         if connect:
-            self.action_stop_queue.put((('01B', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
-            self.action_stop_queue.put((('01C', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)]))
+            self.action_stop_queue.put((('01B', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)], events[0]))
+            self.action_stop_queue.put((('01C', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_monoflop(1, True, MONOFLOP_DURATION)], events[1]))
         else:
-            self.action_stop_queue.put((('01B', 0), lambda device: device.set_value(False, False)))
-            self.action_stop_queue.put((('01C', 0), lambda device: device.set_value(False, False)))
+            self.action_stop_queue.put((('01B', 0), lambda device: device.set_value(False, False), events[0]))
+            self.action_stop_queue.put((('01C', 0), lambda device: device.set_value(False, False), events[1]))
+
+        timeout_remaining = ACTION_COMPLETION_TIMEOUT
+
+        for event in events:
+            start = time.monotonic()
+
+            if not event.wait(timeout=timeout_remaining):
+                fatal_error('Action did not complete in time')
+
+            timeout_remaining -= time.monotonic() - start
 
     # internal
     def connect_front_panel(self, connect):
+        event = threading.Event()
+
         if connect:
-            self.action_stop_queue.put((('03A', 0), lambda device: device.set_monoflop(0, True, MONOFLOP_DURATION)))
+            self.action_stop_queue.put((('03A', 0), lambda device: device.set_monoflop(0, True, MONOFLOP_DURATION), event))
         else:
-            self.action_stop_queue.put((('03A', 0), lambda device: device.set_selected_value(0, False)))
+            self.action_stop_queue.put((('03A', 0), lambda device: device.set_selected_value(0, False), event))
+
+        if not event.wait(timeout=ACTION_COMPLETION_TIMEOUT):
+            fatal_error('Action did not complete in time')
 
     # internal
     def connect_type2_pe(self, connect):
+        event = threading.Event()
+
         if connect:
-            self.action_stop_queue.put((('03A', 1), lambda device: device.set_selected_value(1, False)))
+            self.action_stop_queue.put((('03A', 1), lambda device: device.set_selected_value(1, False), event))
         else:
-            self.action_stop_queue.put((('03A', 1), lambda device: device.set_monoflop(1, True, MONOFLOP_DURATION)))
+            self.action_stop_queue.put((('03A', 1), lambda device: device.set_monoflop(1, True, MONOFLOP_DURATION), event))
+
+        if not event.wait(timeout=ACTION_COMPLETION_TIMEOUT):
+            fatal_error('Action did not complete in time')
 
     # internal
     def change_cp_pe_state(self, state):
@@ -188,7 +270,12 @@ class Stage3:
         else:
             assert False, state
 
-        self.action_stop_queue.put((('01D', 0), lambda device: device.set_value(value)))
+        event = threading.Event()
+
+        self.action_stop_queue.put((('01D', 0), lambda device: device.set_value(value), event))
+
+        if not event.wait(timeout=ACTION_COMPLETION_TIMEOUT):
+            fatal_error('Action did not complete in time')
 
     # internal
     def change_meter_state(self, state):
@@ -207,43 +294,56 @@ class Stage3:
         else:
             assert False, state
 
-        self.action_stop_queue.put((('00A', 0), lambda device: device.set_value(*value[0])))
-        self.action_stop_queue.put((('00B', 0), lambda device: device.set_value(*value[1])))
-        self.action_stop_queue.put((('00C', 0), lambda device: device.set_value(*value[2])))
+        events = [
+            threading.Event(),
+            threading.Event(),
+            threading.Event(),
+        ]
+
+        self.action_stop_queue.put((('00A', 0), lambda device: device.set_value(*value[0]), events[0]))
+        self.action_stop_queue.put((('00B', 0), lambda device: device.set_value(*value[1]), events[1]))
+        self.action_stop_queue.put((('00C', 0), lambda device: device.set_value(*value[2]), events[2]))
+
+        timeout_remaining = ACTION_COMPLETION_TIMEOUT
+
+        for event in events:
+            start = time.monotonic()
+
+            if not event.wait(timeout=timeout_remaining):
+                fatal_error('Action did not complete in time')
+
+            timeout_remaining -= time.monotonic() - start
 
     # internal
     def read_voltage_monitors(self):
-        try:
-            return [
-                self.devices['02B'].get_energy_data()[0] / 100,
-                self.devices['02C'].get_energy_data()[0] / 100,
-                self.devices['02D'].get_energy_data()[0] / 100,
-            ]
-        except Exception as e:
-            fatal_error('Could not read voltage monitors: {0}'.format(e))
+        return [
+            self.try_action('02B', lambda device: device.get_energy_data()[0] / 100),
+            self.try_action('02C', lambda device: device.get_energy_data()[0] / 100),
+            self.try_action('02D', lambda device: device.get_energy_data()[0] / 100),
+        ]
 
     # internal
     def set_servo_position(self, servo, channel, position):
-        servo.set_position(channel, position)
+        self.try_action(servo, lambda device: device.set_position(channel, position))
 
-        current_position = servo.get_current_position(channel)
+        current_position = self.try_action(servo, lambda device: device.get_current_position(channel))
 
         # FIXME: add timeout?
         while current_position != position:
             time.sleep(0.1)
 
-            current_position = servo.get_current_position(channel)
+            current_position = self.try_action(servo, lambda device: device.get_current_position(channel))
 
     # internal
     def click_meter_run_button(self):
-        servo = self.devices['10A']
+        servo = '10A'
         channel = 0
 
         try:
             self.set_servo_position(servo, channel, 4000)
 
-            if not servo.get_enabled(channel):
-                servo.set_enable(channel, True)
+            if not self.try_action(servo, lambda device: device.get_enabled(channel)):
+                self.try_action(servo, lambda device: device.set_enable(channel, True))
 
             self.set_servo_position(servo, channel, 6800)
             time.sleep(0.1)
@@ -254,14 +354,14 @@ class Stage3:
 
     # internal
     def click_meter_back_button(self):
-        servo = self.devices['10A']
+        servo = '10A'
         channel = 1
 
         try:
             self.set_servo_position(servo, channel, 3000)
 
-            if not servo.get_enabled(channel):
-                servo.set_enable(channel, True)
+            if not self.try_action(servo, lambda device: device.get_enabled(channel)):
+                self.try_action(servo, lambda device: device.set_enable(channel, True))
 
             self.set_servo_position(servo, channel, 5500)
             time.sleep(0.1)
@@ -296,10 +396,7 @@ class Stage3:
 
     # internal
     def is_front_panel_led_on(self):
-        try:
-            color = self.devices['20D'].get_color()
-        except Exception as e:
-            fatal_error('Could not read front panel LED color: {0}'.format(e))
+        color = self.try_action('20D', lambda device: device.get_color())
 
         return color[2] - color[0] > 1000
 
@@ -378,7 +475,7 @@ class Stage3:
 
                     self.devices[full_position] = device
 
-        self.devices['20B'].simple_get_tag_id(255) # clear tags from last test run
+        self.try_action('20B', lambda device: device.simple_get_tag_id(255)) # clear tags from last test run
 
         self.action_stop_queue = queue.Queue()
         self.action_enabled_ref = [True]
@@ -448,7 +545,7 @@ class Stage3:
     def test_front_panel_button(self):
         assert self.is_front_panel_button_pressed_function != None
 
-        servo = self.devices['20C']
+        servo = '20C'
         channel = 0
 
         try:
@@ -463,8 +560,8 @@ class Stage3:
 
             self.set_servo_position(servo, channel, -3000)
 
-            if not servo.get_enabled(channel):
-                servo.set_enable(channel, True)
+            if not self.try_action(servo, lambda device: device.get_enabled(channel)):
+                self.try_action(servo, lambda device: device.set_enable(channel, True))
 
             self.set_servo_position(servo, channel, 2100)
             time.sleep(0.5) # wait for Color Bricklet 2.0 integration time
@@ -493,7 +590,7 @@ class Stage3:
             fatal_error('Could not test front panel button: {0}'.format(e))
 
     def get_nfc_tag_ids(self):
-        return [self.devices['20B'].simple_get_tag_id(i) for i in range(8)]
+        return [self.try_action('20B', lambda device: device.simple_get_tag_id(i)) for i in range(8)]
 
     def set_led_strip_color(self, left, middle=None, right=None):
         if middle == None:
@@ -502,7 +599,7 @@ class Stage3:
         if right == None:
             right = middle
 
-        self.devices['20A'].set_led_values(0, right * 3 + middle * 5 + left * 3)
+        self.try_action('20A', lambda device: device.set_led_values(0, right * 3 + middle * 5 + left * 3))
 
     # requires power_on
     def test_wallbox(self):
