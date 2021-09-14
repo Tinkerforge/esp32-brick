@@ -119,9 +119,9 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid, stage3):
         nfc_str = urllib.request.urlopen('http://{}/nfc/seen_tags'.format(ssid), timeout=3).read()
         nfc_data = json.loads(nfc_str)
 
-        if nfc_data[0].tag_type != 2 or \
-           nfc_data[0].tag_id != [4,212,236,242,225,115,128] or \
-           nfc_data[0].last_seen > 100:
+        if nfc_data[0]['tag_type'] != 2 or \
+           nfc_data[0]['tag_id'] != [0x04, 0xBA, 0x38, 0x42, 0xEF, 0x6C, 0x80] or \
+           nfc_data[0]['last_seen'] > 100:
             fatal_error("Did not find NFC tag: {}".format(nfc_str))
 
 
@@ -168,7 +168,7 @@ blink_start = None
 blink_count = 0
 def start_blink(count):
     global blink_start, blink_count
-    assert count in [3, 2, 1], count
+    assert count in [3, 2, 1, 0], count
     blink_start = time.monotonic()
     blink_count = count
 
