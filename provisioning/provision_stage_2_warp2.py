@@ -356,8 +356,7 @@ def main(stage3):
             time.sleep(t)
             print(".", end="")
         else:
-            print("Failed to connect via ethernet!")
-            raise Exception("exit 1")
+            fatal_error("Failed to connect via ethernet!")
         print(" Connected.")
 
         ipcon = IPConnection()
