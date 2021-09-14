@@ -415,7 +415,7 @@ def check_label_printer():
 
 uids = set()
 
-Enum = namedtuple('Enum', 'uid connected_uid position hardware_version firmware_version device_identifier enumeration_type')
+Enum = namedtuple('Enum', 'uid hardware_version firmware_version device_identifier')
 
 def cb_enumerate(uid, connected_uid, position, hardware_version, firmware_version,
                  device_identifier, enumeration_type):
@@ -423,7 +423,7 @@ def cb_enumerate(uid, connected_uid, position, hardware_version, firmware_versio
         print("")
         return
 
-    uids.add(Enum(uid, connected_uid, position, hardware_version, firmware_version, device_identifier, enumeration_type))
+    uids.add(Enum(uid, hardware_version, firmware_version, device_identifier))
 
 def enumerate_devices(ipcon):
     global uids
