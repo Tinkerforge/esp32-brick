@@ -432,19 +432,20 @@ def main(stage3):
     print("Performing the electrical tests")
 
     browser = None
-    if qr_variant != "B":
-        browser = webdriver.Firefox()
-        browser.get("http://{}".format(ssid))
+    try:
+        if qr_variant != "B":
+            browser = webdriver.Firefox()
+            browser.get("http://{}".format(ssid))
 
-        element = WebDriverWait(browser, 10).until(
-            EC.element_to_be_clickable((By.LINK_TEXT, "Ladecontroller"))
-        )
-        element.click()
+            element = WebDriverWait(browser, 10).until(
+                EC.element_to_be_clickable((By.LINK_TEXT, "Ladecontroller"))
+            )
+            element.click()
 
-    stage3.test_wallbox()
-
-    if browser is not None:
-        browser.quit()
+        stage3.test_wallbox()
+    finally:
+        if browser is not None:
+            browser.quit()
 
     print('Done!')
 
