@@ -853,7 +853,6 @@ class Stage3:
         print('Changing meter state to Type2-L1')
 
         self.change_meter_state('Type2-L1')
-
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
@@ -869,13 +868,13 @@ class Stage3:
         if self.read_meter_qr_code(timeout=30) != '09':
             fatal_error('Step 08 timeouted')
 
-        # step 09: test RCD negative
-        print('Testing wallbox, step 09/15, test RCD negative')
         print('Resetting DC fault')
 
         self.reset_dc_fault_function()
-
         time.sleep(EVSE_SETTLE_DURATION)
+
+        # step 09: test RCD negative
+        print('Testing wallbox, step 09/15, test RCD negative')
 
         self.click_meter_run_button() # skip QR code
 
@@ -890,16 +889,16 @@ class Stage3:
         if self.read_meter_qr_code(timeout=30) != '10':
             fatal_error('Step 09 timeouted')
 
-        # step 10: test R iso L1
-        print('Testing wallbox, step 10/15, test R iso L1')
         print('Resetting DC fault')
 
         self.reset_dc_fault_function()
-
         time.sleep(EVSE_SETTLE_DURATION)
 
-        self.change_cp_pe_state('A')
+        # step 10: test R iso L1
+        print('Testing wallbox, step 10/15, test R iso L1')
+        print('Changing CP-PE state to A')
 
+        self.change_cp_pe_state('A')
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
         if self.get_iec_state_function() != 'A':
@@ -907,63 +906,76 @@ class Stage3:
 
         self.click_meter_run_button() # skip QR code
 
+        print('Test autostarts')
+
         if self.read_meter_qr_code(timeout=15) != '11':
             fatal_error('Step 10 timeouted')
 
         # step 11: test R iso L2
         print('Testing wallbox, step 11/15, test R iso L2')
+        print('Changing meter state to Type2-L2')
 
         self.change_meter_state('Type2-L2')
-
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
+
+        print('Test autostarts')
 
         if self.read_meter_qr_code(timeout=15) != '12':
             fatal_error('Step 11 timeouted')
 
         # step 12: test R iso L3
         print('Testing wallbox, step 12/15, test R iso L3')
+        print('Changing meter state to Type2-L3')
 
         self.change_meter_state('Type2-L3')
-
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
+
+        print('Test autostarts')
 
         if self.read_meter_qr_code(timeout=15) != '13':
             fatal_error('Step 12 timeouted')
 
         # step 13: test R iso N
         print('Testing wallbox, step 13/15, test R iso N')
+        print('Changing meter state to Type2-L1')
 
         self.change_meter_state('Type2-L1')
-
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
+
+        print('Test autostarts')
 
         if self.read_meter_qr_code(timeout=15) != '14':
             fatal_error('Step 13 timeouted')
 
         # step 14: test R low front panel
         print('Testing wallbox, step 14/15, test R low front panel')
+        print('Disconnecting front panel')
 
         self.connect_front_panel(True)
-
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
 
+        print('Test autostarts')
+
         if self.read_meter_qr_code(timeout=15) != '15':
             fatal_error('Step 14 timeouted')
+
+        print('Connecting front panel')
+
+        self.connect_front_panel(False)
+        time.sleep(RELAY_SETTLE_DURATION)
 
         # step 15: result
         print('Testing wallbox, step 15/15')
 
-        self.connect_front_panel(False)
         self.connect_warp_power(['L1'])
-
         time.sleep(RELAY_SETTLE_DURATION)
 
         self.click_meter_run_button() # skip QR code
@@ -971,7 +983,10 @@ class Stage3:
         print('Testing wallbox, done')
 
 def main():
-    stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False, has_evse_error_function=lambda: False, get_iec_state_function=lambda: 'A', reset_dc_fault_function=lambda: None)
+    stage3 = Stage3(is_front_panel_button_pressed_function=lambda: False,
+                    has_evse_error_function=lambda: False,
+                    get_iec_state_function=lambda: 'A',
+                    reset_dc_fault_function=lambda: None)
 
     stage3.setup()
 
