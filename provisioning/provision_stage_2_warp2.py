@@ -115,6 +115,15 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid, stage3):
     stage3.test_front_panel_button()
     result["front_panel_button_tested"] = True
 
+    if is_smart or is_pro:
+        nfc_str = urllib.request.urlopen('http://{}/nfc/seen_tags'.format(ssid), timeout=3).read()
+        nfc_data = json.loads(nfc_str)
+
+        if nfc_data[0].tag_type != 2 or \
+           nfc_data[0].tag_id != [4,212,236,242,225,115,128] or \
+           nfc_data[0].last_seen > 100:
+            fatal_error("Did not find NFC tag: {}".format(nfc_str))
+
 
 def exists_evse_test_report(evse_uid):
     with open(os.path.join("evse_v2_test_report", "full_test_log.csv"), newline='') as csvfile:
