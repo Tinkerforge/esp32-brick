@@ -423,13 +423,6 @@ def main(stage3):
     if qr_variant == "B":
         ssid = "warp2-" + result["evse_uid"]
 
-    result["end"] = now()
-
-    with open("{}_{}_report_stage_2.json".format(ssid, now().replace(":", "-")), "w") as f:
-        json.dump(result, f, indent=4)
-
-    print("Performing the electrical tests")
-
     browser = None
     try:
         if qr_variant != "B":
@@ -441,10 +434,18 @@ def main(stage3):
             )
             element.click()
 
+        print("Performing the electrical tests")
         stage3.test_wallbox()
     finally:
         if browser is not None:
             browser.quit()
+
+    print("Electrical tests passed")
+    result["electrical_tests_passed"] = True
+    result["end"] = now()
+
+    with open("{}_{}_report_stage_2.json".format(ssid, now().replace(":", "-")), "w") as f:
+        json.dump(result, f, indent=4)
 
     print('Done!')
 
