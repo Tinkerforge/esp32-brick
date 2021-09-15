@@ -193,16 +193,16 @@ class Stage3:
 
     # internal
     def connect_outlet(self, outlet):
-        assert outlet in [None, 'Basic', 'Smart', 'Pro']
+        assert outlet in ['Basic', 'Smart', 'Pro', 'CEE']
 
         event = threading.Event()
 
-        if outlet == None:
-            self.action_stop_queue.put((('02A', 0), lambda device: device.set_value(False, False), event))
-        elif outlet in ['Basic', 'Smart']:
+        if outlet in ['Basic', 'Smart']:
             self.action_stop_queue.put((('02A', 0), lambda device: [device.set_monoflop(0, True, MONOFLOP_DURATION), device.set_selected_value(1, False)], event))
         elif outlet == 'Pro':
             self.action_stop_queue.put((('02A', 0), lambda device: [device.set_selected_value(0, False), device.set_monoflop(1, True, MONOFLOP_DURATION)], event))
+        elif outlet == 'CEE':
+            self.action_stop_queue.put((('02A', 0), lambda device: device.set_value(False, False), event))
         else:
             assert False, outlet
 
@@ -506,7 +506,7 @@ class Stage3:
 
         time.sleep(RELAY_SETTLE_DURATION)
 
-        self.connect_outlet(None)
+        self.connect_outlet('CEE')
         self.connect_voltage_monitors(False)
         self.connect_front_panel(False)
         self.connect_type2_pe(True)
@@ -515,14 +515,11 @@ class Stage3:
 
         time.sleep(RELAY_SETTLE_DURATION)
 
-    def power_on(self, outlet=None):
+    def power_on(self, outlet):
         assert self.prepared
-        assert outlet in [None, 'Basic', 'Smart', 'Pro']
+        assert outlet in ['Basic', 'Smart', 'Pro', 'CEE']
 
-        if outlet == None:
-            print('Switching power on')
-        else:
-            print('Switching power on for {} outlet'.format(outlet))
+        print('Switching power on for {} outlet'.format(outlet))
 
         self.connect_warp_power([])
 

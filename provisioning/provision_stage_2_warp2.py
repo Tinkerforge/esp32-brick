@@ -240,19 +240,14 @@ def main(stage3):
     docket_built = match.group(6)
     docket_order = match.group(7)
     docket_item = match.group(8)
-    docket_supply_cable_extension = match.group(9)
-    docket_has_cee = match.group(10)
-
-    if docket_supply_cable_extension is None:
-        docket_supply_cable_extension = 0
-    else:
-        docket_supply_cable_extension = int(docket_supply_cable_extension)
+    docket_supply_cable_extension = int(match.group(9))
+    docket_has_cee = match.group(10) == "1"
 
     print("Docket QR code data:")
     print("    WARP Charger {}".format({"B": "Basic", "S": "Smart", "P": "Pro"}[docket_variant]))
     print("    {} kW".format(docket_power))
     print("    {:1.1f} m".format(int(docket_cable_len) / 10.0))
-    print("    CEE: {}".format("Yes" if docket_has_cee == "1" else "No"))
+    print("    CEE: {}".format("Yes" if docket_has_cee else "No"))
     print("    HW Version: {}".format(docket_hw_version))
     print("    Serial: {}".format(docket_serial))
     print("    Build month: {}".format(docket_built))
@@ -307,7 +302,10 @@ def main(stage3):
             qr_code = getpass.getpass(red("Scan the ESP Brick QR code"))
             match = re.match(pattern, qr_code)
 
-        stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
+        if docket_supply_cable_extension != 0 or docket_has_cee:
+            stage3.power_on('CEE')
+        else:
+            stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
 
         hardware_type = match.group(1)
         esp_uid_qr = match.group(2)
@@ -393,9 +391,11 @@ def main(stage3):
         except Exception as e:
             fatal_error("Failed to configure NFC tags!")
         result["nfc_tags_configured"] = True
-
     else:
-        stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
+        if docket_supply_cable_extension != 0 or docket_has_cee:
+            stage3.power_on('CEE')
+        else:
+            stage3.power_on({"B": "Basic", "S": "Smart", "P": "Pro"}[qr_variant])
 
         result["uid"] = None
 
