@@ -42,6 +42,9 @@ VOLTAGE_SETTLE_DURATION = 1.0 # seconds
 VOLTAGE_OFF_THRESHOLD = 2.0 # Volt
 VOLTAGE_ON_THRESHOLD = 200.0 # Volt
 
+IEC_STATE_CHECK_DURATION = 5.0 # seconds
+IEC_STATE_CHECK_INTERVAL = 0.01 # seconds
+
 STACK_MASTER_UIDS = {
     '0': '61SMKP',
     '1': '6jEhrp',
@@ -400,6 +403,19 @@ class Stage3:
 
         return color[2] - color[0] > 1000
 
+    # internal
+    def check_iec_state(self, expected_state):
+        assert self.get_iec_state_function != None
+
+        actual_states = set()
+        start = time.monotonic()
+
+        while time.monotonic() < start + IEC_STATE_CHECK_DURATION:
+            actual_states.add(self.get_iec_state_function()) # FIXME: missing error handling
+            time.sleep(IEC_STATE_CHECK_INTERVAL)
+
+        return actual_states == set(expected_state)
+
     def setup(self):
         assert not self.prepared
 
@@ -627,7 +643,7 @@ class Stage3:
 
             time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
-            if self.get_iec_state_function() != state:
+            if not self.check_iec_state(state):
                 fatal_error('Wallbox not in IEC state {0}'.format(state))
 
             if self.has_evse_error_function():
@@ -662,7 +678,7 @@ class Stage3:
 
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
-        if self.get_iec_state_function() != 'C':
+        if not self.check_iec_state('C'):
             fatal_error('Wallbox not in IEC state C')
 
         time.sleep(VOLTAGE_SETTLE_DURATION)
@@ -732,7 +748,7 @@ class Stage3:
 
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
-        if self.get_iec_state_function() != 'A':
+        if not self.check_iec_state('A'):
             fatal_error('Wallbox not in IEC state A')
 
         print('Reconnecting PE')
@@ -757,7 +773,7 @@ class Stage3:
 
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
-        if self.get_iec_state_function() != 'C':
+        if not self.check_iec_state('C'):
             fatal_error('Wallbox not in IEC state C')
 
         print('Changing meter state to Type2-L1')
@@ -898,7 +914,7 @@ class Stage3:
         self.change_cp_pe_state('A')
         time.sleep(RELAY_SETTLE_DURATION + EVSE_SETTLE_DURATION)
 
-        if self.get_iec_state_function() != 'A':
+        if not self.check_iec_state('A'):
             fatal_error('Wallbox not in IEC state A')
 
         self.click_meter_run_button() # skip QR code
