@@ -377,23 +377,41 @@ class Stage3:
     def read_meter_qr_code(self, timeout=5):
         text = ''
         timestamp = time.monotonic()
+        error = None
 
-        try:
-            capture = cv2.VideoCapture(0)
-            decoder = cv2.QRCodeDetector()
+        for _ in range(5):
+            error = None
 
-            while len(text) == 0:
-                _, frame = capture.read()
-                text, _, _ = decoder.detectAndDecode(frame)
+            try:
+                capture = cv2.VideoCapture(0)
+            except Exception as e:
+                error = str(e)
+                continue
 
-                if timeout == None or timestamp + timeout < time.monotonic():
-                    break
+            try:
+                decoder = cv2.QRCodeDetector()
 
-                time.sleep(0.1)
+                while len(text) == 0:
+                    _, frame = capture.read()
+                    text, _, _ = decoder.detectAndDecode(frame)
 
-            capture.release()
-        except Exception as e:
-            fatal_error('Could not read QR code: {0}'.format(e))
+                    if timeout == None or timestamp + timeout < time.monotonic():
+                        break
+
+                    time.sleep(0.1)
+            except Exception as e:
+                error = str(e)
+                continue
+            finally:
+                capture.release()
+
+            if len(text) > 0:
+                break
+
+            time.sleep(0.1)
+
+        if len(text) == 0:
+            fatal_error('Could not read QR code: {0}'.format(error))
 
         return text
 
