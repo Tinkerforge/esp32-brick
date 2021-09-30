@@ -453,7 +453,7 @@ class Stage3:
 
         self.devices = {}
 
-        for stack_position, positions in [('0', {'0': ['A', 'B', 'C', 'D'], '1': ['A', 'B', 'C', 'D'], '2': ['A', 'B', 'C', 'D'], '3': ['A']}),
+        for stack_position, positions in [('0', {'0': ['A', 'B', 'C', 'D'], '1': ['A', 'B', 'C', 'D'], '2': ['A', 'B', 'C', 'D'], '3': ['A', 'B']}),
                                           ('1', {'0': ['A']}),
                                           ('2', {'0': ['A', 'B', 'C', 'D']})]:
             for brick_position, bricklet_positions in positions.items():
@@ -635,21 +635,23 @@ class Stage3:
         self.try_action('20A', lambda device: device.set_led_values(0, right * 3 + middle * 5 + left * 3))
 
     def beep_success(self):
-        beep_duration = 500
+        volume = 5
+        beep_duration = 400
 
-        self.try_action('03B', lambda device: device.set_beep(1200, 0, beep_duration))
-        time.sleep(beep_duration)
+        self.try_action('03B', lambda device: device.set_beep(1200, volume, beep_duration))
+        time.sleep(beep_duration / 1000)
 
     def beep_failure(self):
+        volume = 8
         beep_duration = 175
         pause_duration = 50
 
-        self.try_action('03B', lambda device: device.set_beep(400, 0, beep_duration))
-        time.sleep(beep_duration + pause_duration)
-        self.try_action('03B', lambda device: device.set_beep(400, 0, beep_duration))
-        time.sleep(beep_duration + pause_duration)
-        self.try_action('03B', lambda device: device.set_beep(400, 0, beep_duration))
-        time.sleep(beep_duration)
+        self.try_action('03B', lambda device: device.set_beep(400, volume, beep_duration))
+        time.sleep((beep_duration + pause_duration) / 1000)
+        self.try_action('03B', lambda device: device.set_beep(400, volume, beep_duration))
+        time.sleep((beep_duration + pause_duration) / 1000)
+        self.try_action('03B', lambda device: device.set_beep(400, volume, beep_duration))
+        time.sleep((beep_duration) / 1000)
 
     # requires power_on
     def test_wallbox(self):
@@ -1051,6 +1053,8 @@ def main():
     #print(stage3.get_nfc_tag_id(0))
     #stage3.test_wallbox()
     #stage3.set_led_strip_color((0, 0, 128))
+    #stage3.beep_success()
+    #stage3.beep_failure()
 
     input('Press return to exit ')
 
