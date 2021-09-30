@@ -18,6 +18,7 @@ from tinkerforge.bricklet_energy_monitor import BrickletEnergyMonitor
 from tinkerforge.bricklet_servo_v2 import BrickletServoV2
 from tinkerforge.bricklet_led_strip_v2 import BrickletLEDStripV2
 from tinkerforge.bricklet_color_v2 import BrickletColorV2
+from tinkerforge.bricklet_piezo_speaker_v2 import BrickletPiezoSpeakerV2
 
 from provision_common.bricklet_nfc import BrickletNFC
 from provision_common.inventory import Inventory
@@ -69,6 +70,7 @@ EXPECTED_DEVICE_IDENTIFIERS = {
     '02D': BrickletEnergyMonitor.DEVICE_IDENTIFIER,
     '03': BrickMaster.DEVICE_IDENTIFIER,
     '03A': BrickletIndustrialDualRelay.DEVICE_IDENTIFIER,
+    '03B': BrickletPiezoSpeakerV2.DEVICE_IDENTIFIER,
     '10': BrickMaster.DEVICE_IDENTIFIER,
     '10A': BrickletServoV2.DEVICE_IDENTIFIER,
     '20': BrickMaster.DEVICE_IDENTIFIER,
@@ -631,6 +633,23 @@ class Stage3:
             right = middle
 
         self.try_action('20A', lambda device: device.set_led_values(0, right * 3 + middle * 5 + left * 3))
+
+    def beep_success(self):
+        beep_duration = 500
+
+        self.try_action('03B', lambda device: device.set_beep(1200, 0, beep_duration))
+        time.sleep(beep_duration)
+
+    def beep_failure(self):
+        beep_duration = 175
+        pause_duration = 50
+
+        self.try_action('03B', lambda device: device.set_beep(400, 0, beep_duration))
+        time.sleep(beep_duration + pause_duration)
+        self.try_action('03B', lambda device: device.set_beep(400, 0, beep_duration))
+        time.sleep(beep_duration + pause_duration)
+        self.try_action('03B', lambda device: device.set_beep(400, 0, beep_duration))
+        time.sleep(beep_duration)
 
     # requires power_on
     def test_wallbox(self):

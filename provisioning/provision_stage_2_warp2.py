@@ -159,10 +159,12 @@ def led_wrap():
     except BaseException:
         stage3.power_off()
         stage3.set_led_strip_color((255, 0, 0))
+        stage3.beep_failure()
         raise
     else:
         stage3.power_off()
         stage3.set_led_strip_color((0, 255, 0))
+        stage3.beep_success()
 
 blink_start = None
 blink_count = 0
