@@ -19,8 +19,6 @@
 
 #include "proxy.h"
 
-#include <AsyncJson.h>
-
 #include "bindings/display_names.h"
 #include "bindings/errors.h"
 #include "bindings/hal_common.h"
@@ -29,9 +27,11 @@
 
 #include "api.h"
 
+#include "web_server.h"
+
 extern TF_HalContext hal;
-extern AsyncWebServer server;
-extern AsyncEventSource events;
+extern WebServer server;
+
 extern TaskScheduler task_scheduler;
 
 extern API api;
