@@ -540,7 +540,7 @@ void Wifi::loop()
 
     if (connected && ap_fallback_only && soft_ap_running) {
         logger.printfln("Network connected. Stopping soft AP");
-        WiFi.softAPdisconnect(false);
+        WiFi.softAPdisconnect(true);
         soft_ap_running = false;
     }
 }
