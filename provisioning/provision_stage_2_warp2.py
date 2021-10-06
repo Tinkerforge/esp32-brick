@@ -62,10 +62,10 @@ def run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid, stage3):
         fatal_error("Scanned QR code implies variant {}, but detected was Basic (i.e. an Master Brick was found)".format(d[qr_variant]))
 
     if is_smart and qr_variant != "S":
-        fatal_error("Scanned QR code implies variant {}, but detected was Smart: An ESP32 Brick was found, not no RS485 Bricklet. Is the Bricklet not connected or the status LED not lighting up? Is the QR code correct?".format(d[qr_variant]))
+        fatal_error("Scanned QR code implies variant {}, but detected was Smart: An ESP32 Brick was found, but no energy meter. Is the meter not connected or the display not lighting up? Is the QR code correct?".format(d[qr_variant]))
 
     if is_pro and qr_variant != "P":
-        fatal_error("Scanned QR code implies variant {}, but detected was Pro: An ESP32 Brick and a RS485 Bricklet was found. Is the QR code correct?".format(d[qr_variant]))
+        fatal_error("Scanned QR code implies variant {}, but detected was Pro: An ESP32 Brick and an energy meter was found. Is the QR code correct?".format(d[qr_variant]))
 
     result["evse_uid"] = evse_enum.uid
     print("EVSE UID is {}".format(evse_enum.uid))
