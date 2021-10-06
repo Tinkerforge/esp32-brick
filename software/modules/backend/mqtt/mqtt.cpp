@@ -156,59 +156,59 @@ void Mqtt::onMqttError(uint8_t e,uint32_t info){
         break;
     case MQTT_SERVER_UNAVAILABLE:
         // server has gone away - network problem? server crash?
-        logger.printfln("ERROR: MQTT_SERVER_UNAVAILABLE info=%d",info);
+        logger.printfln("MQTT error: MQTT_SERVER_UNAVAILABLE info=%d",info);
         this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case UNRECOVERABLE_CONNECT_FAIL:
         // there is something wrong with your connection parameters? IP:port incorrect? user credentials typo'd?
-        logger.printfln("ERROR: UNRECOVERABLE_CONNECT_FAIL info=%d",info);
+        logger.printfln("MQTT error: UNRECOVERABLE_CONNECT_FAIL info=%d",info);
         this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case TLS_BAD_FINGERPRINT:
-        logger.printfln("ERROR: TLS_BAD_FINGERPRINT info=%d",info);
+        logger.printfln("MQTT error: TLS_BAD_FINGERPRINT info=%d",info);
         this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case SUBSCRIBE_FAIL:
         // you tried to subscribe to an invalid topic
-        logger.printfln("ERROR: SUBSCRIBE_FAIL info=%d",info);
+        logger.printfln("MQTT error: SUBSCRIBE_FAIL info=%d",info);
         this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case INBOUND_QOS_ACK_FAIL:
-        logger.printfln("ERROR: OUTBOUND_QOS_ACK_FAIL id=%d",info);
+        logger.printfln("MQTT error: OUTBOUND_QOS_ACK_FAIL id=%d",info);
         this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case OUTBOUND_QOS_ACK_FAIL:
-        logger.printfln("ERROR: OUTBOUND_QOS_ACK_FAIL id=%d",info);
+        logger.printfln("MQTT error: OUTBOUND_QOS_ACK_FAIL id=%d",info);
         this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case INBOUND_PUB_TOO_BIG:
         // someone sent you a p[acket that this MCU does not have enough FLASH to handle
-        logger.printfln("ERROR: INBOUND_PUB_TOO_BIG size=%d Max=%d",e,mqttClient.getMaxPayloadSize());
+        logger.printfln("MQTT error: INBOUND_PUB_TOO_BIG size=%d Max=%d",e,mqttClient.getMaxPayloadSize());
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case OUTBOUND_PUB_TOO_BIG:
         // you tried to send a packet that this MCU does not have enough FLASH to handle
-        logger.printfln("ERROR: OUTBOUND_PUB_TOO_BIG size=%d Max=%d",e,mqttClient.getMaxPayloadSize());
+        logger.printfln("MQTT error: OUTBOUND_PUB_TOO_BIG size=%d Max=%d",e,mqttClient.getMaxPayloadSize());
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case BOGUS_PACKET: //  Your server sent a control packet type unknown to MQTT 3.1.1
     //  99.99% unlikely to ever happen, but this message is better than a crash, non?
-        logger.printfln("ERROR: BOGUS_PACKET TYPE=%02x",e);
+        logger.printfln("MQTT error: BOGUS_PACKET TYPE=%02x",e);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     case X_INVALID_LENGTH: //  An x function rcvd a msg with an unexpected length: probale data corruption or malicious msg
     //  99.99% unlikely to ever happen, but this message is better than a crash, non?
-        logger.printfln("ERROR: X_INVALID_LENGTH TYPE=%02x",e);
+        logger.printfln("MQTT error: X_INVALID_LENGTH TYPE=%02x",e);
         this->mqtt_state.get("last_error")->updateInt(e);
         break;
     default:
-        logger.printfln("UNKNOWN ERROR: %u extra info %d",e,info);
+        logger.printfln("MQTT error: %u extra info %d",e,info);
         this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::ERROR);
         this->mqtt_state.get("last_error")->updateInt(255);
         break;
@@ -219,7 +219,6 @@ void Mqtt::onMqttConnect(bool sessionPresent) {
     api.reconnectDone("mqtt connect");
 
     logger.printfln("Connected to MQTT session=%d max payload size=%d",sessionPresent,mqttClient.getMaxPayloadSize());
-    this->was_connected = true;
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::CONNECTED);
 
     // Do the publishing in the "main thread". Otherwise this would be a race condition with the publishing in addState.
@@ -328,10 +327,7 @@ String mqttError(int8_t reason) {
 void Mqtt::onMqttDisconnect(int8_t reason) {
     api.reconnectDone("mqtt disconnect");
     this->mqtt_state.get("connection_state")->updateInt((int)MqttConnectionState::NOT_CONNECTED);
-    if(this->was_connected) {
-        logger.printfln("Disconnected from MQTT: %s (%d)", mqttError(reason).c_str(), reason);
-        this->was_connected = false;
-    }
+    logger.printfln("Disconnected from MQTT: %s (%d)", mqttError(reason).c_str(), reason);
 }
 
 void Mqtt::setup()

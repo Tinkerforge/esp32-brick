@@ -78,5 +78,4 @@ private:
     PangolinMQTT mqttClient;
 
     std::vector<MqttCommand> commands;
-    bool was_connected = true;
 };
