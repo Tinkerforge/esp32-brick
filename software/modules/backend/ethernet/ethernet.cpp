@@ -163,6 +163,8 @@ void Ethernet::setup()
 
     ethernet_state.get("connection_state")->updateUint(0);
 
+    initialized = true;
+
     if (!ethernet_config_in_use.get("enable_ethernet")->asBool())
         return;
 
@@ -227,8 +229,6 @@ void Ethernet::setup()
     } else {
         ETH.config((uint32_t)0, (uint32_t)0, (uint32_t)0);
     }
-
-    initialized = true;
 }
 
 void Ethernet::register_urls()
