@@ -188,7 +188,7 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "current_firmware": "Firmware version",
-                    "firmware_update": "Firmware update",
+                    "firmware_update": "Firmware Update",
                     "browse": "Browse",
                     "select_file": "Firmware file",
                     "update": "Upload",
