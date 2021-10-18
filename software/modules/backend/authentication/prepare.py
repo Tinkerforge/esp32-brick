@@ -17,6 +17,9 @@ class ChangedDirectory(object):
 
 # Generate web interface
 with ChangedDirectory('login_page_ignored'):
+    if not os.path.isdir("node_modules"):
+        print("Authentication web interface dependencies not installed. Installing now.")
+        subprocess.run(["npm", "install", "--save-dev"])
     subprocess.run(["npx", "gulp"])
 
 shutil.copy2("login_page_ignored/dist/login.html.h", "./login.html.h")
