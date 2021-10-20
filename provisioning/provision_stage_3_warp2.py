@@ -5,9 +5,9 @@ import queue
 import threading
 import time
 import traceback
+import tkinter as tk
 
 import cv2 # sudo pip3 install openvc-python
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.device_factory import create_device
@@ -1041,28 +1041,26 @@ def main():
                     get_iec_state_function=lambda: 'A',
                     reset_dc_fault_function=lambda: None)
 
-    app = QApplication([])
-    widget = QWidget()
-    layout = QVBoxLayout(widget)
-    button_power_on_smart = QPushButton('Power On - Smart')
-    button_power_on_pro = QPushButton('Power On - Pro')
-    button_power_on_cee = QPushButton('Power On - CEE')
-    button_power_off = QPushButton('Power Off')
-
     stage3.setup()
 
-    button_power_on_smart.clicked.connect(lambda: stage3.power_on('Smart'))
-    button_power_on_pro.clicked.connect(lambda: stage3.power_on('Pro'))
-    button_power_on_cee.clicked.connect(lambda: stage3.power_on('CEE'))
-    button_power_off.clicked.connect(lambda: stage3.power_off())
+    root = tk.Tk()
+    root.title('WARP2 Manual Power')
 
-    layout.addWidget(button_power_on_smart)
-    layout.addWidget(button_power_on_pro)
-    layout.addWidget(button_power_on_cee)
-    layout.addWidget(button_power_off)
+    button_power_on_smart = tk.Button(root, text='Power On - Smart', width=50, command=lambda: stage3.power_on('Smart'))
+    button_power_on_smart.grid(row=0, column=0, padx=10, pady=10)
 
-    widget.show()
-    app.exec_()
+    button_power_on_pro = tk.Button(root, text='Power On - Pro', width=50, command=lambda: stage3.power_on('Pro'))
+    button_power_on_pro.grid(row=1, column=0, padx=10, pady=10)
+
+    button_power_on_cee = tk.Button(root, text='Power On - CEE', width=50, command=lambda: stage3.power_on('CEE'))
+    button_power_on_cee.grid(row=2, column=0, padx=10, pady=10)
+
+    button_power_off = tk.Button(root, text='Power Off', width=50, command=lambda: stage3.power_off())
+    button_power_off.grid(row=3, column=0, padx=10, pady=10)
+
+    root.mainloop()
+
+    stage3.power_off()
     stage3.teardown()
 
 if __name__ == '__main__':
