@@ -7,6 +7,7 @@ import time
 import traceback
 
 import cv2 # sudo pip3 install openvc-python
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.device_factory import create_device
@@ -1040,24 +1041,28 @@ def main():
                     get_iec_state_function=lambda: 'A',
                     reset_dc_fault_function=lambda: None)
 
+    app = QApplication([])
+    widget = QWidget()
+    layout = QVBoxLayout(widget)
+    button_power_on_smart = QPushButton('Power On - Smart')
+    button_power_on_pro = QPushButton('Power On - Pro')
+    button_power_on_cee = QPushButton('Power On - CEE')
+    button_power_off = QPushButton('Power Off')
+
     stage3.setup()
 
-    #stage3.power_on('Smart')
-    #stage3.click_meter_run_button()
-    #stage3.click_meter_back_button()
-    #print(stage3.read_meter_qr_code(20))
-    #stage3.connect_front_panel(True)
-    #stage3.connect_type2_pe(False)
-    #print(stage3.read_voltage_monitors())
-    #stage3.test_front_panel_button()
-    #print(stage3.get_nfc_tag_id(0))
-    #stage3.test_wallbox()
-    #stage3.set_led_strip_color((0, 0, 128))
-    #stage3.beep_success()
-    #stage3.beep_failure()
+    button_power_on_smart.clicked.connect(lambda: stage3.power_on('Smart'))
+    button_power_on_pro.clicked.connect(lambda: stage3.power_on('Pro'))
+    button_power_on_cee.clicked.connect(lambda: stage3.power_on('CEE'))
+    button_power_off.clicked.connect(lambda: stage3.power_off())
 
-    input('Press return to exit ')
+    layout.addWidget(button_power_on_smart)
+    layout.addWidget(button_power_on_pro)
+    layout.addWidget(button_power_on_cee)
+    layout.addWidget(button_power_off)
 
+    widget.show()
+    app.exec_()
     stage3.teardown()
 
 if __name__ == '__main__':
