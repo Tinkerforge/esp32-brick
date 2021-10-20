@@ -1063,6 +1063,8 @@ def main():
     stage3.power_off()
     stage3.teardown()
 
+    print('Done')
+
 if __name__ == '__main__':
     try:
         main()
