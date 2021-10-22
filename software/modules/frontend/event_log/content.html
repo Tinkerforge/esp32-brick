@@ -9,10 +9,15 @@
             <label for='event_log_content' data-i18n="event_log.content.event_log" class="mb-3"></label>
         </div>
         <div class="col-md-12 col-lg-3">
-            <a id="save_event_log" href="/event_log" class="form-control btn btn-primary mb-1" data-i18n="event_log.content.save_event_log" download="event_log.txt"></a>
-            <label for='save_event_log' data-i18n="event_log.content.save_event_log_desc" class="mb-3"></label>
-            <a id="download_debug_report" href="/debug_report" class="form-control btn btn-primary mb-1" data-i18n="event_log.content.debug_report" download="debug_report.txt"></a>
-            <label id="spiffs_label" for='debug_report' data-i18n="event_log.content.debug_report_desc"></label>
+            <!--<a id="save_event_log" href="/event_log" class="form-control btn btn-primary mb-1" data-i18n="event_log.content.save_event_log" download="event_log.txt"></a>
+            <label for='save_event_log' data-i18n="event_log.content.save_event_log_desc" class="mb-3"></label>-->
+            <button type="button" id="download_debug_report" class="form-control btn btn-primary mb-1 d-flex align-items-center justify-content-center">
+                <span data-i18n="event_log.content.debug_report" class="mr-2"></span>
+                <span id="debug_report_spinner" class="spinner-border spinner-border-sm" role="status" hidden>
+                    <span class="sr-only">Loading...</span>
+                </span>
+            </button>
+            <label for='debug_report' data-i18n="event_log.content.debug_report_desc"></label>
         </div>
 
     </div>

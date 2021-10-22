@@ -46,11 +46,33 @@ export function init() {
         }
     });
 
-    $('#download_debug_report').on("click", () => $('#download_debug_report').attr("download", "debug-report-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".json"));
+    $('#download_debug_report').on("click", () => {
+        let timeout = window.setTimeout(() => $('#debug_report_spinner').prop("hidden", false), 1000);
 
-    $('#load_event_log').on("click", load_event_log);
+        let debug_log = "Scroll down for event log!";
+        $.get({url: "/debug_report", dataType: "text"})
+                .fail((xhr, status, error) => {
+                    util.add_alert("event_log_load_failed", "alert-danger", __("event_log.script.load_event_report_error"), error + ": " + xhr.responseText)
+                    window.clearTimeout(timeout);
+                    $('#debug_report_spinner').prop("hidden", true);
+                })
+                .done((result) => {
+                    debug_log += result + "\n\n";
 
-    $('#save_event_log').on("click", () => $('#save_event_log').attr("download", "event-log-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".txt"));
+                    $.get("/event_log")
+                        .fail((xhr, status, error) => {
+                            util.add_alert("event_log_load_failed", "alert-danger", __("event_log.script.load_event_report_error"), error + ": " + xhr.responseText)
+                            window.clearTimeout(timeout);
+                            $('#debug_report_spinner').prop("hidden", true);
+                        })
+                        .done((result) => {
+                            debug_log += result + "\n";
+                            util.downloadToFile(debug_log, "debug-report-" + (new Date()).toISOString().replace(/:/gi, "-").replace(/\./gi, "-") + ".txt", "text/plain");
+                            window.clearTimeout(timeout);
+                            $('#debug_report_spinner').prop("hidden", true);
+                        });
+                });
+    });
 }
 
 export function addEventListeners(source: EventSource) {}
