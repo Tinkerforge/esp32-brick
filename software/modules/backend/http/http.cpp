@@ -51,7 +51,7 @@ void Http::loop()
 
 }
 
-void Http::addCommand(CommandRegistration reg)
+void Http::addCommand(const CommandRegistration &reg)
 {
     server.on((String("/") + reg.path).c_str(), HTTP_PUT, [reg](WebServerRequest request) {
         String reason = api.getCommandBlockedReason(reg.path);
@@ -90,7 +90,7 @@ void Http::addCommand(CommandRegistration reg)
     });
 }
 
-void Http::addState(StateRegistration reg)
+void Http::addState(const StateRegistration &reg)
 {
     server.on((String("/") + reg.path).c_str(), HTTP_GET, [reg](WebServerRequest request) {
         String response = reg.config->to_string_except(reg.keys_to_censor);

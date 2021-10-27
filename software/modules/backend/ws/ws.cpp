@@ -43,12 +43,12 @@ void WS::loop()
 
 }
 
-void WS::addCommand(CommandRegistration reg)
+void WS::addCommand(const CommandRegistration &reg)
 {
 
 }
 
-void WS::addState(StateRegistration reg)
+void WS::addState(const StateRegistration &reg)
 {
 
 }

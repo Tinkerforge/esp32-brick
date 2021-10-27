@@ -111,7 +111,7 @@ void Mqtt::subscribe(String topic_suffix, uint32_t max_payload_length, std::func
     this->mqttClient.subscribe(topic.c_str(), 0);
 }
 
-void Mqtt::addCommand(CommandRegistration reg)
+void Mqtt::addCommand(const CommandRegistration &reg)
 {
     subscribe(reg.path, reg.config->json_size(), [reg](String payload){
         String reason = api.getCommandBlockedReason(reg.path);
@@ -130,7 +130,7 @@ void Mqtt::addCommand(CommandRegistration reg)
     }, reg.is_action);
 }
 
-void Mqtt::addState(StateRegistration reg)
+void Mqtt::addState(const StateRegistration &reg)
 {
 
 }

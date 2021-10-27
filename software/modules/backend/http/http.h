@@ -29,8 +29,8 @@ public:
     void loop();
 
     //IAPIBackend implementation
-    void addCommand(CommandRegistration reg);
-    void addState(StateRegistration reg);
+    void addCommand(const CommandRegistration &reg);
+    void addState(const StateRegistration &reg);
     void pushStateUpdate(String payload, String path);
     void wifiAvailable();
 

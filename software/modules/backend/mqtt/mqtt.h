@@ -52,8 +52,8 @@ public:
     void subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback, bool forbid_retained);
 
     //IAPIBackend implementation
-    void addCommand(CommandRegistration reg);
-    void addState(StateRegistration reg);
+    void addCommand(const CommandRegistration &reg);
+    void addState(const StateRegistration &reg);
     void pushStateUpdate(String payload, String path);
     void wifiAvailable();
 
