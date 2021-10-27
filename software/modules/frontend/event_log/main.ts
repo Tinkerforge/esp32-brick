@@ -101,8 +101,6 @@ export function getTranslation(lang: string) {
                     "debug_report_desc": "Debug-Report",
                     "debug_report_desc_muted": "Ein kompletter Report aller Statusinformationen des Geräts außer Passwörtern",
                     "event_log_placeholder": "Lade Ereignis-Log...",
-                    "save_event_log": "Log speichern",
-                    "save_event_log_desc": "Speichert das aktuelle Ereignis-Log",
                 },
                 "script": {
                     "load_event_report_error": "Konnte Ereignis-Log nicht laden",
@@ -119,11 +117,12 @@ export function getTranslation(lang: string) {
                 },
                 "content": {
                     "event_log": "Event Log",
-                    "debug_report": "Debug report",
-                    "debug_report_desc": "A complete report of all status information of this device except passwords",
+                    "event_log_desc": "Event log",
+                    "event_log_desc_muted": util.emptyText(),
+                    "debug_report": "Download debug report and event log",
+                    "debug_report_desc": "Debug report",
+                    "debug_report_desc_muted": "A complete report of all status information of this device except passwords",
                     "event_log_placeholder": "Loading event log...",
-                    "save_event_log": "Save log",
-                    "save_event_log_desc": "Saves the current event log",
                 },
                 "script": {
                     "load_event_report_error": "Failed to load event log",
