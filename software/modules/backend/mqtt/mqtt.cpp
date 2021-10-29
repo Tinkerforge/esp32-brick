@@ -79,7 +79,7 @@ void Mqtt::addCommand(const CommandRegistration &reg)
     subscribe(reg.path, reg.config->json_size(), [reg](char *payload, size_t payload_len){
         String reason = api.getCommandBlockedReason(reg.path);
         if (reason != "") {
-            logger.printfln("MQTT: Command %s is blocked: %s", reason.c_str());
+            logger.printfln("MQTT: Command %s is blocked: %s", reg.path, reason.c_str());
             return;
         }
 
