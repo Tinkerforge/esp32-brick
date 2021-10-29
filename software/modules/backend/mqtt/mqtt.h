@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <PangolinMQTT.h>
+#include "mqtt_client.h"
 
 #include "api.h"
 #include "config.h"
@@ -36,7 +36,7 @@ enum class MqttConnectionState {
 struct MqttCommand {
     String topic;
     uint32_t max_len;
-    std::function<void(String)> callback;
+    std::function<void(char *, size_t)> callback;
     bool forbid_retained;
 };
 
@@ -49,7 +49,7 @@ public:
     void connect();
 
     void publish(String topic_suffix, String payload);
-    void subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(String)> callback, bool forbid_retained);
+    void subscribe(String topic_suffix, uint32_t max_payload_length, std::function<void(char *, size_t)> callback, bool forbid_retained);
 
     //IAPIBackend implementation
     void addCommand(const CommandRegistration &reg);
@@ -59,23 +59,14 @@ public:
 
     bool initialized = false;
 
-private:
-    void apply_config();
-
-    void onMqttError(uint8_t e,uint32_t info);
-    void onMqttConnect(bool sessionPresent);
-    void onMqttMessage(const char* topic, const uint8_t* payload, size_t len,uint8_t qos,bool retain,bool dup);
-    void onMqttDisconnect(int8_t reason);
-
+    void onMqttConnect();
+    void onMqttMessage(char *topic, size_t topic_len, char *data, size_t data_len, bool retain);
 
     Config mqtt_config;
     Config mqtt_state;
 
     Config mqtt_config_in_use;
 
-    uint32_t connect_attempt_interval_ms;
-
-    PangolinMQTT mqttClient;
-
     std::vector<MqttCommand> commands;
+    esp_mqtt_client_handle_t client;
 };
