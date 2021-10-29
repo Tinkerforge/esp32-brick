@@ -195,6 +195,7 @@ void Ethernet::setup()
             ethernet_state.get("ip")->get(1)->updateUint(ip[1]);
             ethernet_state.get("ip")->get(2)->updateUint(ip[2]);
             ethernet_state.get("ip")->get(3)->updateUint(ip[3]);
+            api.wifiAvailable();
         },
         ARDUINO_EVENT_ETH_GOT_IP);
 
