@@ -231,11 +231,6 @@ void Wifi::apply_sta_config_and_connect() {
         return;
     }
 
-    if (!api.attemptReconnect("Wifi")) {
-        //logger.printfln("Another reconnect in progress. Aborting Wifi reconnect.");
-        return;
-    }
-
     WiFi.persistent(false);
     WiFi.setAutoReconnect(false);
     WiFi.disconnect(false, true);
@@ -317,13 +312,10 @@ void Wifi::setup()
                 logger.printfln("Disconnected from %s: %s (%u)", wifi_sta_config_in_use.get("ssid")->asString().c_str(), reason, reason_code);
             }
             this->was_connected = false;
-            api.reconnectDone("wifi disconnected");
         },
         ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
-            if(!this->was_connected)
-                api.reconnectDone("wifi connected");
             this->was_connected = true;
 
             logger.printfln("Connected to %s", WiFi.SSID().c_str());
@@ -331,8 +323,6 @@ void Wifi::setup()
         ARDUINO_EVENT_WIFI_STA_CONNECTED);
 
     WiFi.onEvent([this](arduino_event_id_t event, arduino_event_info_t info) {
-            if(!this->was_connected)
-                api.reconnectDone("wifi got ip");
             // Sometimes the ARDUINO_EVENT_WIFI_STA_CONNECTED is not fired.
             // Instead we get the ARDUINO_EVENT_WIFI_STA_GOT_IP twice?
             // Make sure that the state is set to connected here,
@@ -356,7 +346,6 @@ void Wifi::setup()
             return;
 
         this->was_connected = false;
-        api.reconnectDone("wifi lost ip");
 
         logger.printfln("Lost IP. Forcing disconnect and reconnect of WiFi");
         wifi_state.get("sta_ip")->get(0)->updateUint(0);
