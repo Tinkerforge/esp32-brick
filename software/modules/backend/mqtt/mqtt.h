@@ -61,6 +61,7 @@ public:
 
     void onMqttConnect();
     void onMqttMessage(char *topic, size_t topic_len, char *data, size_t data_len, bool retain);
+    void onMqttDisconnect();
 
     Config mqtt_config;
     Config mqtt_state;
