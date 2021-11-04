@@ -13,10 +13,7 @@
 
 from collections import namedtuple
 
-try:
-    from .ip_connection import Device, IPConnection, Error, create_char, create_char_list, create_string, create_chunk_data
-except (ValueError, ImportError):
-    from ip_connection import Device, IPConnection, Error, create_char, create_char_list, create_string, create_chunk_data
+from tinkerforge.ip_connection import Device, IPConnection, Error, create_char, create_char_list, create_string, create_chunk_data
 
 GetState = namedtuple('State', ['iec61851_state', 'vehicle_state', 'contactor_state', 'contactor_error', 'charge_release', 'allowed_charging_current', 'error_state', 'lock_state', 'time_since_state_change', 'uptime'])
 GetHardwareConfiguration = namedtuple('HardwareConfiguration', ['jumper_configuration', 'has_lock_switch'])
