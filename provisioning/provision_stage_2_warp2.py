@@ -193,34 +193,26 @@ def stop_blink(stage3):
     blink_count = 0
     stage3.set_led_strip_color((0, 0, 255))
 
+class ContentTypeRemover(urllib.request.BaseHandler):
+    def http_request(self, req):
+        if req.has_header('Content-type'):
+            req.remove_header('Content-type')
+        return req
+    https_request = http_request
+
 def main(stage3):
     result = {"start": now()}
 
-    with urllib.request.urlopen("https://download.tinkerforge.com/latest_versions.txt") as f:
-        latest_versions = f.read().decode("utf-8")
+    with ChangedDirectory(os.path.join("..", "..", "firmwares")):
+        run(["git", "pull"])
 
-    match = re.search(r"bricklets:evse_v2:(\d)\.(\d)\.(\d)", latest_versions)
-    major = match.group(1)
-    minor = match.group(2)
-    patch = match.group(3)
+    evse_directory = os.path.join("..", "..", "firmwares", "bricklets", "evse_v2")
+    evse_path = os.readlink(os.path.join(evse_directory, "bricklet_evse_v2_firmware_latest.zbin"))
+    evse_path = os.path.join(evse_directory, evse_path)
 
-    if not os.path.exists("firmwares"):
-        os.mkdir("firmwares")
-
-    evse_path = "bricklet_evse_v2_firmware_{}_{}_{}.zbin".format(major, minor, patch)
-    if not os.path.exists(evse_path):
-        urllib.request.urlretrieve('https://download.tinkerforge.com/firmwares/bricklets/evse_v2/{}'.format(evse_path), os.path.join("firmwares", evse_path))
-    evse_path = os.path.join("firmwares", evse_path)
-
-    #with urllib.request.urlopen("https://www.warp-charger.com/") as f:
-    #    warp_charger_page = f.read().decode("utf-8")
-
-    #match = re.search(r'<a href="firmwares/(warp_firmware_\d_\d_\d_[0-9a-f]{8}_merged.bin)" class="btn btn-primary btn-lg" id="download_latest_firmware">', #warp_charger_page)
-    #firmware_path = match.group(1)
-
-    #if not os.path.exists(firmware_path):
-    #    urllib.request.urlretrieve('https://www.warp-charger.com/firmwares/{}'.format(firmware_path), os.path.join("firmwares", firmware_path))
-    #firmware_path = os.path.join("firmwares", firmware_path)
+    firmware_directory = os.path.join("..", "..", "firmwares", "bricks", "warp2_charger")
+    firmware_path = os.readlink(os.path.join(firmware_directory, "brick_warp2_charger_firmware_latest.bin"))
+    firmware_path = os.path.join(firmware_directory, firmware_path)
 
     #T:WARP2-CP-22KW-50;V:2.1;S:5000000001;B:2021-09;O:SO/2020123;I:17/42;E:1;C:0;;;;;;
     pattern = r'^T:WARP2-C(B|S|P)-(11|22)KW-(50|75);V:(\d+\.\d+);S:(5\d{9});B:(\d{4}-\d{2});O:(SO/B?[0-9]+);I:(\d+/\d+);E:(\d+);C:([01]);;;*$'
@@ -340,6 +332,47 @@ def main(stage3):
         ssid = "warp2-" + esp_uid_qr
 
         print("Connecting via ethernet to {}".format(ssid), end="")
+
+        for i in range(30):
+            start = time.monotonic()
+            try:
+                with urllib.request.urlopen("http://{}/event_log".format(ssid), timeout=1) as f:
+                    event_log = f.read()
+                    break
+            except:
+                pass
+            t = max(0, 1 - (time.monotonic() - start))
+            time.sleep(t)
+            print(".", end="")
+        else:
+            fatal_error("Failed to connect via ethernet! Is the router's DHCP cache full?")
+        print(" Connected.")
+
+        m = re.search(r"WARP2 Charger V(\d+).(\d+).(\d+)", event_log)
+        if not m:
+            fatal_error("Failed to find version number in event log!" + event_log)
+
+        version = [int(x) for x in m.groups()]
+        latest_version = [int(x) for x in re.search(r"warp2_charger_firmware_(\d+)_(\d+)_(\d+).bin", firmware_path)]
+
+        if version > latest_version:
+            fatal_error("Flashed firmware {}.{}.{} is not released yet! Latest released is {}.{}.{}".format(*version, *latest_version))
+        elif version < latest_version:
+            print("Flashed firmware {}.{}.{} is outdated! Flashing {}.{}.{}...".format(*version, *latest_version))
+            test_data = 'test'
+
+            with open(firmware_path, "rb") as f:
+                fw = f.read()
+
+            opener = urllib.request.build_opener(ContentTypeRemover())
+            req = urllib.request.Request("http://{}/flash_firmware".format(ssid), fw)
+            print(opener.open(req).read().decode())
+        else:
+            print("Flashed firmware is up-to-date.")
+
+        result["firmware"] = firmware_path.split("/")[-1]
+
+        print("Connecting via ethernet to {}".format(ssid), end="")
         for i in range(30):
             start = time.monotonic()
             try:
@@ -403,7 +436,7 @@ def main(stage3):
         run_bricklet_tests(ipcon, result, qr_variant, qr_power, None, stage3)
         print("Flashing EVSE")
         run(["python3", "comcu_flasher.py", result["evse_uid"], evse_path])
-        result["evse_firmware"] = evse_path
+        result["evse_firmware"] = evse_path.split("/")[-1]
 
     print("Checking if EVSE was tested...")
     if not exists_evse_test_report(result["evse_uid"]):
