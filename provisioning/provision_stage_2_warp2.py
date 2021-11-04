@@ -359,7 +359,7 @@ def main(stage3):
         try:
             ipcon.connect(ssid, 4223)
         except Exception as e:
-            fatal_error("Failed to connect to ESP proxy")
+            fatal_error("Failed to connect to ESP proxy. Is the router's DHCP cache full?")
 
         run_bricklet_tests(ipcon, result, qr_variant, qr_power, ssid, stage3)
 
