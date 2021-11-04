@@ -337,7 +337,7 @@ def main(stage3):
             start = time.monotonic()
             try:
                 with urllib.request.urlopen("http://{}/event_log".format(ssid), timeout=1) as f:
-                    event_log = f.read()
+                    event_log = f.read().decode('utf-8')
                     break
             except:
                 pass
@@ -353,7 +353,7 @@ def main(stage3):
             fatal_error("Failed to find version number in event log!" + event_log)
 
         version = [int(x) for x in m.groups()]
-        latest_version = [int(x) for x in re.search(r"warp2_charger_firmware_(\d+)_(\d+)_(\d+).bin", firmware_path)]
+        latest_version = [int(x) for x in re.search(r"warp2_charger_firmware_(\d+)_(\d+)_(\d+).bin", firmware_path).groups()]
 
         if version > latest_version:
             fatal_error("Flashed firmware {}.{}.{} is not released yet! Latest released is {}.{}.{}".format(*version, *latest_version))
@@ -367,13 +367,37 @@ def main(stage3):
             opener = urllib.request.build_opener(ContentTypeRemover())
             req = urllib.request.Request("http://{}/flash_firmware".format(ssid), fw)
             print(opener.open(req).read().decode())
+            time.sleep(3)
+
+            print("Triggering factory reset")
+            print("Connecting via ethernet to {}".format(ssid), end="")
+            for i in range(45):
+                start = time.monotonic()
+                try:
+                    req = urllib.request.Request("http://{}/factory_reset".format(ssid),
+                                 data=json.dumps({"do_i_know_what_i_am_doing":True}).encode("utf-8"),
+                                 method='PUT',
+                                 headers={"Content-Type": "application/json"})
+                    with urllib.request.urlopen(req, timeout=1) as f:
+                        f.read()
+                        break
+                except Exception as e:
+                    pass
+                t = max(0, 1 - (time.monotonic() - start))
+                time.sleep(t)
+                print(".", end="")
+            else:
+                fatal_error("Failed to connect via ethernet!")
+            print(" Connected.")
+            print("Factory reset triggered.. Waiting 60 seconds")
+            time.sleep(60)
         else:
             print("Flashed firmware is up-to-date.")
 
         result["firmware"] = firmware_path.split("/")[-1]
 
         print("Connecting via ethernet to {}".format(ssid), end="")
-        for i in range(30):
+        for i in range(45):
             start = time.monotonic()
             try:
                 with urllib.request.urlopen("http://{}/hidden_proxy/enable".format(ssid), timeout=1) as f:
