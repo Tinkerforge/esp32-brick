@@ -213,7 +213,7 @@ def get_espefuse_tasks():
         fatal_error("eFuse block 1 is not empty.", "espefuse output was", '\n'.join(output))
 
     if any(i != 0 for i in blocks[2]):
-        fatal_error("eFuse block 1 is not empty.", "espefuse output was", '\n'.join(output))
+        fatal_error("eFuse block 2 is not empty.", "espefuse output was", '\n'.join(output))
 
     voltage_fuses = blocks[0][4] & 0x0001c000
     if voltage_fuses == 0x0001c000:
