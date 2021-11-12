@@ -104,15 +104,7 @@ gulp.task("gzip", function () {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task("generate_login_header", run("xxd -i dist/login.html.gz dist/login.html.h"));
-
-gulp.task("patch_login_header", function() {
-    const replace = require('gulp-string-replace');
-    return gulp.src("dist/login.html.h")
-               .pipe(replace('unsigned char', 'const char'))
-               .pipe(replace('dist_login_html_gz', 'login_html_gz'))
-               .pipe(gulp.dest("dist"))
-});
+gulp.task("generate_login_header", run("python3 xxd.py dist/login.html.gz dist/login.html.h login_html_gz"));
 
 gulp.task("default",
     gulp.series(
@@ -122,6 +114,5 @@ gulp.task("default",
         "embed",
         "gzip",
         "generate_login_header",
-        "patch_login_header",
     )
 );
