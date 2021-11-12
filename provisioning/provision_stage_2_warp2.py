@@ -370,12 +370,15 @@ def main(stage3):
                     print(opener.open(req).read().decode())
                     break
                 except urllib.error.HTTPError as e:
+                    print("HTTP error", e)
                     if e.code == 423:
                         fatal_error("Wallbox blocked firmware update. Is the EVSE working correctly?")
                     else:
                         fatal_error(e.read().decode("utf-8"))
                 except urllib.error.URLError as e:
-                    print(e)
+                    if isinstance(e.reason, ConnectionResetError):
+                        fatal_error("Wallbox blocked firmware update. Is the EVSE working correctly?")
+                    print("URL error", e)
                     if i == 0:
                         print("Failed to flash firmware. Retrying...")
                         time.sleep(3)
