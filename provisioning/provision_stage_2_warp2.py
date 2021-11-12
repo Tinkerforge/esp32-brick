@@ -359,14 +359,29 @@ def main(stage3):
             fatal_error("Flashed firmware {}.{}.{} is not released yet! Latest released is {}.{}.{}".format(*version, *latest_version))
         elif version < latest_version:
             print("Flashed firmware {}.{}.{} is outdated! Flashing {}.{}.{}...".format(*version, *latest_version))
-            test_data = 'test'
 
             with open(firmware_path, "rb") as f:
                 fw = f.read()
 
             opener = urllib.request.build_opener(ContentTypeRemover())
-            req = urllib.request.Request("http://{}/flash_firmware".format(ssid), fw)
-            print(opener.open(req).read().decode())
+            for i in range(2):
+                try:
+                    req = urllib.request.Request("http://{}/flash_firmware".format(ssid), fw)
+                    print(opener.open(req).read().decode())
+                    break
+                except urllib.error.HTTPError as e:
+                    if e.code == 423:
+                        fatal_error("Wallbox blocked firmware update. Is the EVSE working correctly?")
+                    else:
+                        fatal_error(e.read().decode("utf-8"))
+                except urllib.error.URLError as e:
+                    print(e)
+                    if i == 0:
+                        print("Failed to flash firmware. Retrying...")
+                        time.sleep(3)
+                    else:
+                        fatal_error("Can't flash firmware!")
+
             time.sleep(3)
 
             print("Triggering factory reset")
