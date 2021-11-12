@@ -1,5 +1,5 @@
-ESP Brick
-=========
+ESP32 Brick
+===========
 
 This repository contains the firmware source code and the hardware design
 files. The documentation generator configs can be found at
