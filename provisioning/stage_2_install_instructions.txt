@@ -1,6 +1,0 @@
-run in this folder:
-git clone https://github.com/espressif/esptool.git
-cd esptool
-pip install --user -e .
-cd ..
-copy or symlink evse_test_report folder here
