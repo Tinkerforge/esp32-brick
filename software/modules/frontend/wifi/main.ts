@@ -233,7 +233,7 @@ function update_wifi_state(state: WifiState) {
         $(sta_button_dict[i]).addClass(sta_outline_dict[i]);
     }
 
-    let button_to_highlight = state.connection_state + 1;
+    let button_to_highlight = state.connection_state;
     $(sta_button_dict[button_to_highlight]).removeClass(sta_outline_dict[button_to_highlight]);
     $(sta_button_dict[button_to_highlight]).addClass(sta_non_outline_dict[button_to_highlight]);
 
