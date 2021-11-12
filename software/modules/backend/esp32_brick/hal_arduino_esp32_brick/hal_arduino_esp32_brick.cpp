@@ -6,70 +6,90 @@
  * Commons Zero (CC0 1.0) License for more details.
  */
 
-#include "hal_arduino_esp32.h"
+#include "hal_arduino_esp32_brick.h"
 #include "SPI.h"
 #include <Arduino.h>
 
 #include "bindings/config.h"
 #include "bindings/errors.h"
 
-int tf_hal_create(TF_HalContext *hal, TF_Port *ports, uint8_t port_count) {
+typedef struct TF_Port {
+    uint8_t chip_select_pin;
+    uint8_t spi;
+    char port_name;
+
+    TF_PortCommon port_common;
+} TF_Port;
+
+static TF_Port ports[6] = {{
+    .chip_select_pin=27,
+    .spi=HSPI,
+    .port_name='F',
+    .port_common.__to_init = 0
+}, {
+    .chip_select_pin=26,
+    .spi=HSPI,
+    .port_name='E',
+    .port_common.__to_init = 0
+}, {
+    .chip_select_pin=25,
+    .spi=HSPI,
+    .port_name='D',
+    .port_common.__to_init = 0
+}, {
+    .chip_select_pin=17,
+    .spi=VSPI,
+    .port_name='C',
+    .port_common.__to_init = 0
+}, {
+    .chip_select_pin=33,
+    .spi=VSPI,
+    .port_name='B',
+    .port_common.__to_init = 0
+}, {
+    .chip_select_pin=16,
+    .spi=VSPI,
+    .port_name='A',
+    .port_common.__to_init = 0
+}};
+
+#define PORT_COUNT (sizeof(ports)/sizeof(ports[0]))
+
+int tf_hal_create(TF_HalContext *hal) {
     int rc = tf_hal_common_create(hal);
     if (rc != TF_E_OK) {
         return rc;
     }
 
-    hal->ports = ports;
-    hal->port_count = port_count;
-
-    bool uses_hspi = false;
-    bool uses_vspi = false;
-
-    for(int i = 0; i < port_count; ++i) {
-        uses_hspi |= hal->ports[i].spi == HSPI;
-        uses_vspi |= hal->ports[i].spi == VSPI;
-    }
-
     hal->spi_settings = SPISettings(1400000, SPI_MSBFIRST, SPI_MODE3);
 
-    if (uses_hspi) {
-        hal->hspi = SPIClass(HSPI);
-        hal->hspi.begin();
-    }
-    if (uses_vspi) {
-        hal->vspi = SPIClass(VSPI);
-        hal->vspi.begin();
+    hal->hspi = SPIClass(HSPI);
+    hal->hspi.begin();
+
+    hal->vspi = SPIClass(VSPI);
+    hal->vspi.begin();
+
+    for(int i = 0; i < PORT_COUNT; ++i) {
+        pinMode(ports[i].chip_select_pin, OUTPUT);
+        digitalWrite(ports[i].chip_select_pin, HIGH);
     }
 
-    for(int i = 0; i < port_count; ++i) {
-        pinMode(hal->ports[i].chip_select_pin, OUTPUT);
-        digitalWrite(hal->ports[i].chip_select_pin, HIGH);
-    }
-
-    return tf_hal_common_prepare(hal, port_count, 50000);
+    return tf_hal_common_prepare(hal, PORT_COUNT, 50000);
 }
 
 int tf_hal_destroy(TF_HalContext *hal){
-    bool uses_hspi = false;
-    bool uses_vspi = false;
+    hal->hspi.end();
+    hal->vspi.end();
 
-    for(int i = 0; i < hal->port_count; ++i) {
-        uses_hspi |= hal->ports[i].spi == HSPI;
-        uses_vspi |= hal->ports[i].spi == VSPI;
-    }
-    if (uses_hspi)
-        hal->hspi.end();
-    if (uses_vspi)
-        hal->vspi.end();
     return TF_E_OK;
 }
 
 static SPIClass *get_spi(TF_HalContext *hal, uint8_t port_id) {
     SPIClass *spi = NULL;
 
-    if (hal->ports[port_id].spi == HSPI)
+    if (ports[port_id].spi == HSPI)
         spi = &hal->hspi;
-    else if (hal->ports[port_id].spi == VSPI)
+    else if (ports[port_id].spi == VSPI)
         spi = &hal->vspi;
     return spi;
 }
@@ -81,9 +101,9 @@ int tf_hal_chip_select(TF_HalContext *hal, uint8_t port_id, bool enable){
 
     if (enable) {
         spi->beginTransaction(hal->spi_settings);
-        digitalWrite(hal->ports[port_id].chip_select_pin, LOW);
+        digitalWrite(ports[port_id].chip_select_pin, LOW);
     } else {
-        digitalWrite(hal->ports[port_id].chip_select_pin, HIGH);
+        digitalWrite(ports[port_id].chip_select_pin, HIGH);
         spi->endTransaction();
     }
     return TF_E_OK;
@@ -123,7 +143,7 @@ void tf_hal_log_newline() {
     Serial.println("");
 }
 
-#ifdef TF_IMPLEMENT_STRERROR
+#if TF_IMPLEMENT_STRERROR != 0
 const char *tf_hal_strerror(int e_code) {
     switch(e_code) {
         #include "bindings/error_cases.h"
@@ -134,13 +154,13 @@ const char *tf_hal_strerror(int e_code) {
 #endif
 
 char tf_hal_get_port_name(TF_HalContext *hal, uint8_t port_id) {
-    if(port_id > hal->port_count)
+    if(port_id > PORT_COUNT)
         return '?';
-    return hal->ports[port_id].port_name;
+    return ports[port_id].port_name;
 }
 
 TF_PortCommon *tf_hal_get_port_common(TF_HalContext *hal, uint8_t port_id) {
-    if(port_id > hal->port_count)
+    if(port_id > PORT_COUNT)
         return NULL;
-    return &hal->ports[port_id].port_common;
+    return &ports[port_id].port_common;
 }

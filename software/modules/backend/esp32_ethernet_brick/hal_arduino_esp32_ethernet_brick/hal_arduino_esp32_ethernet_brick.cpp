@@ -6,21 +6,50 @@
  * Commons Zero (CC0 1.0) License for more details.
  */
 
-#include "hal_arduino_esp32_ethernet.h"
+#include "hal_arduino_esp32_ethernet_brick.h"
 #include "SPI.h"
 #include <Arduino.h>
 
 #include "bindings/config.h"
 #include "bindings/errors.h"
 
+typedef struct TF_Port {
+    char port_name;
+
+    TF_PortCommon port_common;
+} TF_Port;
+
+TF_Port ports[6] = {{
+        .port_name = 'A',
+        .port_common.__to_init = 0
+    }, {
+        .port_name = 'B',
+        .port_common.__to_init = 0
+    }, {
+        .port_name = 'C',
+        .port_common.__to_init = 0
+    }, {
+        .port_name = 'D',
+        .port_common.__to_init = 0
+    }, {
+        .port_name = 'E',
+        .port_common.__to_init = 0
+    }, {
+        .port_name = 'F',
+        .port_common.__to_init = 0
+    }
+};
+
+#define PORT_COUNT (sizeof(ports)/sizeof(ports[0]))
+
 static const int CS_PIN_0 = 12;
 static const int CS_PIN_1 = 13;
 static const int CS_PIN_2 = 14;
-static const int CLK_PIN = 32;
+static const int CLK_PIN  = 32;
 static const int MOSI_PIN = 33;
 static const int MISO_PIN = 35;
 
-void select_demux(uint8_t port_id) {
+static void select_demux(uint8_t port_id) {
     // As we always alternate between select_demux and deselect_demux, we can assume, that all three pins are high.
     // clearing the pins we want to set to 0 is sufficient.
 
@@ -29,18 +58,15 @@ void select_demux(uint8_t port_id) {
     REG_WRITE(GPIO_OUT_W1TC_REG, (inv & 0x07) << CS_PIN_0);
 }
 
-void deselect_demux() {
+static void deselect_demux() {
     REG_WRITE(GPIO_OUT_W1TS_REG, 0x07 << CS_PIN_0);
 }
 
-int tf_hal_create(TF_HalContext *hal, TF_Port *ports, uint8_t port_count) {
+int tf_hal_create(TF_HalContext *hal) {
     int rc = tf_hal_common_create(hal);
     if (rc != TF_E_OK) {
         return rc;
     }
-
-    hal->ports = ports;
-    hal->port_count = port_count;
 
     hal->spi_settings = SPISettings(1400000, SPI_MSBFIRST, SPI_MODE3);
 
@@ -52,7 +78,7 @@ int tf_hal_create(TF_HalContext *hal, TF_Port *ports, uint8_t port_count) {
     pinMode(CS_PIN_2, OUTPUT);
     deselect_demux();
 
-    return tf_hal_common_prepare(hal, port_count, 50000);
+    return tf_hal_common_prepare(hal, PORT_COUNT, 50000);
 }
 
 int tf_hal_destroy(TF_HalContext *hal){
@@ -112,13 +138,13 @@ const char *tf_hal_strerror(int e_code) {
 #endif
 
 char tf_hal_get_port_name(TF_HalContext *hal, uint8_t port_id) {
-    if(port_id > hal->port_count)
+    if(port_id > PORT_COUNT)
         return '?';
-    return hal->ports[port_id].port_name;
+    return ports[port_id].port_name;
 }
 
 TF_PortCommon *tf_hal_get_port_common(TF_HalContext *hal, uint8_t port_id) {
-    if(port_id > hal->port_count)
+    if(port_id > PORT_COUNT)
         return NULL;
-    return &hal->ports[port_id].port_common;
+    return &ports[port_id].port_common;
 }

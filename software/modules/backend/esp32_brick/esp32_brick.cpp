@@ -39,33 +39,6 @@ extern int8_t green_led_pin;
 extern int8_t button_pin;
 extern bool factory_reset_requested;
 
-TF_Port ports[6] = {{
-        .chip_select_pin = 16,
-        .spi = VSPI,
-        .port_name = 'A'
-    }, {
-        .chip_select_pin = 33,
-        .spi = VSPI,
-        .port_name = 'B'
-    }, {
-        .chip_select_pin = 17,
-        .spi = VSPI,
-        .port_name = 'C'
-    }, {
-        .chip_select_pin = 25,
-        .spi = HSPI,
-        .port_name = 'D'
-    }, {
-        .chip_select_pin = 26,
-        .spi = HSPI,
-        .port_name = 'E'
-    }, {
-        .chip_select_pin = 27,
-        .spi = HSPI,
-        .port_name = 'F'
-    }
-};
-
 ESP32Brick::ESP32Brick()
 {
 
@@ -73,7 +46,7 @@ ESP32Brick::ESP32Brick()
 
 void ESP32Brick::setup()
 {
-    check(tf_hal_create(&hal, ports, sizeof(ports)/sizeof(ports[0])), "hal create");
+    check(tf_hal_create(&hal), "hal create");
     tf_hal_set_timeout(&hal, 100000);
 
     read_efuses(&uid_numeric, uid, passphrase);

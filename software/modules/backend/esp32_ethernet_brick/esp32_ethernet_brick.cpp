@@ -21,7 +21,7 @@
 #include "Arduino.h"
 
 #include "tools.h"
-#include "hal_arduino_esp32_ethernet/hal_arduino_esp32_ethernet.h"
+#include "hal_arduino_esp32_ethernet_brick/hal_arduino_esp32_ethernet_brick.h"
 
 #define GREEN_LED 2
 #define BLUE_LED 15
@@ -35,21 +35,6 @@ extern int8_t blue_led_pin;
 extern int8_t green_led_pin;
 extern int8_t button_pin;
 
-TF_Port ports[6] = {{
-        .port_name = 'A'
-    }, {
-        .port_name = 'B'
-    }, {
-        .port_name = 'C'
-    }, {
-        .port_name = 'D'
-    }, {
-        .port_name = 'E'
-    }, {
-        .port_name = 'F'
-    }
-};
-
 ESP32EthernetBrick::ESP32EthernetBrick()
 {
 
@@ -57,7 +42,7 @@ ESP32EthernetBrick::ESP32EthernetBrick()
 
 void ESP32EthernetBrick::setup()
 {
-    check(tf_hal_create(&hal, ports, sizeof(ports)/sizeof(ports[0])), "hal create");
+    check(tf_hal_create(&hal), "hal create");
     tf_hal_set_timeout(&hal, 100000);
 
     read_efuses(&uid_numeric, uid, passphrase);
